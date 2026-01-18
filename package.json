@@ -1,0 +1,37 @@
+{
+    "name": "Career Vedha-app",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "vitest",
+        "test:coverage": "vitest run --coverage"
+    },
+    "dependencies": {
+        "@stomp/stompjs": "^7.2.1",
+        "axios": "^1.6.2",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.20.0",
+        "sockjs-client": "^1.6.1"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.57.0",
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.1",
+        "@testing-library/user-event": "^14.6.1",
+        "@types/node": "^25.0.9",
+        "@types/react": "^18.2.43",
+        "@types/react-dom": "^18.2.17",
+        "@vitejs/plugin-react": "^4.7.0",
+        "@vitest/coverage-v8": "^4.0.17",
+        "jsdom": "^27.4.0",
+        "vite": "^5.0.8",
+        "vite-plugin-pwa": "^1.2.0",
+        "vitest": "^4.0.17"
+    }
+}

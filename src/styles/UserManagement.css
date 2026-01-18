@@ -1,0 +1,533 @@
+/* User Management - Minimal Professional Design */
+/* Updated: 2026-01-18 15:38 - Single Row Layout v5.0 */
+
+/* Header Section - Compact & Minimal */
+.um-header {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--slate-200);
+}
+
+.um-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.um-title-section {
+    flex: 1;
+}
+
+.um-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--slate-900);
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.um-title i {
+    width: 44px;
+    height: 44px;
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.um-subtitle {
+    color: var(--slate-500);
+    font-size: 0.875rem;
+    margin: 0;
+    font-weight: 400;
+}
+
+.um-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.um-stat-card {
+    background: var(--primary-yellow);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(250, 204, 21, 0.2);
+    min-width: 160px;
+}
+
+.um-stat-card i {
+    font-size: 1.75rem;
+    color: var(--slate-900);
+}
+
+.um-stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.um-stat-value {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: var(--slate-900);
+    line-height: 1;
+}
+
+.um-stat-label {
+    font-size: 0.7rem;
+    color: var(--slate-800);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Filter Bar - Single Row Container */
+.um-filter-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+    margin-bottom: 1.5rem;
+}
+
+/* Tabs - Minimal Design */
+.um-tabs {
+    display: flex;
+    gap: 0.75rem;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--slate-200);
+    flex: 1;
+}
+
+.um-tab {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: var(--slate-600);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.um-tab i {
+    font-size: 0.95rem;
+}
+
+.um-tab.active {
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+}
+
+/* Search Form - Minimal Clean */
+.um-search-form {
+    flex: 0.8;
+    margin-bottom: 0;
+}
+
+.um-search-wrapper {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--slate-200);
+    height: 100%;
+}
+
+.um-search-wrapper:focus-within {
+    border-color: var(--primary-yellow);
+}
+
+.um-search-icon {
+    color: var(--slate-400);
+    margin-left: 0.75rem;
+    font-size: 1rem;
+}
+
+.um-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    background: transparent;
+    color: var(--slate-900);
+    font-weight: 400;
+}
+
+.um-search-input::placeholder {
+    color: var(--slate-400);
+}
+
+.um-search-btn {
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Error Message */
+.um-error-message {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 0.875rem 1.25rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    border: 1px solid #fecaca;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.um-error-message i {
+    font-size: 1.1rem;
+}
+
+/* Loading State */
+.um-loading {
+    background: white;
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--slate-200);
+}
+
+.um-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--slate-200);
+    border-top-color: var(--primary-yellow);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.um-loading p {
+    color: var(--slate-600);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Table Container */
+.um-table-container {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--slate-200);
+    margin-bottom: 1.5rem;
+}
+
+.um-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.um-table thead {
+    background: var(--slate-900);
+    color: white;
+}
+
+.um-table thead th {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.um-table thead th i {
+    margin-right: 0.5rem;
+    color: var(--primary-yellow);
+    font-size: 0.85rem;
+}
+
+.um-table tbody tr {
+    border-bottom: 1px solid var(--slate-100);
+}
+
+.um-table tbody tr:hover {
+    background-color: var(--slate-50);
+}
+
+.um-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.um-table tbody td {
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    color: var(--slate-700);
+}
+
+.um-email {
+    font-weight: 600;
+    color: var(--slate-900);
+}
+
+/* Role Badge - Minimal */
+.um-role-badge {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.um-role-badge.super_admin {
+    background: #dc2626;
+    color: white;
+}
+
+.um-role-badge.admin {
+    background: #f59e0b;
+    color: white;
+}
+
+.um-role-badge.creator,
+.um-role-badge.publisher,
+.um-role-badge.user {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Status Badge - Minimal */
+.um-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.um-status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.um-status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.um-status-badge i {
+    font-size: 0.85rem;
+}
+
+/* Action Button - Minimal */
+.um-action-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.um-action-btn.activate {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.um-action-btn.deactivate {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Empty State */
+.um-empty-state {
+    text-align: center;
+    padding: 3rem 2rem !important;
+    color: var(--slate-500);
+}
+
+.um-empty-state i {
+    font-size: 2.5rem;
+    color: var(--slate-300);
+    margin-bottom: 0.875rem;
+    display: block;
+}
+
+.um-empty-state p {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Pagination - Minimal */
+.um-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.25rem;
+    background: white;
+    padding: 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--slate-200);
+}
+
+.um-page-btn {
+    padding: 0.625rem 1.25rem;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 8px;
+    color: var(--slate-700);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.um-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.um-page-info {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    color: var(--slate-700);
+    font-size: 0.875rem;
+}
+
+.um-page-current {
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+    padding: 0.4rem 0.875rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.um-page-separator {
+    color: var(--slate-400);
+    font-size: 0.8rem;
+}
+
+.um-page-total {
+    font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .um-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .um-stats {
+        width: 100%;
+    }
+
+    .um-stat-card {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .um-header {
+        padding: 1.25rem;
+    }
+
+    .um-title {
+        font-size: 1.25rem;
+    }
+
+    .um-title i {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+
+    .um-filter-bar {
+        flex-direction: column;
+    }
+
+    .um-tabs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .um-tab {
+        width: 100%;
+    }
+
+    .um-table-container {
+        overflow-x: auto;
+    }
+
+    .um-table {
+        min-width: 800px;
+    }
+
+    .um-pagination {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .um-page-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
