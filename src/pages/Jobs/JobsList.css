@@ -1,0 +1,173 @@
+/* JobsList.css */
+
+.jobs-page-wrapper {
+    background-color: var(--gray-50);
+    min-height: 100vh;
+}
+
+.jobs-hero {
+    background: linear-gradient(135deg, var(--gray-900) 0%, #1e293b 100%);
+    padding: 60px 0;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.jobs-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 70% 30%, rgba(243, 192, 41, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.jobs-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    background: linear-gradient(to right, #fff, var(--primary-yellow));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.jobs-hero p {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.jobs-main-content {
+    padding: 40px 0 80px 0;
+}
+
+.jobs-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 40px;
+}
+
+.jobs-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.jobs-results-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.results-count {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+.load-more-container {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-load-more {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-weight: 700;
+    color: var(--gray-900);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-load-more:hover {
+    background: var(--primary-yellow);
+    border-color: var(--primary-yellow);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.no-results-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 40px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.no-results-state i {
+    font-size: 4rem;
+    color: var(--gray-100);
+    margin-bottom: 24px;
+}
+
+.no-results-state h3 {
+    font-size: 1.5rem;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+}
+
+.no-results-state p {
+    color: var(--text-gray);
+    margin-bottom: 24px;
+}
+
+.btn-reset {
+    background: var(--gray-900);
+    color: var(--primary-yellow);
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Skeleton Loader */
+.job-card-skeleton {
+    height: 250px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #f7f7f7 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 16px;
+}
+
+@keyframes loading {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+
+@media (max-width: 1024px) {
+    .jobs-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .jobs-sidebar {
+        display: none; /* In real app, make it a drawer or top row on mobile */
+    }
+}
+
+@media (max-width: 768px) {
+    .jobs-hero h1 {
+        font-size: 2rem;
+    }
+    
+    .jobs-grid {
+        grid-template-columns: 1fr;
+    }
+}

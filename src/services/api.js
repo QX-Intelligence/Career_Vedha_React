@@ -15,7 +15,7 @@ let isRefreshing = false;
 let failedQueue = [];
 
 const api = axios.create({
-    baseURL: API_BASE,
+    baseURL: API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`,
     withCredentials: true,
     timeout: 30000, // Increased default to 30s
 });
@@ -38,6 +38,8 @@ export const getUserContext = () => ({
     status: _userStatus,
     isAuthenticated: !!_accessToken
 });
+
+export const getAccessToken = () => _accessToken;
 
 // Simple Subscription Mechanism
 const listeners = new Set();

@@ -6,9 +6,17 @@ import AdminRegister from './pages/AdminRegister';
 import Dashboard from './pages/Dashboard';
 import Exam from './pages/Exam';
 import UserManagement from './pages/UserManagement';
+import ArticleDetail from './pages/ArticleDetail';
 import api, { setUserContext } from './services/api';
 import './styles/index.css';
 import { SnackbarProvider } from './context/SnackbarContext';
+import TooltipManager from './components/ui/TooltipManager';
+
+import JobsList from './pages/Jobs/JobsList';
+import JobDetail from './pages/Jobs/JobDetail';
+import JobsManagement from './pages/CMS/JobsManagement';
+import JobEditor from './pages/CMS/JobEditor';
+import TaxonomyManagement from './pages/CMS/TaxonomyManagement';
 
 function App() {
     const [isInitializing, setIsInitializing] = useState(true);
@@ -57,6 +65,7 @@ function App() {
 
     return (
         <SnackbarProvider>
+            <TooltipManager />
             <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <div className="App">
                     <Routes>
@@ -66,6 +75,18 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/exam" element={<Exam />} />
                         <Route path="/user-management" element={<UserManagement />} />
+                        <Route path="/article/:section/:slug" element={<ArticleDetail />} />
+                        
+                        {/* Public Job Board */}
+                        <Route path="/jobs" element={<JobsList />} />
+                        <Route path="/jobs/:slug" element={<JobDetail />} />
+
+                        {/* CMS Jobs Management */}
+                        <Route path="/cms/jobs" element={<JobsManagement />} />
+                        <Route path="/cms/jobs/create" element={<JobEditor />} />
+                        <Route path="/cms/jobs/edit/:id" element={<JobEditor />} />
+                        <Route path="/cms/taxonomy" element={<TaxonomyManagement />} />
+
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </div>

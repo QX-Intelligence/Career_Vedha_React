@@ -1,0 +1,133 @@
+/* JobEditor.css */
+
+.editor-main-content {
+    padding: 40px 0 80px 0;
+}
+
+.editor-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.btn-back {
+    background: white;
+    border: 1px solid var(--gray-200);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-back:hover { background: var(--gray-50); }
+
+.editor-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+}
+
+.job-form {
+    padding: 40px;
+}
+
+.form-section {
+    margin-bottom: 48px;
+}
+
+.form-section h3 {
+    font-size: 1.1rem;
+    color: var(--primary-yellow);
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--gray-100);
+    padding-bottom: 12px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gray-700);
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+    padding: 12px 16px;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 3px rgba(243, 192, 41, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    padding-top: 32px;
+    border-top: 1px solid var(--gray-100);
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid var(--gray-300);
+    padding: 12px 32px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-submit {
+    background: var(--gray-900);
+    color: var(--primary-yellow);
+    border: none;
+    padding: 12px 48px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: #000;
+    transform: translateY(-2px);
+}
+
+.btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.editor-loading {
+    padding: 100px;
+    text-align: center;
+    font-style: italic;
+    color: var(--text-gray);
+}

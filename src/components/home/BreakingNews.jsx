@@ -1,21 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { mockBreakingNews } from '../../utils/mockData';
 
-const BreakingNews = () => {
+const BreakingNews = ({ data }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
-    const newsItems = mockBreakingNews;
+    const newsItems = data && data.length > 0 ? data : mockBreakingNews;
 
     useEffect(() => {
+        if (newsItems.length <= 1) return;
+
         const interval = setInterval(() => {
             setIsAnimating(true);
             setTimeout(() => {
                 setCurrentIndex((prev) => (prev + 1) % newsItems.length);
                 setIsAnimating(false);
-            }, 1200); // Match new longer animation duration
-        }, 6000); // Even slower reading time (6s)
+            }, 1200);
+        }, 6000);
         return () => clearInterval(interval);
     }, [newsItems.length]);
+
+    const getNewsContent = (item) => {
+        if (typeof item === 'string') return item;
+        return item.title || 'Latest Updates';
+    };
+
+    const getNewsLink = (item) => {
+        if (typeof item === 'string') return '#';
+        return item.slug ? `/article/${item.slug}` : '#';
+    };
+
+    if (!newsItems || newsItems.length === 0) return null;
 
     return (
         <div className="breaking-news">
@@ -26,7 +40,9 @@ const BreakingNews = () => {
                     </div>
                     <div className="current-news-item-wrapper">
                         <div key={currentIndex} className="news-slide-item slide-in-right">
-                            <a href="#">{newsItems[currentIndex]}</a>
+                            <a href={getNewsLink(newsItems[currentIndex])}>
+                                {getNewsContent(newsItems[currentIndex])}
+                            </a>
                         </div>
                     </div>
                 </div>

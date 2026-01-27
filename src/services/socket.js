@@ -1,16 +1,15 @@
 import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 let stompClient = null;
 
 export const connectWebSocket = (role, onMessage) => {
     let wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws';
 
-    const brokerUrl = wsUrl.replace(/^http/, 'ws');
-
-    console.log("🔌 Attempting Native WebSocket connection to:", brokerUrl);
+    console.log("🔌 Attempting SockJS + STOMP connection to:", wsUrl);
 
     stompClient = new Client({
-        brokerURL: brokerUrl,
+        webSocketFactory: () => new SockJS(wsUrl),
         reconnectDelay: 5000,
         onConnect: () => {
             console.log("✅ WebSocket connected");

@@ -53,7 +53,7 @@ const UserProfileSection = () => {
                 lastName: profile.lastName
             });
 
-            // Update global context (Dashboard, Sidebar, Navbar)
+
             updateGlobalNames(profile.firstName, profile.lastName);
 
             showSnackbar('Profile updated successfully!', 'success');

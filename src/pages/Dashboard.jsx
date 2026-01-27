@@ -11,6 +11,8 @@ import { useSnackbar } from '../context/SnackbarContext';
 import API_CONFIG from '../config/api.config';
 import CustomSelect from '../components/ui/CustomSelect';
 import UserProfileSection from '../components/dashboard/UserProfileSection';
+import { newsService } from '../services';
+import ArticleManagement from './ArticleManagement';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -60,46 +62,45 @@ const Dashboard = () => {
         const timeInfo = formatTimestamp(ts);
 
         return (
-            <div key={n.id} className={`approval-card ${isArchive ? 'archived-item' : ''}`}
-                style={isArchive ? { opacity: 0.85, background: '#f8fafc' } : { borderLeft: '4px solid var(--primary-yellow)' }}>
+            <div key={n.id} className={`approval-card ${isArchive ? 'archived-item' : 'unread'}`}>
                 <div className="card-info">
-                    <div className="user-avatar-small" style={isArchive ? { background: '#cbd5e1' } : {}}>
+                    <div className="user-avatar-small">
                         <i className={isArchive ? "fas fa-check-circle" : "fas fa-user-clock"}></i>
                     </div>
                     <div className="request-text">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <strong style={isArchive ? { color: '#64748b' } : {}}>{displayTitle}</strong>
+                        <div className="notification-title-row">
+                            <strong>{displayTitle}</strong>
                             {isArchive && n.notificationStatus && (
                                 <span className={`status-badge-mini ${n.notificationStatus.toLowerCase()}`}>
                                     {n.notificationStatus}
                                 </span>
                             )}
-                            {!isSeen && !isArchive && <span className="unseen-dot" title="New alert"></span>}
+                            {!isSeen && !isArchive && <span className="unseen-dot" data-tooltip="New alert"></span>}
                         </div>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                        <div className="notification-meta">
                             {isArchive && n.processedBy && (
-                                <span className="processor-badge" title="Who actioned this request">
+                                <span className="processor-badge" data-tooltip="Who actioned this request">
                                     <i className="fas fa-user-shield"></i> {n.processedBy}
                                 </span>
                             )}
                             {requesterIdentity && (
-                                <span className="requester-badge" title="Identity of the subject">
+                                <span className="requester-badge" data-tooltip="Identity of the subject">
                                     <i className="fas fa-user"></i> {requesterIdentity}
                                 </span>
                             )}
                             {!requesterIdentity && n.message && (
-                                <span className="requester-badge system" title="System broadcast">
+                                <span className="requester-badge system" data-tooltip="System broadcast">
                                     <i className="fas fa-robot"></i> System Alert
                                 </span>
                             )}
                         </div>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>{n.message}</p>
+                        <p>{n.message}</p>
                     </div>
                 </div>
 
-                <div className="card-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="card-actions">
                     {timeInfo && (
-                        <div className="timestamp-badge" title={timeInfo.fullDateTime}>
+                        <div className="timestamp-badge" data-tooltip={timeInfo.fullDateTime}>
                             <i className="far fa-clock"></i>
                             <span>{timeInfo.relativeTime}</span>
                         </div>
@@ -125,10 +126,10 @@ const Dashboard = () => {
         return (
             <div key={n.id} className="popover-item">
                 <div className="popover-item-text">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <strong>New Request</strong>
-                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} title="Mark as read">
-                            <i className="fas fa-eye"></i>
+                    <div className="popover-item-header">
+                        <strong>{n.title || 'New Request'}</strong>
+                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} data-tooltip="Mark as read">
+                            <i className="fas fa-check"></i>
                         </button>
                     </div>
                     <p>{n.message}</p>
@@ -260,6 +261,7 @@ const Dashboard = () => {
     /* ================= AUTH ================= */
     const [userEmail, setUserEmail] = useState('');
     const [userRole, setUserRole] = useState('');
+    const [homeData, setHomeData] = useState({ hero: [], top_stories: [], breaking: [], latest: { results: [] } });
 
     /* ================= ERROR HANDLER ================= */
     const handleApiError = (err, fallbackMessage) => {
@@ -278,13 +280,14 @@ const Dashboard = () => {
     const [isLoadingPending, setIsLoadingPending] = useState(false);
     const [isLoadingArchive, setIsLoadingArchive] = useState(false);
 
-    const [pendingCursor, setPendingCursor] = useState(null);
-    const [archiveCursor, setArchiveCursor] = useState(null);
     const [overallUnseenCount, setOverallUnseenCount] = useState(0);
     const [totalPendingCount, setTotalPendingCount] = useState(0);
     const [totalArchiveCount, setTotalArchiveCount] = useState(0);
     const [hasMorePending, setHasMorePending] = useState(true);
     const [hasMoreArchive, setHasMoreArchive] = useState(true);
+
+    const pendingCursorRef = useRef(null);
+    const archiveCursorRef = useRef(null);
 
     const [loadingMorePending, setLoadingMorePending] = useState(false);
     const [loadingMoreArchive, setLoadingMoreArchive] = useState(false);
@@ -390,6 +393,7 @@ const Dashboard = () => {
 
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeSection, setActiveSectionState] = useState(searchParams.get('tab') || 'overview');
+    const [isCmsOpen, setIsCmsOpen] = useState(true);
 
     const setActiveSection = (section) => {
         setActiveSectionState(section);
@@ -607,7 +611,6 @@ const Dashboard = () => {
     }, []);
 
 
-    /* ================= PERMISSION CONFIG ================= */
     const MODULES = {
         ROLE_CONTROL: 'ROLE_CONTROL',
         PERMISSIONS: 'PERMISSIONS',
@@ -615,14 +618,19 @@ const Dashboard = () => {
         NOTIFICATIONS: 'NOTIFICATIONS',
         OVERVIEW_STATS: 'OVERVIEW_STATS',
         APPROVALS: 'APPROVALS',
-        USER_MANAGEMENT: 'USER_MANAGEMENT'
+        USER_MANAGEMENT: 'USER_MANAGEMENT',
+        ARTICLE_MANAGEMENT: 'ARTICLE_MANAGEMENT',
+        JOB_MANAGEMENT: 'JOB_MANAGEMENT'
     };
 
     // Define access for non-super roles. Super Admin has wildcard access.
     const ROLE_PERMISSIONS = {
-        ADMIN: [MODULES.ROLE_CONTROL, MODULES.PERMISSIONS, MODULES.QUIZ_MANAGER, MODULES.NOTIFICATIONS, MODULES.OVERVIEW_STATS, MODULES.APPROVALS, MODULES.USER_MANAGEMENT],
+        ADMIN: [MODULES.ROLE_CONTROL, MODULES.PERMISSIONS, MODULES.QUIZ_MANAGER, MODULES.NOTIFICATIONS, MODULES.OVERVIEW_STATS, MODULES.APPROVALS, MODULES.USER_MANAGEMENT, MODULES.ARTICLE_MANAGEMENT, MODULES.JOB_MANAGEMENT],
+        CONTRIBUTOR: [MODULES.ARTICLE_MANAGEMENT, MODULES.OVERVIEW_STATS],
+        EDITOR: [MODULES.ARTICLE_MANAGEMENT, MODULES.OVERVIEW_STATS],
+        PUBLISHER: [MODULES.ARTICLE_MANAGEMENT, MODULES.QUIZ_MANAGER, MODULES.OVERVIEW_STATS, MODULES.JOB_MANAGEMENT],
+        // Legacy support
         CREATOR: [MODULES.QUIZ_MANAGER, MODULES.OVERVIEW_STATS],
-        PUBLISHER: [MODULES.QUIZ_MANAGER, MODULES.OVERVIEW_STATS],
     };
 
     const checkAccess = (module) => {
@@ -641,9 +649,43 @@ const Dashboard = () => {
             return navigate('/admin-login');
         }
 
+        const auth = getUserContext();
+        window._AUTH_ = auth;
+
         setUserRole(role);
         setUserEmail(email);
         setUserStatus(status);
+
+        // Fetch home content from both languages to ensure all pins show in overview
+        Promise.all([
+            newsService.getHomeContent('te'),
+            newsService.getHomeContent('en')
+        ]).then(([teData, enData]) => {
+            const mergedHero = [...teData.hero, ...enData.hero];
+            const mergedTop = [...teData.top_stories, ...enData.top_stories];
+            const mergedBreaking = [...teData.breaking, ...enData.breaking];
+            const mergedFeatured = [...teData.featured, ...enData.featured];
+            const mergedTrending = [...(teData.trending || []), ...(enData.trending || [])];
+
+            const dedup = (list) => {
+                const seen = new Set();
+                return list.filter(item => {
+                    const id = item.article_id || item.pk || item.id;
+                    if (seen.has(id)) return false;
+                    seen.add(id);
+                    return true;
+                });
+            };
+
+            setHomeData({
+                hero: dedup(mergedHero),
+                top_stories: dedup(mergedTop),
+                breaking: dedup(mergedBreaking),
+                featured: dedup(mergedFeatured),
+                trending: dedup(mergedTrending),
+                latest: teData.latest || { results: [] }
+            });
+        }).catch(console.error);
 
         // fetch profile names if not in context
         if (firstName && lastName) {
@@ -692,19 +734,25 @@ const Dashboard = () => {
     const fetchUnseenCount = async () => {
         if (!userRole) return;
         try {
-            // Fetch more for count to ensure badge is accurate
-            const data = await fetchNotifications(userRole, { limit: 100 });
-            const items = Array.isArray(data) ? data : (data?.content || []);
+            // Strictly follow 20-item load design
+            const data = await fetchNotifications(userRole, { size: 20 });
+            const rawItems = Array.isArray(data) ? data : (data?.content || []);
 
             // Filter out items using the existing suppression logic
-            const unseen = items.filter(n => {
+            const unseen = rawItems.filter(n => {
                 const ts = n.localDateTime || n.timestamp;
                 const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
                 const isSuppressed = suppressedNotificationIds.includes(n.id);
-                const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || isSuppressed || isSeenLocally;
-                return !isSeen;
+                return !(n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || isSuppressed || isSeenLocally);
             });
+
             setOverallUnseenCount(unseen.length);
+
+            // Sync total pending count with seen count locally if metadata is missing
+            const metadataTotal = extractTotalCount(data, rawItems);
+            if (metadataTotal > totalPendingCount) {
+                setTotalPendingCount(metadataTotal);
+            }
         } catch (err) {
             console.error("Failed to fetch unseen count", err);
         }
@@ -712,133 +760,166 @@ const Dashboard = () => {
 
     const extractTotalCount = (data, items) => {
         // Deep search for total count keys
-        return data?.totalElements ||
+        const total = data?.totalElements ||
             data?.total ||
             data?.totalCount ||
             data?.count ||
             data?.page?.totalElements ||
-            data?.metadata?.total ||
-            items.length;
+            data?.metadata?.total;
+
+        // If metadata is present, use it. Otherwise, use the length of items we have.
+        // If items length equals a common limit like 50, it strongly suggests a cap.
+        const currentCount = Array.isArray(items) ? items.length : 0;
+        return (total !== undefined && total !== null) ? total : currentCount;
     };
 
     const loadPendingFeed = useCallback(async (reset = false) => {
         if (!userRole || isFetchingPendingRef.current) return;
-        const isFirstLoad = reset || !pendingCursor;
+        const isFirstLoad = reset || !pendingCursorRef.current;
         if (!isFirstLoad && !hasMorePending) return;
 
-        if (reset) setIsLoadingPending(true); else setLoadingMorePending(true);
+        if (reset) {
+            setIsLoadingPending(true);
+            pendingCursorRef.current = null;
+        } else {
+            setLoadingMorePending(true);
+        }
         isFetchingPendingRef.current = true;
 
         try {
-            const params = isFirstLoad ? { limit: 20 } : {
-                limit: 20,
-                cursorId: pendingCursor.id,
-                cursorTime: pendingCursor.timestamp
+            const params = isFirstLoad ? { size: 20 } : {
+                size: 20,
+                cursorId: pendingCursorRef.current.id,
+                cursorTime: pendingCursorRef.current.timestamp
             };
             const data = await fetchNotificationsByStatus('PENDING', userRole, params);
-            // Handle both Page object with 'content' and raw array
             const rawItems = Array.isArray(data) ? data : (data?.content || []);
-            // Strictly filter items to PENDING status to avoid server leakage
+
+            // Advance cursor if we got items
+            if (rawItems.length > 0) {
+                const lastRaw = rawItems[rawItems.length - 1];
+                pendingCursorRef.current = {
+                    id: lastRaw.id,
+                    timestamp: lastRaw.localDateTime || lastRaw.timestamp || new Date().toISOString()
+                };
+            }
+
             const items = rawItems.filter(n => n.notificationStatus === 'PENDING');
+            const metadataTotal = data?.totalElements || data?.total || data?.totalCount || data?.count || data?.page?.totalElements || data?.metadata?.total;
 
-            // Extract total using robust helper
-            let total = extractTotalCount(data, items);
-
-            // If total matches limit, and we're missing explicit metadata, try to peek further for the true total
-            if (total === params.limit && !data?.totalElements && !data?.total) {
-                // Peek up to 500 for the true total if metadata is missing
-                const peekRes = await fetchNotificationsByStatus('PENDING', userRole, { limit: 500 });
-                const peekItemsArr = Array.isArray(peekRes) ? peekRes : (peekRes?.content || []);
-                const peekItems = peekItemsArr.filter(n => n.notificationStatus === 'PENDING');
-                total = extractTotalCount(peekRes, peekItems);
+            if (reset) {
+                setTotalPendingCount(metadataTotal !== undefined ? metadataTotal : items.length);
+            } else {
+                setTotalPendingCount(prev => metadataTotal !== undefined ? metadataTotal : (prev + items.length));
             }
 
-            if (reset) setTotalPendingCount(total);
-            else if (items.length > 0 && total > totalPendingCount) setTotalPendingCount(total);
+            setPendingFeed(prev => {
+                if (reset) return items;
+                const newItems = items.filter(n => !prev.some(p => String(p.id) === String(n.id)));
+                if (newItems.length === 0 && items.length > 0) {
+                    // Logic to avoid stuck state: if we got items but they were all duplicates, 
+                    // it means we might be looping. The cursor advancement above should fix this,
+                    // but we'll log it for safety.
+                    console.warn("loadPendingFeed: All fetched items were duplicates.");
+                }
+                return [...prev, ...newItems];
+            });
 
-            setPendingFeed(prev => reset ? items : [...prev, ...items.filter(n => !prev.some(p => p.id === n.id))]);
-            if (items.length > 0) {
-                const last = items[items.length - 1];
-                setPendingCursor({ id: last.id, timestamp: last.localDateTime || last.timestamp || new Date().toISOString() });
-            }
             setHasMorePending(rawItems.length >= 20);
         } catch (err) {
             console.error("Failed to fetch pending notifications", err);
         } finally {
-            console.log("loadPendingFeed FINALLY: clearing loading flags");
             setIsLoadingPending(false);
             setLoadingMorePending(false);
             isFetchingPendingRef.current = false;
         }
-    }, [userRole, pendingCursor, hasMorePending]);
+    }, [userRole, hasMorePending]); // Stable callback
 
     const loadArchiveFeed = useCallback(async (reset = false) => {
         if (!userRole || isFetchingArchiveRef.current) return;
-        const isFirstLoad = reset || !archiveCursor;
+        const isFirstLoad = reset || !archiveCursorRef.current;
         if (!isFirstLoad && !hasMoreArchive) return;
 
-        if (reset) setIsLoadingArchive(true); else setLoadingMoreArchive(true);
+        if (reset) {
+            setIsLoadingArchive(true);
+            archiveCursorRef.current = null;
+        } else {
+            setLoadingMoreArchive(true);
+        }
         isFetchingArchiveRef.current = true;
 
         try {
-            const params = isFirstLoad ? { limit: 20 } : {
-                limit: 20,
-                cursorId: archiveCursor.id,
-                localDateTime: archiveCursor.timestamp
+            const params = isFirstLoad ? { size: 20 } : {
+                size: 20,
+                cursorId: archiveCursorRef.current.id,
+                cursorTime: archiveCursorRef.current.timestamp
             };
             const data = await fetchAllNotifications(userRole, params);
             const rawItems = Array.isArray(data) ? data : (data?.content || []);
 
-            // Extract total using robust helper
-            let total = extractTotalCount(data, rawItems);
+            // Archive logic: items that are NOT pending
+            const items = rawItems.filter(n => n.notificationStatus !== 'PENDING' && n.notificationStatus !== undefined);
 
-            // Fallback for missing metadata on page boundaries
-            if (total === params.limit && !data?.totalElements && !data?.total) {
-                const peekRes = await fetchAllNotifications(userRole, { limit: 500 });
-                const peekItems = Array.isArray(peekRes) ? peekRes : (peekRes?.content || []);
-                total = extractTotalCount(peekRes, peekItems);
+            // Extract total
+            const metadataTotal = data?.totalElements || data?.total || data?.totalCount || data?.count || data?.page?.totalElements || data?.metadata?.total;
+
+            if (reset) {
+                setTotalArchiveCount(metadataTotal !== undefined ? metadataTotal : items.length);
+            } else {
+                setTotalArchiveCount(prev => metadataTotal !== undefined ? metadataTotal : (prev + items.length));
             }
 
-            // Archive is everything NOT pending
-            let items = rawItems.filter(n => n.notificationStatus !== 'PENDING' && n.notificationStatus !== undefined);
-
-            if (reset) setTotalArchiveCount(total);
-            else if (items.length > 0 && total > totalArchiveCount) setTotalArchiveCount(total);
-
-            setArchiveFeed(prev => reset ? items : [...prev, ...items.filter(n => !prev.some(p => p.id === n.id))]);
-            if (items.length > 0) {
-                const last = items[items.length - 1];
-                setArchiveCursor({ id: last.id, timestamp: last.localDateTime || last.timestamp || new Date().toISOString() });
+            // Advance cursor with RAW items to ensure progress
+            if (rawItems.length > 0) {
+                const lastRaw = rawItems[rawItems.length - 1];
+                archiveCursorRef.current = {
+                    id: lastRaw.id,
+                    timestamp: lastRaw.localDateTime || lastRaw.timestamp || new Date().toISOString()
+                };
             }
+
+            setArchiveFeed(prev => {
+                if (reset) return items;
+                const newItems = items.filter(n => !prev.some(p => String(p.id) === String(n.id)));
+                return [...prev, ...newItems];
+            });
+
             setHasMoreArchive(rawItems.length >= 20);
         } catch (err) {
             console.error("Failed to fetch archive notifications", err);
         } finally {
-            console.log("loadArchiveFeed FINALLY: clearing loading flags");
             setIsLoadingArchive(false);
             setLoadingMoreArchive(false);
             isFetchingArchiveRef.current = false;
         }
-    }, [userRole, archiveCursor, hasMoreArchive]);
+    }, [userRole, hasMoreArchive]); // Stable callback
 
     useEffect(() => {
         if (!userRole) return;
         loadPendingFeed(true);
         loadArchiveFeed(true);
         fetchUnseenCount();
+
+        // Background refresh every 30 seconds to keep counts dynamic
+        const interval = setInterval(() => {
+            fetchUnseenCount();
+        }, 30000);
+
+        return () => clearInterval(interval);
     }, [userRole]);
 
     /* ================= EFFICIENT container-aware SCROLL DETECTION ================= */
     /* ================= EFFICIENT container-aware SCROLL DETECTION ================= */
     useEffect(() => {
-        const observerOptions = { rootMargin: '250px', threshold: 0.1 };
+        const observerOptions = { rootMargin: '100px', threshold: 0.1 };
 
         let pObserver = null;
         let aObserver = null;
 
         const pList = pendingListRef.current;
         const pSentinel = pendingSentinelRef.current;
-        if (pList && pSentinel && hasMorePending && !isLoadingPending && !loadingMorePending && activeSection === 'notifications') {
+        // Observers only care if they are permitted to run (hasMore and activeSection)
+        if (pList && pSentinel && hasMorePending && activeSection === 'notifications') {
             pObserver = new IntersectionObserver((entries) => {
                 if (entries.some(e => e.isIntersecting) && !isFetchingPendingRef.current) {
                     loadPendingFeed(false);
@@ -850,7 +931,7 @@ const Dashboard = () => {
         const aList = notificationListRef.current;
         const aSentinel = archiveSentinelRef.current;
         const inArchiveView = activeSection === 'notifications' || activeSection === 'overview';
-        if (aList && aSentinel && hasMoreArchive && !isLoadingArchive && !loadingMoreArchive && inArchiveView) {
+        if (aList && aSentinel && hasMoreArchive && inArchiveView) {
             aObserver = new IntersectionObserver((entries) => {
                 if (entries.some(e => e.isIntersecting) && !isFetchingArchiveRef.current) {
                     loadArchiveFeed(false);
@@ -863,7 +944,7 @@ const Dashboard = () => {
             if (pObserver) pObserver.disconnect();
             if (aObserver) aObserver.disconnect();
         };
-    }, [hasMorePending, isLoadingPending, loadingMorePending, hasMoreArchive, isLoadingArchive, loadingMoreArchive, activeSection, loadPendingFeed, loadArchiveFeed]);
+    }, [hasMorePending, hasMoreArchive, activeSection, loadPendingFeed, loadArchiveFeed]);
 
     /* ================= FETCH ROLES & PERMISSIONS ================= */
     const loadRolesAndPermissions = async () => {
@@ -958,6 +1039,7 @@ const Dashboard = () => {
                 }, ...prev]);
             }
             showSnackbar('Request approved successfully', 'success');
+            fetchUnseenCount(); // Refresh count after action
         } catch (error) {
             handleApiError(error, 'Approval failed');
         }
@@ -989,6 +1071,7 @@ const Dashboard = () => {
             }
             setRejectModal(false);
             showSnackbar('Request rejected', 'info');
+            fetchUnseenCount(); // Refresh count after action
         } catch (error) {
             handleApiError(error, 'Rejection failed');
         }
@@ -1310,9 +1393,6 @@ const Dashboard = () => {
                         >
                             <i className="fas fa-bell"></i>
                             <span className="menu-item-text">Notifications</span>
-                            {overallUnseenCount > 0 && (
-                                <span className="notification-badge-sidebar">{overallUnseenCount}</span>
-                            )}
                         </button>
                     )}
                     {checkAccess(MODULES.USER_MANAGEMENT) && (
@@ -1323,6 +1403,61 @@ const Dashboard = () => {
                             <i className="fas fa-users-cog"></i>
                             <span>User Management</span>
                         </button>
+                    )}
+
+                    <div className="sidebar-divider" style={{ height: '1px', background: 'rgba(226, 232, 240, 0.5)', margin: '15px 24px' }}></div>
+
+                    <div 
+                        className="sidebar-group-label" 
+                        onClick={() => setIsCmsOpen(!isCmsOpen)}
+                        style={{ 
+                            padding: '20px 24px 10px', 
+                            fontSize: '0.7rem', 
+                            fontWeight: '800', 
+                            color: '#94a3b8', 
+                            textTransform: 'uppercase', 
+                            letterSpacing: '0.05em',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            userSelect: 'none'
+                        }}
+                    >
+                        <span>CMS</span>
+                        <i className={`fas fa-chevron-${isCmsOpen ? 'down' : 'right'}`} style={{ fontSize: '0.6rem' }}></i>
+                    </div>
+
+                    {isCmsOpen && (
+                        <>
+                            {checkAccess(MODULES.ARTICLE_MANAGEMENT) && (
+                                <button
+                                    className={`menu-item ${activeSection === 'articles' ? 'active' : ''}`}
+                                    onClick={() => setActiveSection('articles')}
+                                >
+                                    <i className="fas fa-file-invoice"></i>
+                                    <span>Articles</span>
+                                </button>
+                            )}
+                            {checkAccess(MODULES.JOB_MANAGEMENT) && (
+                                <button
+                                    className={`menu-item ${activeSection === 'jobs' ? 'active' : ''}`}
+                                    onClick={() => navigate('/cms/jobs')}
+                                >
+                                    <i className="fas fa-briefcase"></i>
+                                    <span>Jobs</span>
+                                </button>
+                            )}
+                            {(userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && (
+                                <button
+                                    className="menu-item"
+                                    onClick={() => navigate('/cms/taxonomy')}
+                                >
+                                    <i className="fas fa-tags"></i>
+                                    <span>Taxonomy</span>
+                                </button>
+                            )}
+                        </>
                     )}
                 </nav>
 
@@ -1387,7 +1522,8 @@ const Dashboard = () => {
                                                                         result.id.startsWith('rc') ? 'fas fa-users-gear' :
                                                                             result.id.startsWith('perm') ? 'fas fa-fingerprint' :
                                                                                 result.id === 'quizzes' ? 'fas fa-book-open' :
-                                                                                    result.section === 'overview' ? 'fas fa-tachometer-alt' : 'fas fa-hashtag'
+                                                                                    result.section === 'articles' ? 'fas fa-file-invoice' :
+                                                                                        result.section === 'overview' ? 'fas fa-tachometer-alt' : 'fas fa-hashtag'
                                                 }></i>
                                             </div>
                                             <div className="search-item-info">
@@ -1405,7 +1541,7 @@ const Dashboard = () => {
                             <div className="notification-bell" onClick={() => setShowPopover(!showPopover)}>
                                 <i className="fas fa-bell"></i>
                                 {overallUnseenCount > 0 && (
-                                    <span className="bell-badge">{overallUnseenCount}</span>
+                                    <span className="bell-badge">{overallUnseenCount > 15 ? '15+' : overallUnseenCount}</span>
                                 )}
                             </div>
 
@@ -1529,6 +1665,55 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
+                            {/* Featured Content Quick View */}
+                            <div className="dashboard-section">
+                                <div className="section-title-row">
+                                    <h3><i className="fas fa-thumbtack"></i> Live Featured Content</h3>
+                                    <button className="m-btn-text" onClick={() => setActiveSection('articles')}>Manage All</button>
+                                </div>
+                                <div className="management-grid-refined" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                                    <div className="m-card" style={{ borderLeft: '4px solid #ef4444' }}>
+                                        <div className="m-card-title">Featured Stories ({homeData.featured?.length || 0})</div>
+                                        <div className="m-card-body" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                                            {homeData.featured?.map(h => (
+                                                <div key={h.id} style={{ fontSize: '0.85rem', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                        <span style={{
+                                                            fontSize: '0.65rem',
+                                                            background: '#fee2e2',
+                                                            color: '#b91c1c',
+                                                            padding: '1px 6px',
+                                                            borderRadius: '4px',
+                                                            fontWeight: '700'
+                                                        }}>{h.feature_type || 'FEATURED'}</span>
+                                                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{h.section}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <i className="fas fa-star" style={{ color: '#f59e0b', marginTop: '3px' }}></i>
+                                                        <span style={{ fontWeight: '500' }}>{h.title}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {(!homeData.featured || homeData.featured.length === 0) && <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>No featured stories pinned.</p>}
+                                        </div>
+                                    </div>
+                                    <div className="m-card" style={{ borderLeft: '4px solid #3b82f6' }}>
+                                        <div className="m-card-title">Trending Now ({homeData.trending?.length || 0})</div>
+                                        <div className="m-card-body" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                                            {homeData.trending?.map(t => (
+                                                <div key={t.id} style={{ fontSize: '0.85rem', padding: '10px 0', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: '8px' }}>
+                                                    <i className="fas fa-fire" style={{ color: '#f59e0b', marginTop: '3px' }}></i>
+                                                    <div>
+                                                        <div style={{ fontWeight: '500' }}>{t.title || t.summary}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}><i className="far fa-eye"></i> {t.views_count} views</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {(!homeData.trending || homeData.trending.length === 0) && <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>No trending news active.</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             {/* Role & Permission Management - Restored to Overview for consistency */}
                             {checkAccess(MODULES.ROLE_CONTROL) && (
                                 <div className="dashboard-section" ref={rolesRef}>
@@ -1803,7 +1988,7 @@ const Dashboard = () => {
                                                 </button>
                                             </div>
                                         )}
-                                        <table className="quiz-table">
+                                        <table className="q-table-refined">
                                             <thead>
                                                 <tr>
                                                     <th style={{ width: '40px' }}>
@@ -2059,6 +2244,11 @@ const Dashboard = () => {
                         <div ref={profileRef} className="dashboard-section animate-fade-in">
                             <UserProfileSection />
                         </div>
+                    )}
+
+                    {/* Render Article Management Section */}
+                    {activeSection === 'articles' && checkAccess(MODULES.ARTICLE_MANAGEMENT) && (
+                        <ArticleManagement activeLanguage={localStorage.getItem('preferredLanguage') || 'telugu'} />
                     )}
                 </div >
             </div >

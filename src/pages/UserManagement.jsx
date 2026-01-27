@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { getUserContext, subscribeToAuthChanges } from '../services/api';
 import { useSnackbar } from '../context/SnackbarContext';
@@ -7,10 +7,33 @@ import '../styles/Dashboard.css';
 import useGlobalSearch from '../hooks/useGlobalSearch';
 import API_CONFIG from '../config/api.config';
 import { getRoleInitials } from '../utils/roleUtils';
+import { fetchNotifications, markAsSeen, markAllAsSeen, approveRequest, rejectRequest } from '../services/notificationService';
+import CustomSelect from '../components/ui/CustomSelect';
 
 const UserManagement = () => {
     const navigate = useNavigate();
     const { showSnackbar } = useSnackbar();
+
+    const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen }) => {
+        const n = notification;
+        return (
+            <div key={n.id} className="popover-item">
+                <div className="popover-item-text">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <strong>New Request</strong>
+                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} title="Mark as read">
+                            <i className="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p>{n.message}</p>
+                </div>
+                <div className="popover-actions">
+                    <button className="popover-btn-approve" onClick={() => onApprove(n.id)}>Approve</button>
+                    <button className="popover-btn-reject" onClick={() => onReject(n.id)}>Reject</button>
+                </div>
+            </div>
+        );
+    });
 
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -21,12 +44,36 @@ const UserManagement = () => {
     const [totalElements, setTotalElements] = useState(0);
     const [keyword, setKeyword] = useState('');
     const [activeTab, setActiveTab] = useState('active');
+    const [isCmsOpen, setIsCmsOpen] = useState(true);
+
+    // Notifications state
+    const [notificationFeed, setNotificationFeed] = useState([]);
+    const [overallUnseenCount, setOverallUnseenCount] = useState(0);
+    const [showPopover, setShowPopover] = useState(false);
+    const notificationContainerRef = useRef(null);
+    const [suppressedNotificationIds, setSuppressedNotificationIds] = useState(() => {
+        try {
+            const saved = localStorage.getItem('cv_suppressed_notifs');
+            return saved ? JSON.parse(saved) : [];
+        } catch { return []; }
+    });
+    const [lastSeenAllAt, setLastSeenAllAt] = useState(() => {
+        return localStorage.getItem('cv_last_seen_all') || null;
+    });
+
 
     // Auth state
     const [userEmail, setUserEmail] = useState('');
     const [userRole, setUserRole] = useState('');
     const [userFullName, setUserFullName] = useState('');
     const [userStatus, setUserStatus] = useState(null);
+
+    // Role Change state
+    const [availableRoles, setAvailableRoles] = useState([]);
+    const [showRoleModal, setShowRoleModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [newRole, setNewRole] = useState('');
+    const [isSavingRole, setIsSavingRole] = useState(false);
 
     /* ================= AUTH CHECK ================= */
     useEffect(() => {
@@ -67,6 +114,123 @@ const UserManagement = () => {
 
         return () => unsubscribe();
     }, [navigate]);
+
+    const fetchRoles = useCallback(async () => {
+        if (userRole !== 'SUPER_ADMIN') return;
+        try {
+            const response = await api.get('/role-names');
+            setAvailableRoles(response.data || []);
+        } catch (err) {
+            console.error('Error fetching roles:', err);
+        }
+    }, [userRole]);
+
+    useEffect(() => {
+        if (userRole === 'SUPER_ADMIN') {
+            fetchRoles();
+        }
+    }, [userRole, fetchRoles]);
+
+    const openRoleModal = (user) => {
+        setSelectedUser(user);
+        setNewRole(user.role);
+        setShowRoleModal(true);
+    };
+
+    const handleSaveRole = async () => {
+        if (!selectedUser || !newRole) return;
+        if (newRole === selectedUser.role) {
+            setShowRoleModal(false);
+            return;
+        }
+
+        setIsSavingRole(true);
+        try {
+            await api.put('/change-role', null, {
+                params: {
+                    email: selectedUser.email,
+                    roleName: newRole
+                }
+            });
+            showSnackbar('Role updated successfully!', 'success');
+            fetchUsers();
+            setShowRoleModal(false);
+        } catch (err) {
+            console.error('Error updating role:', err);
+            showSnackbar(err.response?.data?.message || 'Failed to update role', 'error');
+        } finally {
+            setIsSavingRole(false);
+        }
+    };
+
+    const loadNotifications = useCallback(async () => {
+        try {
+            const data = await fetchNotifications(userRole, { size: 10 });
+            setNotificationFeed(data.content || []);
+            setOverallUnseenCount(data.totalUnseen || 0);
+        } catch (err) {
+            console.error("Failed to load notifications", err);
+        }
+    }, [userRole]);
+
+    useEffect(() => {
+        if (userRole) {
+            loadNotifications();
+        }
+    }, [userRole, loadNotifications]);
+
+    const handleMarkAsSeen = async (id) => {
+        try {
+            await markAsSeen(id);
+            setSuppressedNotificationIds(prev => [...prev, id]);
+            setOverallUnseenCount(prev => Math.max(0, prev - 1));
+        } catch (err) {
+            showSnackbar("Failed to mark notification as seen", "error");
+        }
+    };
+
+    const handleMarkAllSeen = async () => {
+        try {
+            await markAllAsSeen();
+            const now = new Date().toISOString();
+            setLastSeenAllAt(now);
+            localStorage.setItem('cv_last_seen_all', now);
+            setOverallUnseenCount(0);
+            setShowPopover(false);
+        } catch (err) {
+            showSnackbar("Failed to mark all as seen", "error");
+        }
+    };
+
+    const handleApprove = async (id) => {
+        try {
+            await approveRequest(id);
+            showSnackbar("Request approved", "success");
+            loadNotifications();
+        } catch (err) {
+            showSnackbar("Failed to approve request", "error");
+        }
+    };
+
+    const handleReject = async (id) => {
+        try {
+            await rejectRequest(id, "Rejected from user management");
+            showSnackbar("Request rejected", "success");
+            loadNotifications();
+        } catch (err) {
+            showSnackbar("Failed to reject request", "error");
+        }
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (notificationContainerRef.current && !notificationContainerRef.current.contains(event.target)) {
+                setShowPopover(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -277,6 +441,48 @@ const UserManagement = () => {
                         <i className="fas fa-users-cog"></i>
                         <span>User Management</span>
                     </button>
+
+                    <div className="sidebar-divider" style={{ height: '1px', background: 'rgba(226, 232, 240, 0.5)', margin: '15px 24px' }}></div>
+
+                    <div 
+                        className="sidebar-group-label" 
+                        onClick={() => setIsCmsOpen(!isCmsOpen)}
+                        style={{ 
+                            padding: '20px 24px 10px', 
+                            fontSize: '0.7rem', 
+                            fontWeight: '800', 
+                            color: '#94a3b8', 
+                            textTransform: 'uppercase', 
+                            letterSpacing: '0.05em',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            userSelect: 'none'
+                        }}
+                    >
+                        <span>CMS</span>
+                        <i className={`fas fa-chevron-${isCmsOpen ? 'down' : 'right'}`} style={{ fontSize: '0.6rem' }}></i>
+                    </div>
+
+                    {isCmsOpen && (
+                        <>
+                            <button className="menu-item" onClick={() => navigate('/dashboard?tab=articles')}>
+                                <i className="fas fa-file-invoice"></i>
+                                <span>Articles</span>
+                            </button>
+                            <button className="menu-item" onClick={() => navigate('/cms/jobs')}>
+                                <i className="fas fa-briefcase"></i>
+                                <span>Jobs</span>
+                            </button>
+                            {(userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && (
+                                <button className="menu-item" onClick={() => navigate('/cms/taxonomy')}>
+                                    <i className="fas fa-tags"></i>
+                                    <span>Taxonomy</span>
+                                </button>
+                            )}
+                        </>
+                    )}
                 </nav>
 
                 <div className="sidebar-footer">
@@ -352,13 +558,62 @@ const UserManagement = () => {
                     </div>
 
                     <div className="header-actions">
+                        <div className="notification-bell-container" ref={notificationContainerRef}>
+                            <div className="notification-bell" onClick={() => setShowPopover(!showPopover)}>
+                                <i className="fas fa-bell"></i>
+                                {overallUnseenCount > 0 && (
+                                    <span className="bell-badge">{overallUnseenCount > 15 ? '15+' : overallUnseenCount}</span>
+                                )}
+                            </div>
+
+                            {showPopover && (
+                                <div className="notification-popover">
+                                    <div className="popover-header">
+                                        <span>New Alerts ({overallUnseenCount})</span>
+                                        {overallUnseenCount > 0 && (
+                                            <button className="mark-all-btn" onClick={handleMarkAllSeen}>Mark all seen</button>
+                                        )}
+                                    </div>
+                                    <div className="popover-list">
+                                        {overallUnseenCount === 0 ? (
+                                            <div className="popover-empty">
+                                                <i className="fas fa-bell-slash"></i>
+                                                <p>No new alerts</p>
+                                            </div>
+                                        ) : (
+                                            notificationFeed.filter(n => {
+                                                const ts = n.localDateTime || n.timestamp;
+                                                const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
+                                                const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || suppressedNotificationIds.includes(n.id) || isSeenLocally;
+                                                return !isSeen;
+                                            }).slice(0, 10).map(n => (
+                                                <PopoverItem
+                                                    key={n.id}
+                                                    notification={n}
+                                                    onApprove={handleApprove}
+                                                    onReject={handleReject}
+                                                    onMarkSeen={handleMarkAsSeen}
+                                                />
+                                            ))
+                                        )}
+                                    </div>
+                                    <div className="popover-footer" onClick={() => { setShowPopover(false); navigate('/dashboard?tab=notifications'); }}>
+                                        View All History
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="top-user-profile">
                             <div className="top-user-info">
-                                <span className="top-user-name">{userEmail}</span>
+                                <span className="top-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    {userFullName || userEmail}
+                                    {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
+                                </span>
                                 <span className="top-user-role">{userRole}</span>
                             </div>
                             <div className="top-avatar">
-                                {(userEmail || 'A').charAt(0).toUpperCase()}
+                                {getRoleInitials(userRole)}
                             </div>
                         </div>
                     </div>
@@ -507,13 +762,25 @@ const UserManagement = () => {
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <button
-                                                            className={`um-action-btn ${user.status ? 'deactivate' : 'activate'}`}
-                                                            onClick={() => handleToggleStatus(user.email, user.status)}
-                                                        >
-                                                            <i className={`fas ${user.status ? 'fa-ban' : 'fa-check'}`}></i>
-                                                            {user.status ? 'Deactivate' : 'Activate'}
-                                                        </button>
+                                                        <div className="um-action-buttons">
+                                                            <button
+                                                                className={`um-action-btn ${user.status ? 'deactivate' : 'activate'}`}
+                                                                onClick={() => handleToggleStatus(user.email, user.status)}
+                                                                title={user.status ? 'Deactivate User' : 'Activate User'}
+                                                            >
+                                                                <i className={`fas ${user.status ? 'fa-ban' : 'fa-check'}`}></i>
+                                                            </button>
+
+                                                            {userRole === 'SUPER_ADMIN' && (
+                                                                <button
+                                                                    className="um-action-btn change-role"
+                                                                    onClick={() => openRoleModal(user)}
+                                                                    title="Change Role"
+                                                                >
+                                                                    <i className="fas fa-user-shield"></i>
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))
@@ -554,6 +821,52 @@ const UserManagement = () => {
                     )}
                 </div>
             </div>
+
+            {/* Role Change Modal */}
+            {showRoleModal && (
+                <div className="um-modal-overlay">
+                    <div className="um-modal">
+                        <div className="um-modal-header">
+                            <h3>Change University Role</h3>
+                            <button className="um-modal-close" onClick={() => setShowRoleModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="um-modal-body">
+                            <div className="um-modal-user">
+                                User: <strong>{selectedUser?.email}</strong>
+                            </div>
+                            <div className="um-form-group">
+                                <CustomSelect
+                                    label="Assign New Role"
+                                    options={availableRoles}
+                                    value={newRole}
+                                    onChange={(val) => setNewRole(val)}
+                                    disabled={isSavingRole}
+                                    placeholder="Select a role..."
+                                    icon="fas fa-shield-alt"
+                                />
+                            </div>
+                        </div>
+                        <div className="um-modal-footer">
+                            <button 
+                                className="um-btn-cancel" 
+                                onClick={() => setShowRoleModal(false)}
+                                disabled={isSavingRole}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="um-btn-save" 
+                                onClick={handleSaveRole}
+                                disabled={isSavingRole || newRole === selectedUser?.role}
+                            >
+                                {isSavingRole ? <i className="fas fa-spinner fa-spin"></i> : 'Update Role'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
