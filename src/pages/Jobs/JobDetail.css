@@ -43,7 +43,23 @@
 
 .type-badge-container {
     margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
+
+.job-status-badge-detail {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.job-status-badge-detail.active { background: #dcfce7; color: #16a34a; }
+.job-status-badge-detail.expired { background: #fee2e2; color: #dc2626; }
+.job-status-badge-detail.trending { background: #fdf2f8; color: #db2777; }
+.job-status-badge-detail.pending { background: #fef3c7; color: #d97706; }
 
 .header-actions {
     display: flex;

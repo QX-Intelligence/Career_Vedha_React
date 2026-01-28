@@ -1,208 +1,27 @@
-/* JobsManagement.css */
+/* JobsManagement.css - Professional Sync with Article Management */
 
-.cms-page-wrapper {
-    background-color: var(--gray-50);
-}
+/* Most styles are now inherited from ArticleManagement.css */
 
-.cms-main-content {
-    padding: 40px 0 80px 0;
-}
-
-.cms-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-}
-
-.cms-title-area h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--gray-900);
-}
-
-.cms-title-area p {
-    color: var(--text-gray);
-    margin-top: 4px;
-}
-
-.btn-create-job {
-    background: var(--primary-yellow);
-    color: var(--gray-900);
-    border: none;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(243, 192, 41, 0.2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-}
-
-.btn-create-job:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(243, 192, 41, 0.3);
-}
-
-.cms-table-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.cms-tabs {
-    background: rgba(0, 0, 0, 0.05);
-    padding: 4px;
-    border-radius: 10px;
-    display: flex;
-    gap: 4px;
-}
-
-.cms-tabs button {
-    background: transparent;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    color: var(--gray-600);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.cms-tabs button.active {
-    background: white;
-    color: var(--gray-900);
-    box-shadow: var(--shadow-sm);
-}
-
-.cms-search {
-    position: relative;
-    width: 300px;
-}
-
-.cms-search i {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--gray-400);
-}
-
-.cms-search input {
-    width: 100%;
-    padding: 10px 12px 10px 36px;
-    border: 1px solid var(--gray-200);
-    border-radius: 10px;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.cms-search input:focus {
-    border-color: var(--primary-yellow);
-}
-
-.cms-table-container {
-    overflow: hidden;
-    padding: 0 !important;
-}
-
-.cms-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.cms-table th {
-    background: var(--gray-50);
-    text-align: left;
-    padding: 16px 20px;
-    color: var(--gray-600);
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid var(--gray-100);
-}
-
-.cms-table td {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--gray-100);
-    color: var(--gray-700);
-    font-size: 0.9rem;
-}
-
-.job-title-cell {
-    display: flex;
-    flex-direction: column;
-}
-
-.job-slug {
-    font-size: 0.75rem;
-    color: var(--text-gray);
-}
-
-.type-tag {
-    padding: 4px 10px;
+.job-status-badge {
+    padding: 0.3rem 0.75rem;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 700;
+    text-transform: uppercase;
 }
 
-.type-tag.govt { background: #fef3c7; color: #d97706; }
-.type-tag.private { background: #e0f2fe; color: #0284c7; }
+/* Custom Job Status Colors mirrored from ArticleManagement badges */
+.am-status-badge.active, .am-status-badge.published { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.am-status-badge.inactive, .am-status-badge.expired, .am-status-badge.closed { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.am-status-badge.pending { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.am-status-badge.draft { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.am-status-badge.trending { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; }
 
-.status-pill {
-    padding: 4px 10px;
-    border-radius: 50px;
-    font-size: 0.75rem;
-    font-weight: 700;
+/* Section Specific Overrides if any */
+.am-tab {
+    padding: 0.5rem 1.25rem;
 }
 
-.status-pill.active { background: #dcfce7; color: #16a34a; }
-.status-pill.inactive { background: #fee2e2; color: #dc2626; }
-
-.actions-cell {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-action {
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-}
-
-.btn-action.edit { background: #f1f5f9; color: #475569; }
-.btn-action.deactivate { background: #fee2e2; color: #dc2626; }
-.btn-action.activate { background: #dcfce7; color: #16a34a; }
-.btn-action.view { background: #fef3c7; color: #d97706; }
-
-.btn-action:hover { transform: scale(1.1); }
-
-.no-data {
-    text-align: center;
-    padding: 40px !important;
-    color: var(--text-gray);
-    font-style: italic;
-}
-
-.cms-loading {
-    padding: 60px;
-    text-align: center;
-    color: var(--text-gray);
-}
-
-.cms-loading i {
-    font-size: 2rem;
-    color: var(--primary-yellow);
-    margin-bottom: 16px;
+.am-tab i {
+    font-size: 0.9rem;
 }

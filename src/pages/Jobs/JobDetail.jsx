@@ -74,7 +74,7 @@ const JobDetail = () => {
         title, organization, department, location, job_type, 
         application_end_date, job_description, eligibility,
         selection_process, salary, vacancies, qualification,
-        experience, apply_url, views_count, created_at
+        experience, apply_url, views_count, created_at, status_display
     } = job;
 
     return (
@@ -92,10 +92,15 @@ const JobDetail = () => {
                 <div className="container">
                     <div className="job-detail-header">
                         <div className="header-main-info">
-                            <div className="type-badge-container">
+                        <div className="type-badge-container">
                                 <span className={`job-type-badge ${job_type === 'GOVT' ? 'govt' : 'private'}`}>
                                     {job_type} JOB
                                 </span>
+                                {status_display && (
+                                    <span className={`job-status-badge-detail ${status_display.toLowerCase()}`}>
+                                        {status_display}
+                                    </span>
+                                )}
                             </div>
                             <h1>{title}</h1>
                             <div className="org-department">

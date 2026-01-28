@@ -75,9 +75,7 @@ const LatestArticles = ({ latest: initialLatest, loading: initialLoading, active
 
     return (
         <section className="latest-articles-section">
-            <div className="section-header">
-                <h2 className="section-title">Latest Updates</h2>
-            </div>
+            {/* Header removed to avoid duplication with Home.jsx */}
             <div className="articles-grid">
                 {articles.map((article) => (
                     <article key={article.id} className="article-card">

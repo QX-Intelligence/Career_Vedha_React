@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import LuxuryTooltip from '../../components/ui/LuxuryTooltip';
 import api, { getUserContext, subscribeToAuthChanges } from '../../services/api';
 import { jobsService } from '../../services/jobsService';
 import { fetchNotifications, markAsSeen, markAllAsSeen, approveRequest, rejectRequest } from '../../services/notificationService';
@@ -17,9 +18,11 @@ const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen 
             <div className="popover-item-text">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <strong>New Request</strong>
-                    <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} title="Mark as read">
-                        <i className="fas fa-eye"></i>
-                    </button>
+                    <LuxuryTooltip content="Mark as read" position="left">
+                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)}>
+                            <i className="fas fa-eye"></i>
+                        </button>
+                    </LuxuryTooltip>
                 </div>
                 <p>{n.message}</p>
             </div>
@@ -48,19 +51,23 @@ const JobEditor = () => {
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
+        slug: '',
         organization: '',
-        job_type: 'FULL_TIME',
+        job_type: 'PRIVATE',
         location: '',
+        application_start_date: '',
         application_end_date: '',
-        description: '',
-        requirements: '',
-        responsibilities: '',
-        benefits: '',
-        education_qualification: '',
+        exam_date: '',
+        job_description: '',
+        eligibility: '',
         selection_process: '',
-        how_to_apply: '',
-        important_links: '',
-        is_active: true
+        salary: '',
+        vacancies: 0,
+        qualification: '',
+        experience: '',
+        apply_url: '',
+        department: '',
+        status: 1
     });
 
     // Notifications state
@@ -199,12 +206,23 @@ const JobEditor = () => {
         if (isEditMode) {
             const fetchJob = async () => {
                 try {
-                    const job = await jobsService.getJobById(id);
+                    const job = await jobsService.getAdminJobDetail(id);
+                    
+                    // Safety checks for date formatting
+                    const formatDate = (dateStr) => {
+                        if (!dateStr) return '';
+                        return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+                    };
+
                     setFormData({
                         ...job,
-                        application_end_date: job.application_end_date.split('T')[0]
+                        application_start_date: formatDate(job.application_start_date),
+                        application_end_date: formatDate(job.application_end_date),
+                        exam_date: formatDate(job.exam_date),
+                        vacancies: job.vacancies || 0
                     });
                 } catch (error) {
+                    console.error('Error fetching job details:', error);
                     showSnackbar('Failed to load job data', 'error');
                     navigate('/cms/jobs');
                 } finally {
@@ -217,33 +235,42 @@ const JobEditor = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        
+        let newValue = type === 'checkbox' ? (checked ? 1 : 0) : value;
+        
+        setFormData(prev => {
+            const updated = { ...prev, [name]: newValue };
+            
+            // Auto-generate slug from title if slug is empty
+            if (name === 'title' && !prev.slug) {
+                updated.slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            }
+            
+            return updated;
+        });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Final validation
+        if (!formData.slug) {
+            formData.slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        }
+
         setSaving(true);
         try {
-            // Prepare payload with redundant field names for robustness
-            const payload = {
-                ...formData,
-                isActive: formData.is_active,
-                status: formData.is_active ? 'ACTIVE' : 'INACTIVE'
-            };
-
             if (isEditMode) {
-                await jobsService.updateJob(id, payload);
+                await jobsService.updateJob(id, formData);
                 showSnackbar('Job updated successfully', 'success');
             } else {
-                await jobsService.createJob(payload);
+                await jobsService.createJob(formData);
                 showSnackbar('Job posted successfully', 'success');
             }
             navigate('/cms/jobs');
         } catch (error) {
-            showSnackbar(isEditMode ? 'Failed to update job' : 'Failed to post job', 'error');
+            const errorMsg = error.response?.data?.error || (isEditMode ? 'Failed to update job' : 'Failed to post job');
+            showSnackbar(errorMsg, 'error');
         } finally {
             setSaving(false);
         }
@@ -459,7 +486,11 @@ const JobEditor = () => {
                             <div className="top-user-info">
                                 <span className="top-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     {userFullName || userEmail}
-                                    {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
+                                    {userStatus !== null && (
+                                        <LuxuryTooltip content={userStatus ? 'Active' : 'Inactive'}>
+                                            <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`}></span>
+                                        </LuxuryTooltip>
+                                    )}
                                 </span>
                                 <span className="top-user-role">{userRole}</span>
                             </div>
@@ -504,52 +535,88 @@ const JobEditor = () => {
                                     </section>
                                 </div>
 
+                                <div className="form-row">
+                                    <section className="form-section">
+                                        <label>Slug (URL Identifier)</label>
+                                        <input name="slug" value={formData.slug} onChange={handleChange} placeholder="e.g. software-engineer-hyd" required />
+                                    </section>
+                                    <section className="form-section">
+                                        <label>Department</label>
+                                        <input name="department" value={formData.department} onChange={handleChange} placeholder="e.g. IT, Education" />
+                                    </section>
+                                </div>
+
                                 <section className="form-section">
                                     <label>Job Description</label>
-                                    <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Overview of the role" rows="4" required />
+                                    <textarea name="job_description" value={formData.job_description} onChange={handleChange} placeholder="Detailed role description" rows="8" required />
                                 </section>
 
                                 <section className="form-section">
-                                    <label>Requirements</label>
-                                    <textarea name="requirements" value={formData.requirements} onChange={handleChange} placeholder="Skills and experience needed" rows="4" required />
+                                    <label>Eligibility Criteria</label>
+                                    <textarea name="eligibility" value={formData.eligibility} onChange={handleChange} placeholder="Who can apply?" rows="4" />
                                 </section>
 
                                 <section className="form-section">
-                                    <label>Responsibilities</label>
-                                    <textarea name="responsibilities" value={formData.responsibilities} onChange={handleChange} placeholder="Daily tasks" rows="4" />
+                                    <label>Selection Process</label>
+                                    <textarea name="selection_process" value={formData.selection_process} onChange={handleChange} placeholder="How are candidates selected?" rows="4" />
                                 </section>
 
-                                <section className="form-section">
-                                    <label>How to Apply</label>
-                                    <textarea name="how_to_apply" value={formData.how_to_apply} onChange={handleChange} placeholder="Step by step instructions" rows="3" />
-                                </section>
+                                <div className="form-row">
+                                    <section className="form-section">
+                                        <label>Qualification</label>
+                                        <input name="qualification" value={formData.qualification} onChange={handleChange} placeholder="e.g. B.Tech, Any Degree" />
+                                    </section>
+                                    <section className="form-section">
+                                        <label>Experience</label>
+                                        <input name="experience" value={formData.experience} onChange={handleChange} placeholder="e.g. 2-5 years" />
+                                    </section>
+                                </div>
                             </div>
 
                             <div className="editor-side-panel glass-card">
                                 <section className="form-section">
                                     <label>Job Type</label>
                                     <select name="job_type" value={formData.job_type} onChange={handleChange}>
-                                        <option value="FULL_TIME">Full Time</option>
-                                        <option value="PART_TIME">Part Time</option>
-                                        <option value="INTERNSHIP">Internship</option>
-                                        <option value="CONTRACT">Contract</option>
+                                        <option value="PRIVATE">Private Sector</option>
+                                        <option value="GOVT">Government / Public Sector</option>
                                     </select>
                                 </section>
 
+                                <div className="form-row">
+                                    <section className="form-section">
+                                        <label>Salary Range</label>
+                                        <input name="salary" value={formData.salary} onChange={handleChange} placeholder="e.g. 5-8 LPA" />
+                                    </section>
+                                    <section className="form-section">
+                                        <label>Vacancies</label>
+                                        <input type="number" name="vacancies" value={formData.vacancies} onChange={handleChange} />
+                                    </section>
+                                </div>
+
                                 <section className="form-section">
-                                    <label>Deadline</label>
+                                    <label>Application Link</label>
+                                    <input name="apply_url" value={formData.apply_url} onChange={handleChange} placeholder="Official application URL" />
+                                </section>
+
+                                <section className="form-section">
+                                    <label>Start Date</label>
+                                    <input type="date" name="application_start_date" value={formData.application_start_date} onChange={handleChange} />
+                                </section>
+
+                                <section className="form-section">
+                                    <label>End Date (Deadline)</label>
                                     <input type="date" name="application_end_date" value={formData.application_end_date} onChange={handleChange} required />
                                 </section>
 
                                 <section className="form-section">
-                                    <label>Important Links</label>
-                                    <textarea name="important_links" value={formData.important_links} onChange={handleChange} placeholder="Links to official notification" rows="3" />
+                                    <label>Exam Date (Optional)</label>
+                                    <input type="date" name="exam_date" value={formData.exam_date} onChange={handleChange} />
                                 </section>
 
                                 <div className="status-toggle-container">
                                     <span>Set as Active</span>
                                     <label className="switch">
-                                        <input type="checkbox" name="is_active" checked={formData.is_active} onChange={handleChange} />
+                                        <input type="checkbox" name="status" checked={formData.status === 1} onChange={handleChange} />
                                         <span className="slider round"></span>
                                     </label>
                                 </div>

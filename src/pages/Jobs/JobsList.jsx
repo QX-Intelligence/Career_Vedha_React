@@ -35,7 +35,6 @@ const JobsList = () => {
                 cursor: isLoadMore ? cursor : null,
                 job_type: filters.job_type,
                 location: filters.location,
-                // Add more filter mappings if backend supports them
             };
 
             const data = await jobsService.getPublicJobs(params);
@@ -46,6 +45,7 @@ const JobsList = () => {
                 setJobs(data.results);
             }
             
+            // Backend returns has_next and next_cursor
             setHasNext(data.has_next);
             setCursor(data.next_cursor);
         } catch (error) {

@@ -40,13 +40,16 @@ const TrendingWidget = () => {
                 Trending Stories
             </h3>
             <ul className="latest-updates">
-                {trending.map((article) => (
+                {trending.map((article, index) => (
                     <li key={article.id}>
                         <Link to={`/${article.section}/${article.slug}`}>
                             <div className="trending-item">
-                                <span className="trending-title">{article.title || article.summary}</span>
-                                <div className="trending-meta">
-                                    <i className="far fa-eye"></i> {article.views_count} views
+                                <span className="trending-rank">0{index + 1}</span>
+                                <div className="trending-content">
+                                    <span className="trending-title">{article.title || article.summary}</span>
+                                    <div className="trending-meta">
+                                        <i className="far fa-eye"></i> {article.views_count} views
+                                    </div>
                                 </div>
                             </div>
                         </Link>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import LuxuryTooltip from '../../components/ui/LuxuryTooltip';
 import api, { getUserContext, subscribeToAuthChanges } from '../../services/api';
 import { jobsService } from '../../services/jobsService';
 import { fetchNotifications, markAsSeen, markAllAsSeen, approveRequest, rejectRequest } from '../../services/notificationService';
@@ -7,8 +8,8 @@ import { useSnackbar } from '../../context/SnackbarContext';
 import { getRoleInitials } from '../../utils/roleUtils';
 import useGlobalSearch from '../../hooks/useGlobalSearch';
 import API_CONFIG from '../../config/api.config';
+import '../../styles/ArticleManagement.css';
 import './JobsManagement.css';
-import '../../styles/Dashboard.css';
 
 const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen }) => {
     const n = notification;
@@ -17,9 +18,11 @@ const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen 
             <div className="popover-item-text">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <strong>New Request</strong>
-                    <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} title="Mark as read">
-                        <i className="fas fa-eye"></i>
-                    </button>
+                    <LuxuryTooltip content="Mark as read" position="left">
+                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)}>
+                            <i className="fas fa-eye"></i>
+                        </button>
+                    </LuxuryTooltip>
                 </div>
                 <p>{n.message}</p>
             </div>
@@ -181,15 +184,13 @@ const JobsManagement = () => {
     const fetchJobs = async () => {
         setLoading(true);
         try {
-            // Using admin API to get full metadata including is_active
+            // Using admin API cms/jobs/list/ which returns { total, results, limit, offset }
             const data = await jobsService.getAdminJobs({ limit: 100 });
-            // Handle both { results: [] } and direct array formats
-            const results = Array.isArray(data) ? data : (data.results || []);
+            const results = data.results || [];
             
             // DEBUG: Log the first job to see what fields we actually have
             if (results.length > 0) {
                 console.log('[JobsManagement] Sample job data:', results[0]);
-                console.log('[JobsManagement] Available fields:', Object.keys(results[0]));
             }
             
             setJobs(results);
@@ -234,7 +235,8 @@ const JobsManagement = () => {
     };
 
     const filteredJobs = jobs.filter(job => {
-        const isActive = job.is_active || job.isActive || job.is_published || job.status === 'ACTIVE';
+        // Simplified status check using backend provided fields
+        const isActive = job.status_display?.toUpperCase() === 'ACTIVE' || job.status === 1 || job.is_active || job.isActive;
         const title = job.title || '';
         const org = job.organization || '';
         
@@ -242,6 +244,7 @@ const JobsManagement = () => {
                                org.toLowerCase().includes(searchQuery.toLowerCase());
         
         if (activeTab === 'ACTIVE') return matchesSearch && isActive;
+        if (activeTab === 'INACTIVE') return matchesSearch && !isActive;
         return matchesSearch;
     });
 
@@ -439,7 +442,11 @@ const JobsManagement = () => {
                             <div className="top-user-info">
                                 <span className="top-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     {userFullName || userEmail}
-                                    {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
+                                    {userStatus !== null && (
+                                        <LuxuryTooltip content={userStatus ? 'Active' : 'Inactive'}>
+                                            <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`}></span>
+                                        </LuxuryTooltip>
+                                    )}
                                 </span>
                                 <span className="top-user-role">{userRole}</span>
                             </div>
@@ -450,103 +457,152 @@ const JobsManagement = () => {
                     </div>
                 </header>
 
-                <div className="content-container">
-                    <div className="cms-header-row">
-                        <div className="cms-title-area">
-                            <h1>Jobs Management</h1>
-                            <p>Create, track and manage job postings</p>
+                <div className="content-container section-fade-in">
+                    <div className="am-header">
+                        <div className="am-title-section">
+                            <h1 className="am-title">
+                                <i className="fas fa-briefcase"></i>
+                                Jobs Management
+                            </h1>
+                            <p className="am-subtitle">Create, track and manage job postings</p>
                         </div>
-                        <button className="btn-create-job" onClick={() => navigate('/cms/jobs/create')}>
+                        <button className="m-btn-primary" onClick={() => navigate('/cms/jobs/create')}>
                             <i className="fas fa-plus"></i> Post New Job
                         </button>
                     </div>
 
-                    <div className="cms-table-controls">
-                        <div className="cms-tabs">
-                            <button className={activeTab === 'ACTIVE' ? 'active' : ''} onClick={() => setActiveTab('ACTIVE')}>Active</button>
-                            <button className={activeTab === 'ALL' ? 'active' : ''} onClick={() => setActiveTab('ALL')}>All Jobs</button>
+                    <div className="am-filter-bar">
+                        <div className="am-tabs">
+                            <button className={`am-tab ${activeTab === 'ACTIVE' ? 'active' : ''}`} onClick={() => setActiveTab('ACTIVE')}>
+                                <i className="fas fa-check-circle"></i> Active
+                                <span style={{ background: 'rgba(0,0,0,0.06)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', marginLeft: '4px' }}>
+                                    {jobs.filter(j => {
+                                        const isActive = j.status_display?.toUpperCase() === 'ACTIVE' || j.status === 1 || j.is_active || j.isActive;
+                                        return isActive;
+                                    }).length}
+                                </span>
+                            </button>
+                            <button className={`am-tab ${activeTab === 'INACTIVE' ? 'active' : ''}`} onClick={() => setActiveTab('INACTIVE')}>
+                                <i className="fas fa-eye-slash"></i> Inactive
+                                <span style={{ background: 'rgba(0,0,0,0.06)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', marginLeft: '4px' }}>
+                                    {jobs.filter(j => {
+                                        const isActive = j.status_display?.toUpperCase() === 'ACTIVE' || j.status === 1 || j.is_active || j.isActive;
+                                        return !isActive;
+                                    }).length}
+                                </span>
+                            </button>
+                            <button className={`am-tab ${activeTab === 'ALL' ? 'active' : ''}`} onClick={() => setActiveTab('ALL')}>
+                                <i className="fas fa-list"></i> All Jobs
+                                <span style={{ background: 'rgba(0,0,0,0.06)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', marginLeft: '4px' }}>
+                                    {jobs.length}
+                                </span>
+                            </button>
                         </div>
-                        <div className="cms-search">
-                            <i className="fas fa-search"></i>
-                            <input 
-                                type="text" 
-                                placeholder="Search by title or organization..." 
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+                        <div className="am-search-form">
+                            <div className="am-search-wrapper">
+                                <i className="fas fa-search am-search-icon"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search by title or organization..." 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="am-search-input"
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="cms-table-container glass-card">
+                    <div className="dashboard-section">
                         {loading ? (
-                            <div className="cms-loading">
-                                <i className="fas fa-spinner fa-spin"></i>
+                            <div className="am-loading">
+                                <i className="fas fa-spinner fa-spin fa-2x"></i>
                                 <p>Syncing job records...</p>
                             </div>
                         ) : (
-                            <table className="cms-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Job Title</th>
-                                        <th>Organization</th>
-                                        <th>Type</th>
-                                        <th>Location</th>
-                                        <th>Deadline</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredJobs.length > 0 ? (
-                                        filteredJobs.map(job => (
-                                            <tr key={job.id}>
-                                                <td>#{job.id}</td>
-                                                <td className="job-title-cell">
-                                                    <strong>{job.title}</strong>
-                                                    <span className="job-slug">{job.slug}</span>
-                                                </td>
-                                                <td>{job.organization}</td>
-                                                <td><span className={`type-tag ${job.job_type.toLowerCase()}`}>{job.job_type}</span></td>
-                                                <td>{job.location || 'N/A'}</td>
-                                                <td>{new Date(job.application_end_date).toLocaleDateString()}</td>
-                                                <td>
-                                                    <span className={`status-pill ${(job.is_active || job.isActive || job.status === 'ACTIVE') ? 'active' : 'inactive'}`}>
-                                                        {(job.is_active || job.isActive || job.status === 'ACTIVE') ? 'Published' : 'Inactive'}
-                                                    </span>
-                                                </td>
-                                                <td className="actions-cell">
-                                                    <button className="btn-action edit" onClick={() => navigate(`/cms/jobs/edit/${job.id}`)} title="Edit">
-                                                        <i className="fas fa-edit"></i>
-                                                    </button>
-                                                    {(job.is_active || job.isActive || job.status === 'ACTIVE') ? (
-                                                        <button className="btn-action deactivate" onClick={() => handleAction(job.id, 'deactivate')} title="Deactivate">
-                                                            <i className="fas fa-eye-slash"></i>
-                                                        </button>
-                                                    ) : (
-                                                        <button className="btn-action activate" onClick={() => handleAction(job.id, 'activate')} title="Activate">
-                                                            <i className="fas fa-eye"></i>
-                                                        </button>
-                                                    )}
-                                                    <Link to={`/jobs/${job.slug}`} className="btn-action view" title="View Public Page">
-                                                        <i className="fas fa-external-link-alt"></i>
-                                                    </Link>
+                            <div className="am-table-container">
+                                <table className="am-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Job Title</th>
+                                            <th>Organization</th>
+                                            <th>Type</th>
+                                            <th>Location</th>
+                                            <th>Deadline</th>
+                                            <th>Status</th>
+                                            <th style={{ textAlign: 'center' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredJobs.length > 0 ? (
+                                            filteredJobs.map(job => (
+                                                <tr key={job.id}>
+                                                    <td style={{ fontWeight: 'bold', color: 'var(--slate-500)' }}>#{job.id}</td>
+                                                    <td>
+                                                        <div style={{ fontWeight: '600', color: 'var(--slate-900)' }}>{job.title}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                                            <i className="fas fa-link" style={{ fontSize: '0.7rem' }}></i> {job.slug}
+                                                        </div>
+                                                    </td>
+                                                    <td>{job.organization}</td>
+                                                    <td>
+                                                        <span className={`am-status-badge ${job.job_type.toLowerCase() === 'govt' ? 'review' : 'draft'}`}>
+                                                            {job.job_type}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ fontSize: '0.85rem', color: '#64748b' }}>{job.location || 'N/A'}</td>
+                                                    <td style={{ fontSize: '0.85rem', color: '#64748b' }}>{new Date(job.application_end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                                    <td>
+                                                        <span className={`am-status-badge ${job.status_display?.toLowerCase() || ((job.is_active || job.isActive || job.status === 'ACTIVE') ? 'published' : 'inactive')}`}>
+                                                            {job.status_display || ((job.is_active || job.isActive || job.status === 'ACTIVE') ? 'Published' : 'Inactive')}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div className="am-action-buttons" style={{ justifyContent: 'center' }}>
+                                                            <LuxuryTooltip content="Edit">
+                                                                <button className="am-action-btn am-btn-edit" onClick={() => navigate(`/cms/jobs/edit/${job.id}`)}>
+                                                                    <i className="fas fa-edit"></i>
+                                                                </button>
+                                                            </LuxuryTooltip>
+                                                            {(job.is_active || job.isActive || job.status === 'ACTIVE' || (job.status_display && job.status_display.toUpperCase() === 'ACTIVE')) ? (
+                                                                <LuxuryTooltip content="Deactivate">
+                                                                    <button className="am-action-btn am-btn-delete" onClick={() => handleAction(job.id, 'deactivate')}>
+                                                                        <i className="fas fa-eye-slash"></i>
+                                                                    </button>
+                                                                </LuxuryTooltip>
+                                                            ) : (
+                                                                <LuxuryTooltip content="Activate">
+                                                                    <button className="am-action-btn am-btn-publish" onClick={() => handleAction(job.id, 'activate')}>
+                                                                        <i className="fas fa-eye"></i>
+                                                                    </button>
+                                                                </LuxuryTooltip>
+                                                            )}
+                                                            <LuxuryTooltip content="View Public Page">
+                                                                <button className="am-action-btn am-btn-edit" style={{ background: '#fffbeb', color: '#d97706', borderColor: '#fef3c7' }} onClick={() => window.open(`/jobs/${job.slug}`, '_blank')}>
+                                                                    <i className="fas fa-external-link-alt"></i>
+                                                                </button>
+                                                            </LuxuryTooltip>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="8" className="am-empty-state">
+                                                    <i className="fas fa-briefcase"></i>
+                                                    <h3>No jobs found</h3>
                                                 </td>
                                             </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="8" className="no-data">No jobs found</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
-                    </div>
                 </div>
             </div>
         </div>
-    );
+    </div>
+);
 };
 
 export default JobsManagement;

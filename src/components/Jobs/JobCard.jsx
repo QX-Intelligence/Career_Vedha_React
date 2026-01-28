@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import LuxuryTooltip from '../ui/LuxuryTooltip';
 import './JobCard.css';
 
 const JobCard = ({ job }) => {
@@ -16,8 +17,15 @@ const JobCard = ({ job }) => {
     return (
         <div className="job-card" onClick={() => navigate(`/jobs/${job.slug}`)}>
             <div className="job-card-header">
-                <div className={`job-type-badge ${isGovt ? 'govt' : 'private'}`}>
-                    {isGovt ? 'Government' : 'Private'}
+                <div className="badge-group">
+                    <div className={`job-type-badge ${isGovt ? 'govt' : 'private'}`}>
+                        {isGovt ? 'Government' : 'Private'}
+                    </div>
+                    {job.status_display && (
+                        <div className={`job-status-badge ${job.status_display.toLowerCase()}`}>
+                            {job.status_display}
+                        </div>
+                    )}
                 </div>
                 <div className="job-date">
                     <i className="far fa-clock"></i>
@@ -26,7 +34,9 @@ const JobCard = ({ job }) => {
             </div>
 
             <div className="job-card-body">
-                <h3 className="job-title" title={job.title}>{job.title}</h3>
+                <LuxuryTooltip content={job.title}>
+                    <h3 className="job-title">{job.title}</h3>
+                </LuxuryTooltip>
                 <div className="job-company">
                     <i className="fas fa-building"></i>
                     {job.organization}
@@ -54,7 +64,7 @@ const JobCard = ({ job }) => {
 
             <div className="job-card-footer">
                 <div className="deadline-info">
-                    <span className="deadline-label">Apply by:</span>
+                    <span className="deadline-label">APPLY BY:</span>
                     <span className="deadline-date">
                         {new Date(job.application_end_date).toLocaleDateString(undefined, {
                             year: 'numeric',

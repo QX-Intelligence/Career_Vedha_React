@@ -11,7 +11,7 @@ const Sidebar = () => {
             <TrendingWidget />
 
             <NewsletterForm />
-            <AppDownload />
+            {/* <AppDownload /> */}
             <QuizWidget />
         </aside>
     );

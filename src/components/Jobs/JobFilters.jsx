@@ -14,7 +14,34 @@ const JobFilters = ({ filters, onFilterChange }) => {
         const fetchFilters = async () => {
             try {
                 const data = await jobsService.getJobFilters();
-                setOptions(data);
+                
+                // Helper to aggregate counts by label (case-insensitive)
+                const aggregateCounts = (items, keyProp) => {
+                    const map = new Map();
+                    items.forEach(item => {
+                        const label = item[keyProp]; // e.g. 'PRIVATE'
+                        const normalizedLabel = label.trim().toUpperCase(); // Normalize for key
+                        
+                        if (map.has(normalizedLabel)) {
+                            map.get(normalizedLabel).count += item.count;
+                        } else {
+                            map.set(normalizedLabel, { 
+                                ...item, 
+                                [keyProp]: label // Keep original casing for display or standardize
+                            });
+                        }
+                    });
+                    return Array.from(map.values());
+                };
+
+                const processedData = {
+                    ...data,
+                    job_type_counts: aggregateCounts(data.job_type_counts || [], 'job_type'),
+                    // Add similar aggregation for others if needed, though job_type seems to be the main culprit
+                    // The screenshot shows duplicates for 'Private', likely one 'PRIVATE' and one 'Private' or similar
+                };
+
+                setOptions(processedData);
             } catch (error) {
                 console.error("Failed to load filters", error);
             } finally {

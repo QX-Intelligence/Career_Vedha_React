@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LuxuryTooltip from '../../components/ui/LuxuryTooltip';
 import api, { getUserContext, subscribeToAuthChanges } from '../../services/api';
 import { newsService } from '../../services';
 import { fetchNotifications, markAsSeen, markAllAsSeen, approveRequest, rejectRequest } from '../../services/notificationService';
@@ -7,7 +8,8 @@ import { useSnackbar } from '../../context/SnackbarContext';
 import { getRoleInitials } from '../../utils/roleUtils';
 import useGlobalSearch from '../../hooks/useGlobalSearch';
 import API_CONFIG from '../../config/api.config';
-import '../../styles/Dashboard.css';
+import '../../styles/ArticleManagement.css';
+import './TaxonomyManagement.css';
 
 const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen }) => {
     const n = notification;
@@ -16,9 +18,11 @@ const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen 
             <div className="popover-item-text">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <strong>New Request</strong>
-                    <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} title="Mark as read">
-                        <i className="fas fa-eye"></i>
-                    </button>
+                    <LuxuryTooltip content="Mark as read" position="left">
+                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)}>
+                            <i className="fas fa-eye"></i>
+                        </button>
+                    </LuxuryTooltip>
                 </div>
                 <p>{n.message}</p>
             </div>
@@ -404,7 +408,11 @@ const TaxonomyManagement = () => {
                             <div className="top-user-info">
                                 <span className="top-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     {userFullName || userEmail}
-                                    {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
+                                    {userStatus !== null && (
+                                        <LuxuryTooltip content={userStatus ? 'Active' : 'Inactive'}>
+                                            <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`}></span>
+                                        </LuxuryTooltip>
+                                    )}
                                 </span>
                                 <span className="top-user-role">{userRole}</span>
                             </div>
@@ -415,69 +423,100 @@ const TaxonomyManagement = () => {
                     </div>
                 </header>
 
-                <div className="content-container">
-                    <div className="cms-header-row">
-                        <div className="cms-title-area">
-                            <h1>Taxonomy Management</h1>
-                            <p>Manage categories and tags across the platform</p>
+                <div className="content-container section-fade-in">
+                    <div className="am-header">
+                        <div className="am-title-section">
+                            <h1 className="am-title">
+                                <i className="fas fa-tags"></i>
+                                Taxonomy Management
+                            </h1>
+                            <p className="am-subtitle">Manage categories and tags across the platform</p>
                         </div>
                     </div>
 
-                    <div className="cms-table-controls">
-                        <div className="cms-tabs">
+                    <div className="am-filter-bar">
+                        <div className="am-tabs">
                             {sections.map(section => (
                                 <button 
                                     key={section.id}
-                                    className={activeSection === section.id ? 'active' : ''} 
+                                    className={`am-tab ${activeSection === section.id ? 'active' : ''}`} 
                                     onClick={() => setActiveSection(section.id)}
                                 >
+                                    {activeSection === section.id && <i className="fas fa-check-circle"></i>}
                                     {section.name}
+                                    <span style={{ background: 'rgba(0,0,0,0.06)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', marginLeft: '4px' }}>
+                                        {activeSection === section.id ? taxonomies.length : ''}
+                                    </span>
                                 </button>
                             ))}
                         </div>
+                        <div className="am-search-form">
+                            <div className="am-search-wrapper">
+                                <i className="fas fa-search am-search-icon"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search taxonomies..." 
+                                    disabled
+                                    className="am-search-input"
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="cms-table-container glass-card">
+                    <div className="dashboard-section">
                         {loading ? (
-                            <div className="cms-loading">
-                                <i className="fas fa-spinner fa-spin"></i>
+                            <div className="am-loading">
+                                <i className="fas fa-spinner fa-spin fa-2x"></i>
                                 <p>Fetching taxonomies...</p>
                             </div>
                         ) : (
-                            <table className="cms-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Slug</th>
-                                        <th>Type</th>
-                                        <th>Description</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {taxonomies.length > 0 ? (
-                                        taxonomies.map((tax, idx) => (
-                                            <tr key={tax.id || idx}>
-                                                <td>#{tax.id || (idx + 1)}</td>
-                                                <td><strong>{tax.name}</strong></td>
-                                                <td>{tax.slug}</td>
-                                                <td><span className="type-tag">{tax.section || activeSection}</span></td>
-                                                <td>{tax.description || 'No description available'}</td>
-                                            </tr>
-                                        ))
-                                    ) : (
+                            <div className="am-table-container">
+                                <table className="am-table">
+                                    <thead>
                                         <tr>
-                                            <td colSpan="5" className="no-data">No taxonomy records found for this section</td>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Slug</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {taxonomies.length > 0 ? (
+                                            taxonomies.map((tax, idx) => (
+                                                <tr key={tax.id || idx}>
+                                                    <td style={{ fontWeight: 'bold', color: 'var(--slate-500)' }}>#{tax.id || (idx + 1)}</td>
+                                                    <td>
+                                                        <div style={{ fontWeight: '600', color: 'var(--slate-900)' }}>{tax.name}</div>
+                                                    </td>
+                                                    <td style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                                                        <i className="fas fa-link" style={{ fontSize: '0.7rem' }}></i> {tax.slug}
+                                                    </td>
+                                                    <td>
+                                                        <span className="am-status-badge draft">
+                                                            {tax.section || activeSection}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ fontSize: '0.85rem', color: '#64748b' }}>{tax.description || 'No description available'}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="5" className="am-empty-state">
+                                                    <i className="fas fa-tags"></i>
+                                                    <h3>No taxonomy records found</h3>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         )}
-                    </div>
                 </div>
             </div>
         </div>
-    );
+    </div>
+);
 };
 
 export default TaxonomyManagement;

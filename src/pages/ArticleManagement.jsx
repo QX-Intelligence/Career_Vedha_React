@@ -4,6 +4,9 @@ import { newsService } from '../services';
 import { useSnackbar } from '../context/SnackbarContext';
 import { getUserContext } from '../services/api';
 import CustomSelect from '../components/ui/CustomSelect';
+import LuxuryCalendar from '../components/ui/LuxuryCalendar';
+import LuxuryTooltip from '../components/ui/LuxuryTooltip';
+import '../styles/ArticleManagement.css';
 
 const ArticleManagement = ({ activeLanguage }) => {
     const { showSnackbar } = useSnackbar();
@@ -12,10 +15,7 @@ const ArticleManagement = ({ activeLanguage }) => {
 
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
     const [currentArticle, setCurrentArticle] = useState(null);
-    const [categories, setCategories] = useState([]);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [articleToDelete, setArticleToDelete] = useState(null);
     const [showDeactivateModal, setShowDeactivateModal] = useState(false);
@@ -24,8 +24,8 @@ const ArticleManagement = ({ activeLanguage }) => {
     const [articleToActivate, setArticleToActivate] = useState(null);
     const [filterDate, setFilterDate] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState(null); // null means not searching
-    const [selectedIds, setSelectedIds] = useState([]); // Array of IDs
+    const [searchResults, setSearchResults] = useState(null);
+    const [selectedIds, setSelectedIds] = useState([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [activeTab, setActiveTab] = useState('PUBLISHED');
     const [showFeatureModal, setShowFeatureModal] = useState(false);
@@ -36,46 +36,9 @@ const ArticleManagement = ({ activeLanguage }) => {
         rank: 1
     });
 
-
-    // Form State
-    const [formData, setFormData] = useState({
-        slug: '',
-        section: 'academics',
-        summary: '',
-        tags: '',
-        status: 'DRAFT',
-        keywords: '',
-        canonical_url: '',
-        meta_title: '',
-        meta_description: '',
-        noindex: false,
-        og_title: '',
-        og_description: '',
-        og_image_url: '',
-        expires_at: '',
-        // Bilingual fields
-        eng_title: '',
-        eng_content: '',
-        tel_title: '',
-        tel_content: ''
-    });
-
-    const sections = [
-        { id: 'academics', name: 'Academics' },
-        { id: 'jobs', name: 'Jobs' },
-        { id: 'tech', name: 'Tech' },
-        { id: 'business', name: 'Business' }
-    ];
-
     useEffect(() => {
         fetchArticles();
     }, []);
-
-    useEffect(() => {
-        if (showForm && formData.section) {
-            fetchCategories(formData.section);
-        }
-    }, [showForm, formData.section]);
 
     const fetchArticles = async () => {
         setLoading(true);
@@ -85,9 +48,10 @@ const ArticleManagement = ({ activeLanguage }) => {
                 setArticles(results.map(r => ({
                     id: r.article_id,
                     title: r.title,
-                    section: 'N/A',
-                    status: 'PUBLISHED', // Assume published if searchable
-                    translations: [{ title: r.title, language: r.language }]
+                    slug: r.slug,
+                    section: r.section || 'academics',
+                    status: r.status || 'PUBLISHED',
+                    translations: r.translations || [{ title: r.title, language: r.language }]
                 })));
             } else {
                 // Fetch admin list and dedicated features across all major sections (Home, Academics, Jobs, etc.)
@@ -397,19 +361,6 @@ const ArticleManagement = ({ activeLanguage }) => {
         }
     };
 
-    const handleNewArticleClick = () => {
-        setIsEditing(false);
-        setFormData({
-            slug: '', section: 'academics', summary: '', tags: '', status: 'DRAFT',
-            keywords: '', canonical_url: '', meta_title: '', meta_description: '',
-            noindex: false,
-            og_title: '', og_description: '', og_image_url: '', expires_at: '',
-            eng_title: '', eng_content: '', tel_title: '', tel_content: '',
-            category_ids: []
-        });
-        setShowForm(true);
-    };
-
     const handleConfirmDelete = async () => {
         if (!articleToDelete) return;
         try {
@@ -455,38 +406,16 @@ const ArticleManagement = ({ activeLanguage }) => {
         }
     };
 
-    const openEditForm = (article) => {
-        setCurrentArticle(article);
-        setIsEditing(true);
+    const openEditForm = (article = null) => {
+        if (article) {
+            navigate(`/cms/articles/edit/${article.section}/${article.slug}`);
+        } else {
+            navigate('/cms/articles/new');
+        }
+    };
 
-        const engTr = article.translations?.find(t => t.language === 'en');
-        const telTr = article.translations?.find(t => t.language === 'te');
-
-        // Sync categories
-        const catIds = article.category_ids || article.article_categories?.map(c => c.category_id) || [];
-
-        setFormData({
-            slug: article.slug || '',
-            section: article.section || 'academics',
-            summary: article.summary || '',
-            tags: Array.isArray(article.tags) ? article.tags.join(', ') : (article.tags || ''),
-            status: article.status || 'DRAFT',
-            keywords: Array.isArray(article.keywords) ? article.keywords.join(', ') : (article.keywords || ''),
-            canonical_url: article.canonical_url || '',
-            meta_title: article.meta_title || '',
-            meta_description: article.meta_description || '',
-            noindex: article.noindex || false,
-            og_title: article.og_title || '',
-            og_description: article.og_description || '',
-            og_image_url: article.og_image_url || '',
-            expires_at: article.expires_at ? article.expires_at.split('T')[0] : '',
-            eng_title: engTr?.title || '',
-            eng_content: engTr?.content || '',
-            tel_title: telTr?.title || '',
-            tel_content: telTr?.content || '',
-            category_ids: catIds
-        });
-        setShowForm(true);
+    const handleNewArticleClick = () => {
+        openEditForm();
     };
 
     // Permission Helpers
@@ -525,10 +454,14 @@ const ArticleManagement = ({ activeLanguage }) => {
 
     return (
         <div className="section-fade-in">
-            <div className="page-header-row">
-                <div>
-                    <h1>Article Management</h1>
-                    <p className="subtitle">Manage news stories, academic updates, and categorized content.</p>
+            {/* Header */}
+            <div className="am-header">
+                <div className="am-title-section">
+                    <h1 className="am-title">
+                        <i className="fas fa-newspaper"></i>
+                        Article Management
+                    </h1>
+                    <p className="am-subtitle">Manage news stories, academic updates, and categorized content.</p>
                 </div>
                 {canCreate && (
                     <button className="m-btn-primary" onClick={handleNewArticleClick}>
@@ -537,178 +470,115 @@ const ArticleManagement = ({ activeLanguage }) => {
                 )}
             </div>
 
-            <div className="management-tabs" style={{
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '1.5rem',
-                borderBottom: '1px solid #e2e8f0',
-                padding: '0 0.5rem'
-            }}>
-                {['PUBLISHED', 'DRAFT', 'REVIEW', 'INACTIVE', 'FEATURED'].map(status => (
-                    <button
-                        key={status}
-                        onClick={() => setActiveTab(status)}
-                        style={{
-                            padding: '0.75rem 1.25rem',
-                            border: 'none',
-                            background: 'none',
-                            fontSize: '0.9rem',
-                            fontWeight: '700',
-                            color: activeTab === status ? (status === 'FEATURED' ? '#ef4444' : '#f59e0b') : '#64748b',
-                            borderBottom: activeTab === status ? `3px solid ${status === 'FEATURED' ? '#ef4444' : '#f59e0b'}` : '3px solid transparent',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s',
-                            marginBottom: '-1px'
-                        }}
-                    >
-                        {status === 'DRAFT' && <i className="fas fa-file-alt"></i>}
-                        {status === 'REVIEW' && <i className="fas fa-search-plus"></i>}
-                        {status === 'PUBLISHED' && <i className="fas fa-check-circle"></i>}
-                        {status === 'INACTIVE' && <i className="fas fa-eye-slash"></i>}
-                        {status === 'FEATURED' && <i className="fas fa-thumbtack"></i>}
-                        {status.charAt(0) + status.slice(1).toLowerCase()}
-                        <span style={{
-                            background: activeTab === status ? (status === 'FEATURED' ? '#fee2e2' : '#fef3c7') : '#f1f5f9',
-                            color: activeTab === status ? (status === 'FEATURED' ? '#b91c1c' : '#d97706') : '#64748b',
-                            padding: '2px 8px',
-                            borderRadius: '20px',
-                            fontSize: '0.75rem'
-                        }}>
-                            {statusCounts[status]}
-                        </span>
-                    </button>
-                ))}
-            </div>
-
-            <div className="glass-filter-bar" style={{
-                background: 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.5)',
-                borderRadius: '16px',
-                padding: '1rem',
-                marginBottom: '1.5rem',
-                display: 'flex',
-                gap: '1rem',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
-            }}>
-                <div className="search-box-premium" style={{ flex: 1, minWidth: '250px', position: 'relative' }}>
-                    <i className="fas fa-search" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}></i>
-                    <input
-                        type="text"
-                        placeholder="Search by ID or Title..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                fetchArticles(); // Immediate fetch
-                            }
-                        }}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem 1rem 0.75rem 42px',
-                            borderRadius: '12px',
-                            border: '1px solid #e2e8f0',
-                            background: 'white',
-                            fontSize: '0.95rem',
-                            transition: 'all 0.2s ease',
-                            outline: 'none'
-                        }}
-                    />
-                </div>
-                <div className="date-filter" style={{ position: 'relative' }}>
-                    <input
-                        type="date"
-                        value={filterDate}
-                        onChange={(e) => setFilterDate(e.target.value)}
-                        style={{
-                            padding: '0.75rem 1rem',
-                            borderRadius: '12px',
-                            border: '1px solid #e2e8f0',
-                            background: 'white',
-                            color: '#475569',
-                            outline: 'none'
-                        }}
-                    />
-                    {filterDate && (
+            {/* Filter Bar: Tabs + Search */}
+            <div className="am-filter-bar">
+                <div className="am-tabs">
+                    {['PUBLISHED', 'DRAFT', 'REVIEW', 'INACTIVE', 'FEATURED'].map(status => (
                         <button
-                            onClick={() => setFilterDate('')}
-                            style={{
-                                position: 'absolute',
-                                right: '-30px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                background: '#f1f5f9',
-                                border: 'none',
-                                color: '#64748b',
-                                cursor: 'pointer',
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                            title="Clear Filter"
+                            key={status}
+                            className={`am-tab ${activeTab === status ? 'active' : ''} ${status === 'FEATURED' ? 'featured' : ''}`}
+                            onClick={() => setActiveTab(status)}
                         >
-                            <i className="fas fa-times" style={{ fontSize: '0.7rem' }}></i>
+                            {status === 'DRAFT' && <i className="fas fa-file-alt"></i>}
+                            {status === 'REVIEW' && <i className="fas fa-search-plus"></i>}
+                            {status === 'PUBLISHED' && <i className="fas fa-check-circle"></i>}
+                            {status === 'INACTIVE' && <i className="fas fa-eye-slash"></i>}
+                            {status === 'FEATURED' && <i className="fas fa-thumbtack"></i>}
+                            {status.charAt(0) + status.slice(1).toLowerCase()}
+                            <span style={{
+                                background: 'rgba(0,0,0,0.06)',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '0.7em',
+                                marginLeft: '4px'
+                            }}>
+                                {statusCounts[status]}
+                            </span>
                         </button>
-                    )}
+                    ))}
                 </div>
 
-                {selectedIds.length > 0 && canDelete && (
-                    <div style={{ marginLeft: 'auto', borderLeft: '1px solid #cbd5e1', paddingLeft: '1rem' }}>
-                        <button
-                            onClick={() => setShowBulkDeleteModal(true)}
-                            className="btn-danger-soft"
-                            style={{
-                                background: '#fee2e2',
-                                color: '#dc2626',
-                                border: '1px solid #fecaca',
-                                padding: '0.6rem 1.2rem',
-                                borderRadius: '10px',
-                                cursor: 'pointer',
-                                fontWeight: '600',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            <i className="fas fa-trash-alt"></i> Delete Selected ({selectedIds.length})
-                        </button>
+                <div className="am-search-form">
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', height: '46px', width: '100%' }}>
+                        <div className="am-search-wrapper" style={{ flex: 1, height: '100%' }}> {/* flex: 1 to fill gap */}
+                             <i className="fas fa-search am-search-icon"></i>
+                             <input
+                                type="text"
+                                placeholder="Search..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        fetchArticles();
+                                    }
+                                }}
+                                className="am-search-input"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => { setSearchQuery(''); fetchArticles(); }}
+                                    style={{
+                                        border: 'none', background: 'transparent',
+                                        color: '#94a3b8', cursor: 'pointer', padding: '0 8px'
+                                    }}
+                                >
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            )}
+                        </div>
+
+                        <LuxuryCalendar 
+                            selectedDate={filterDate} 
+                            onDateSelect={setFilterDate} 
+                        />
+
+                        {selectedIds.length > 0 && canDelete && (
+                            <button
+                                onClick={() => setShowBulkDeleteModal(true)}
+                                className="am-action-btn am-btn-delete"
+                                style={{ width: 'auto', padding: '0 1rem', height: '100%', gap: '0.5rem', fontWeight: 600, whiteSpace: 'nowrap' }}
+                            >
+                                <i className="fas fa-trash-alt"></i> 
+                                <span>Delete ({selectedIds.length})</span>
+                            </button>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
 
+            {/* Content Table */}
             <div className="dashboard-section">
                 {loading ? (
-                    <div className="loading-state">
-                        <i className="fas fa-spinner fa-spin"></i>
+                    <div className="am-loading">
+                        <i className="fas fa-spinner fa-spin fa-2x"></i>
                         <p>Fetching articles...</p>
                     </div>
                 ) : articles.length === 0 ? (
-                    <div className="empty-state-card">
+                    <div className="am-empty-state">
                         <i className="fas fa-newspaper"></i>
                         <h3>No Articles Found</h3>
                         <p>Start by creating your first article draft.</p>
                     </div>
                 ) : (
-                    <div className="table-responsive">
-                        <table className="quiz-table">
+                    <div className="am-table-container">
+                        <table className="am-table">
                             <thead>
                                 <tr>
-                                    <th>
+                                    <th style={{ width: '50px', textAlign: 'center' }}>
                                         <div className="custom-checkbox">
-                                            <input
-                                                type="checkbox"
-                                                onChange={handleSelectAll}
+                                            <input 
+                                                type="checkbox" 
+                                                id="selectAll"
                                                 checked={filteredArticles.length > 0 && selectedIds.length === filteredArticles.length}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedIds(filteredArticles.map(a => a.id));
+                                                    } else {
+                                                        setSelectedIds([]);
+                                                    }
+                                                }}
                                             />
+                                            <label htmlFor="selectAll"></label>
                                         </div>
                                     </th>
                                     <th>ID</th>
@@ -722,26 +592,34 @@ const ArticleManagement = ({ activeLanguage }) => {
                             <tbody>
                                 {filteredArticles.map(article => (
                                     <tr key={article.id}>
-                                        <td>
+                                        <td style={{ textAlign: 'center' }}>
                                             <div className="custom-checkbox">
-                                                <input
-                                                    type="checkbox"
+                                                <input 
+                                                    type="checkbox" 
+                                                    id={`chk-${article.id}`}
                                                     checked={selectedIds.includes(article.id)}
-                                                    onChange={() => handleSelectOne(article.id)}
+                                                    onChange={() => {
+                                                        if (selectedIds.includes(article.id)) {
+                                                            setSelectedIds(selectedIds.filter(id => id !== article.id));
+                                                        } else {
+                                                            setSelectedIds([...selectedIds, article.id]);
+                                                        }
+                                                    }}
                                                 />
+                                                <label htmlFor={`chk-${article.id}`}></label>
                                             </div>
                                         </td>
-                                        <td>#{article.id}</td>
+                                        <td style={{ fontWeight: 'bold', color: 'var(--slate-500)' }}>#{article.id}</td>
                                         <td>
-                                            <div className="q-text-cell" style={{ fontWeight: '600', color: 'var(--slate-900)' }}>
+                                            <div style={{ fontWeight: '600', color: 'var(--slate-900)' }}>
                                                 {(() => {
                                                     const tr = article.translations?.find(t => t.language === (activeLanguage === 'telugu' ? 'te' : 'en')) || article.translations?.[0];
                                                     return tr?.title || article.title || 'Untitled Article';
                                                 })()}
                                             </div>
                                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                                                    <i className="fas fa-link" style={{ fontSize: '0.65rem' }}></i> {article.slug}
+                                                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                                    <i className="fas fa-link" style={{ fontSize: '0.7rem' }}></i> {article.slug}
                                                 </div>
                                                 {article.features && article.features.length > 0 && article.features.map((feat, idx) => (
                                                     <span key={idx} style={{
@@ -763,58 +641,67 @@ const ArticleManagement = ({ activeLanguage }) => {
                                             </div>
                                         </td>
                                         <td style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                                            {getDisplayDate(article)}
-                                            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                                                {article.published_at ? 'Published' : 'Created'}
-                                            </div>
+                                           {getDisplayDate(article)}
                                         </td>
-                                        <td><span className="section-badge">{article.section}</span></td>
+                                        <td><span className="am-status-badge draft">{article.section}</span></td>
                                         <td>
-                                            <span className={`status-tag ${article.status?.toLowerCase()}`}>
+                                            <span className={`am-status-badge ${article.status?.toLowerCase()}`}>
                                                 {article.status}
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="action-buttons">
+                                            <div className="am-action-buttons">
                                                 {canEdit && (
-                                                    <button className="btn-icon-edit" onClick={() => openEditForm(article)} title="Edit / Translate">
-                                                        <i className="fas fa-edit"></i>
-                                                    </button>
+                                                    <LuxuryTooltip content="Edit / Translate">
+                                                        <button className="am-action-btn am-btn-edit" onClick={() => openEditForm(article)}>
+                                                            <i className="fas fa-edit"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
                                                 )}
                                                 {canReview && article.status === 'DRAFT' && (
-                                                    <button className="btn-icon-approve" onClick={() => handleAction(article.id, 'review')} title="Move to Review">
-                                                        <i className="fas fa-file-export"></i>
-                                                    </button>
+                                                    <LuxuryTooltip content="Move to Review">
+                                                        <button className="am-action-btn am-btn-edit" onClick={() => handleAction(article.id, 'review')}>
+                                                            <i className="fas fa-file-export"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
                                                 )}
                                                 {canPublish && (article.status === 'REVIEW' || article.status === 'DRAFT') && (
-                                                    <button className="btn-icon-publish" onClick={() => handleAction(article.id, 'publish')} title="Publish Live">
-                                                        <i className="fas fa-paper-plane"></i>
-                                                    </button>
+                                                    <LuxuryTooltip content="Publish Live">
+                                                        <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'publish')}>
+                                                            <i className="fas fa-paper-plane"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
                                                 )}
                                                 {canPublish && article.status === 'PUBLISHED' && (
-                                                    <button
-                                                        className="btn-icon-approve"
-                                                        onClick={() => handleAction(article.id, article.features?.length > 0 ? 'unpin' : 'feature')}
-                                                        title={article.features?.length > 0 ? "Remove Pin" : "Pin to Featured"}
-                                                        style={{ color: article.features?.length > 0 ? '#10b981' : '#ef4444' }}
-                                                    >
-                                                        <i className={article.features?.length > 0 ? "fas fa-thumbtack fa-rotate-180" : "fas fa-thumbtack"}></i>
-                                                    </button>
+                                                    <LuxuryTooltip content={article.features?.length > 0 ? "Unpin Article" : "Pin Article"}>
+                                                        <button 
+                                                            className={`am-action-btn am-btn-pin ${article.features && article.features.length > 0 ? 'pinned' : ''}`}
+                                                            onClick={() => handleAction(article.id, article.features?.length > 0 ? 'unpin' : 'feature')}
+                                                        >
+                                                            <i className="fas fa-thumbtack"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
                                                 )}
                                                 {canPublish && (article.status !== 'INACTIVE') && (
-                                                    <button className="btn-icon-deactivate" onClick={() => handleAction(article.id, 'deactivate')} title="Deactivate / Hide">
-                                                        <i className="fas fa-eye-slash"></i>
-                                                    </button>
+                                                    <LuxuryTooltip content="Deactivate / Hide">
+                                                        <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'deactivate')}>
+                                                            <i className="fas fa-eye-slash"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
                                                 )}
                                                 {canPublish && (article.status === 'INACTIVE') && (
-                                                    <button className="btn-icon-approve" onClick={() => handleAction(article.id, 'activate')} title="Re-activate / Show">
-                                                        <i className="fas fa-redo"></i>
-                                                    </button>
+                                                    <LuxuryTooltip content="Re-activate / Show">
+                                                        <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'activate')}>
+                                                            <i className="fas fa-redo"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
                                                 )}
                                                 {canDelete && (
-                                                    <button className="btn-icon-delete" onClick={() => handleAction(article.id, 'delete')} title="Delete Permanent">
-                                                        <i className="fas fa-trash-alt"></i>
-                                                    </button>
+                                                    <LuxuryTooltip content="Delete Permanently">
+                                                        <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'delete')}>
+                                                            <i className="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
                                                 )}
                                             </div>
                                         </td>
@@ -826,316 +713,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                 )}
             </div>
 
-            {/* Slide-over Form Container */}
-            <div className={`slide-over-overlay ${showForm ? 'active' : ''}`} onClick={() => setShowForm(false)}>
-                <div className={`slide-over-content ${showForm ? 'active' : ''}`} style={{ width: '600px' }} onClick={e => e.stopPropagation()}>
-                    <div className="slide-over-header" style={{
-                        background: 'white',
-                        borderBottom: '1px solid #e2e8f0',
-                        padding: '1.5rem 2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                    }}>
-                        <div className="header-info">
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.025em' }}>
-                                {isEditing ? <><i className="fas fa-edit" style={{ color: '#f59e0b', marginRight: '10px' }}></i>Edit Article</> : <><i className="fas fa-magic" style={{ color: '#f59e0b', marginRight: '10px' }}></i>New Article</>}
-                            </h3>
-                            <p style={{ marginTop: '0.25rem', color: '#64748b' }}>{isEditing ? `Updating ${formData.slug}` : 'Craft a compelling narrative for the platform'}</p>
-                        </div>
-                        <button className="close-panel-btn" onClick={() => setShowForm(false)} style={{
-                            background: '#f1f5f9',
-                            border: 'none',
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            cursor: 'pointer',
-                            color: '#64748b',
-                            transition: 'all 0.2s'
-                        }}>
-                            <i className="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <form className="slide-over-body" onSubmit={handleSubmit} style={{ padding: '2rem', background: '#f8fafc' }}>
-
-                        {/* 1. Basic Information Section */}
-                        <div className="form-section-card" style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            marginBottom: '1.5rem',
-                            border: '1px solid #e2e8f0'
-                        }}>
-                            <h4 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: '700', color: '#334155', borderBottom: '2px solid #facc15', paddingBottom: '0.5rem', display: 'inline-block' }}>
-                                <i className="fas fa-info-circle"></i> URL & Section
-                            </h4>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Section</label>
-                                    <CustomSelect
-                                        value={formData.section}
-                                        onChange={(val) => setFormData(prev => ({ ...prev, section: val }))}
-                                        options={sections.map(s => s.id)}
-                                        placeholder="Select section..."
-                                    />
-                                </div>
-                                {!isEditing ? (
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Slug</label>
-                                        <input name="slug" value={formData.slug} onChange={handleInputChange} required placeholder="e.g. ap-inter-results"
-                                            style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Slug (Read Only)</label>
-                                        <input value={formData.slug} readOnly disabled
-                                            style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b' }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 2. English Content Section */}
-                        <div className="form-section-card" style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            marginBottom: '1.5rem',
-                            border: '1px solid #e2e8f0'
-                        }}>
-                            <h4 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: '700', color: '#334155', borderBottom: '2px solid #3b82f6', paddingBottom: '0.5rem', display: 'inline-block' }}>
-                                <i className="fas fa-language"></i> English Content
-                            </h4>
-
-                            <div className="form-group-premium" style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Title (English)</label>
-                                <input name="eng_title" value={formData.eng_title} onChange={handleInputChange} placeholder="English headline..."
-                                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
-                                />
-                            </div>
-
-                            <div className="form-group-premium">
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Content (English HTML)</label>
-                                <textarea name="eng_content" value={formData.eng_content} onChange={handleInputChange} rows="8" placeholder="English article body..."
-                                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none', fontFamily: 'monospace' }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* 3. Telugu Content Section */}
-                        <div className="form-section-card" style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            marginBottom: '1.5rem',
-                            border: '1px solid #e2e8f0'
-                        }}>
-                            <h4 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: '700', color: '#334155', borderBottom: '2px solid #10b981', paddingBottom: '0.5rem', display: 'inline-block' }}>
-                                <i className="fas fa-language"></i> Telugu Content
-                            </h4>
-
-                            <div className="form-group-premium" style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Title (Telugu)</label>
-                                <input name="tel_title" value={formData.tel_title} onChange={handleInputChange} placeholder="Telugu headline..."
-                                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1rem', outline: 'none' }}
-                                />
-                            </div>
-
-                            <div className="form-group-premium">
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Content (Telugu HTML)</label>
-                                <textarea name="tel_content" value={formData.tel_content} onChange={handleInputChange} rows="8" placeholder="Telugu article body..."
-                                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none', fontFamily: 'monospace' }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* 4. Metadata & Categorization */}
-                        <div className="form-section-card" style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            marginBottom: '1.5rem',
-                            border: '1px solid #e2e8f0'
-                        }}>
-                            <h4 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: '700', color: '#334155', borderBottom: '2px solid #facc15', paddingBottom: '0.5rem', display: 'inline-block' }}>
-                                <i className="fas fa-pen-nib"></i> Metadata & Tags
-                            </h4>
-
-                            <div className="form-group-premium" style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Summary</label>
-                                <textarea name="summary" value={formData.summary} onChange={handleInputChange} rows="3" placeholder="Brief intro..."
-                                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                />
-                            </div>
-
-                            <div className="form-group-premium" style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Tags</label>
-                                <input name="tags" value={formData.tags} onChange={handleInputChange} placeholder="e.g. education, career"
-                                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                />
-                            </div>
-
-                            <div className="form-group-premium">
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.8rem' }}><i className="fas fa-folder-open"></i> Categories</label>
-                                <div className="categories-selection-grid" style={{
-                                    display: 'flex', flexWrap: 'wrap', gap: '8px', border: '1px dashed #cbd5e1', padding: '1rem', borderRadius: '10px', background: '#f8fafc'
-                                }}>
-                                    {categories.length === 0 ? (
-                                        <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>No categories found for this section.</p>
-                                    ) : (
-                                        categories.map(cat => (
-                                            <div
-                                                key={cat.id}
-                                                className={`category-pill-item ${(formData.category_ids || []).includes(cat.id) ? 'active' : ''}`}
-                                                onClick={() => handleCategoryToggle(cat.id)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    borderRadius: '20px',
-                                                    fontSize: '0.8rem',
-                                                    cursor: 'pointer',
-                                                    background: (formData.category_ids || []).includes(cat.id) ? '#fefce8' : 'white',
-                                                    border: (formData.category_ids || []).includes(cat.id) ? '1px solid #facc15' : '1px solid #e2e8f0',
-                                                    color: (formData.category_ids || []).includes(cat.id) ? '#854d0e' : '#64748b',
-                                                    display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600'
-                                                }}
-                                            >
-                                                <i className={(formData.category_ids || []).includes(cat.id) ? "fas fa-check-circle" : "far fa-circle"} style={{ color: (formData.category_ids || []).includes(cat.id) ? '#ca8a04' : '#94a3b8' }}></i>
-                                                {cat.name}
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 5. SEO Section */}
-                        <div className="form-section-card" style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            border: '1px solid #e2e8f0',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <h4 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: '700', color: '#334155', borderBottom: '2px solid #facc15', paddingBottom: '0.5rem', display: 'inline-block' }}>
-                                <i className="fas fa-search-dollar"></i> SEO & Visibility
-                            </h4>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem', background: '#fffbeb', padding: '0.75rem', borderRadius: '10px', border: '1px solid #fef3c7' }}>
-                                <label className="custom-checkbox" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}>
-                                    <input type="checkbox" checked={formData.noindex} onChange={(e) => setFormData(prev => ({ ...prev, noindex: e.target.checked }))} />
-                                    <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#92400e' }}>No-Index (Hide from Search Engines)</span>
-                                </label>
-                            </div>
-
-                            <div className="row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '0.4rem' }}>Keywords</label>
-                                    <input name="keywords" value={formData.keywords} onChange={handleInputChange} placeholder="e.g. news, exam"
-                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '0.4rem' }}>Canonical URL</label>
-                                    <input name="canonical_url" value={formData.canonical_url} onChange={handleInputChange} placeholder="https://..."
-                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '0.4rem' }}>Meta Title</label>
-                                    <input name="meta_title" value={formData.meta_title} onChange={handleInputChange} placeholder="SEO Title"
-                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '0.4rem' }}>Meta Description</label>
-                                    <input name="meta_description" value={formData.meta_description} onChange={handleInputChange} placeholder="SEO Description..."
-                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 6. Social Media (OG) Section */}
-                        <div className="form-section-card" style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            border: '1px solid #e2e8f0',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <h4 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: '700', color: '#334155', borderBottom: '2px solid #facc15', paddingBottom: '0.5rem', display: 'inline-block' }}>
-                                <i className="fas fa-share-alt"></i> Social Media (OpenGraph)
-                            </h4>
-
-                            <div className="row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '0.4rem' }}>OG Title</label>
-                                    <input name="og_title" value={formData.og_title} onChange={handleInputChange} placeholder="Social share title"
-                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '0.4rem' }}>OG Image URL</label>
-                                    <input name="og_image_url" value={formData.og_image_url} onChange={handleInputChange} placeholder="https://image-url..."
-                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#64748b', marginBottom: '0.4rem' }}>OG Description</label>
-                                <textarea name="og_description" value={formData.og_description} onChange={handleInputChange} rows="2" placeholder="Social share description..."
-                                    style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* 7. Expiry Section */}
-                        <div className="form-section-card" style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '1.5rem',
-                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                            border: '1px solid #e2e8f0'
-                        }}>
-                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#475569', marginBottom: '0.5rem' }}>Expires At (Optional)</label>
-                            <input type="date" name="expires_at" value={formData.expires_at} onChange={handleInputChange}
-                                style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none' }}
-                            />
-                        </div>
-
-                        {activeLanguage !== 'telugu' && (
-                            <div className="alert-banner info" style={{ marginTop: '1.5rem', background: '#eff6ff', border: '1px dashed #3b82f6', padding: '1rem', borderRadius: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                <div style={{ width: '32px', height: '32px', background: '#dbeafe', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
-                                    <i className="fas fa-language"></i>
-                                </div>
-                                <p style={{ fontSize: '0.9rem', color: '#1e40af', margin: 0 }}>
-                                    <strong>Translation Needed:</strong> Switch to Telugu to Publish.
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="slide-over-footer" style={{ padding: '2rem', borderTop: '1px solid #e2e8f0', background: 'white', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button type="button" className="btn-cancel-fancy" onClick={() => setShowForm(false)} style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', fontWeight: '700' }}>Discard</button>
-                            <button type="submit" className="btn-save-fancy" style={{ padding: '0.75rem 2rem', borderRadius: '12px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
-                                <i className="fas fa-save"></i> {isEditing ? 'Update Article' : 'Save as Draft'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            {/* Form and Modals would go here but now handled by dedicated page */}
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
@@ -1189,24 +767,32 @@ const ArticleManagement = ({ activeLanguage }) => {
 
             {/* Activate Confirmation Modal */}
             {showActivateModal && (
-                <div className="modal-overlay-refined">
-                    <div className="modal-card" style={{ maxWidth: '400px' }}>
-                        <div className="modal-header">
-                            <h3>Re-activate Article</h3>
-                            <button className="close-btn" onClick={() => setShowActivateModal(false)}><i className="fas fa-times"></i></button>
+                <div className="am-modal-overlay">
+                    <div className="am-modal">
+                        <div className="am-modal-header">
+                            <h3>Confirm Reactivation</h3>
+                            <button className="close-panel-btn" onClick={() => setShowActivateModal(false)}><i className="fas fa-times"></i></button>
                         </div>
-                        <div className="modal-body" style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-                            <div className="warning-icon-big" style={{ background: '#dcfce7', color: '#166534' }}>
-                                <i className="fas fa-redo"></i>
+                        <div className="am-modal-body">
+                            <div className="am-warning-icon" style={{ background: '#f59e0b', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <i className="fas fa-check" style={{ fontSize: '1.5rem' }}></i>
                             </div>
-                            <h4 style={{ margin: '1rem 0' }}>Confirm Reactivation?</h4>
-                            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                                Do you really want to reactivate?
+                            
+                            <p style={{ color: '#0f172a', fontWeight: '500', marginBottom: '1.5rem' }}>
+                                Are you sure you want to <strong>reactivate</strong> the following?
+                            </p>
+
+                            <div style={{ background: '#f1f5f9', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontWeight: '700', textTransform: 'uppercase', color: '#0f172a', letterSpacing: '0.05em' }}>
+                                {articles.find(a => a.id === articleToActivate)?.title || 'Selected Article'}
+                            </div>
+
+                             <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0' }}>
+                                This article will be republished and visible to users immediately.
                             </p>
                         </div>
-                        <div className="modal-footer" style={{ justifyContent: 'center', gap: '12px' }}>
-                            <button className="btn-cancel-fancy" onClick={() => setShowActivateModal(false)}>Keep Inactive</button>
-                            <button className="btn-save-fancy" style={{ background: '#166534', borderColor: '#14532d' }} onClick={handleConfirmActivate}>Yes, Reactivate</button>
+                        <div className="am-modal-footer">
+                            <button className="btn-reactivate" onClick={() => setShowActivateModal(false)}>Cancel</button>
+                            <button className="btn-reactivate confirm" onClick={handleConfirmActivate}>Yes, Reactivate</button>
                         </div>
                     </div>
                 </div>

@@ -11,6 +11,9 @@ export default defineConfig({
             devOptions: {
                 enabled: true
             },
+            workbox: {
+                navigateFallbackAllowlist: [/^\/dashboard/, /^\/user-management/, /^\/cms/],
+            },
             manifest: {
                 name: 'Career Vedha',
                 short_name: 'CareerVedha',

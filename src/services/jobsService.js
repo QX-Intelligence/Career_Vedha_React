@@ -7,15 +7,25 @@ export const jobsService = {
     // ----------------------------------------------------
 
     // Get jobs for management
-    // NOTE: Backend doesn't have cms/jobs/list/ endpoint yet
-    // Using public endpoint - status will need to be inferred from other fields
     getAdminJobs: async (params = {}) => {
         try {
-            const response = await djangoApi.get('jobs/', { params });
+            // Updated to use the correct CMS list endpoint
+            const response = await djangoApi.get('cms/jobs/list/', { params });
             return response.data;
         } catch (error) {
             console.error('Error fetching admin jobs:', error);
-            return { results: [], has_next: false };
+            return { results: [], total: 0, limit: 20, offset: 0 };
+        }
+    },
+
+    // Get specific job detail for admin
+    getAdminJobDetail: async (jobId) => {
+        try {
+            const response = await djangoApi.get(`cms/jobs/${jobId}/detail/`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching admin job detail:', error);
+            throw error;
         }
     },
 
@@ -74,7 +84,7 @@ export const jobsService = {
             return response.data;
         } catch (error) {
             console.error('Error fetching public jobs:', error);
-            return { results: [], has_next: false };
+            return { results: [], has_next: false, next_cursor: null };
         }
     },
 

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LuxuryTooltip from '../components/ui/LuxuryTooltip';
 import api, { getUserContext, subscribeToAuthChanges } from '../services/api';
 import { useSnackbar } from '../context/SnackbarContext';
 import '../styles/UserManagement.css';
@@ -9,31 +10,35 @@ import API_CONFIG from '../config/api.config';
 import { getRoleInitials } from '../utils/roleUtils';
 import { fetchNotifications, markAsSeen, markAllAsSeen, approveRequest, rejectRequest } from '../services/notificationService';
 import CustomSelect from '../components/ui/CustomSelect';
+import CMSLayout from '../components/layout/CMSLayout';
+import { MODULES, checkAccess as checkAccessGlobal } from '../config/accessControl.config.js';
+
+const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen }) => {
+    const n = notification;
+    return (
+        <div key={n.id} className="popover-item">
+            <div className="popover-item-text">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <strong>New Request</strong>
+                    <LuxuryTooltip content="Mark as read" position="left">
+                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)}>
+                            <i className="fas fa-eye"></i>
+                        </button>
+                    </LuxuryTooltip>
+                </div>
+                <p>{n.message}</p>
+            </div>
+            <div className="popover-actions">
+                <button className="popover-btn-approve" onClick={() => onApprove(n.id)}>Approve</button>
+                <button className="popover-btn-reject" onClick={() => onReject(n.id)}>Reject</button>
+            </div>
+        </div>
+    );
+});
 
 const UserManagement = () => {
     const navigate = useNavigate();
     const { showSnackbar } = useSnackbar();
-
-    const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen }) => {
-        const n = notification;
-        return (
-            <div key={n.id} className="popover-item">
-                <div className="popover-item-text">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <strong>New Request</strong>
-                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} title="Mark as read">
-                            <i className="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <p>{n.message}</p>
-                </div>
-                <div className="popover-actions">
-                    <button className="popover-btn-approve" onClick={() => onApprove(n.id)}>Approve</button>
-                    <button className="popover-btn-reject" onClick={() => onReject(n.id)}>Reject</button>
-                </div>
-            </div>
-        );
-    });
 
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -78,28 +83,42 @@ const UserManagement = () => {
     /* ================= AUTH CHECK ================= */
     useEffect(() => {
         const { role, email, isAuthenticated, firstName, lastName, status } = getUserContext();
-        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'CREATOR', 'PUBLISHER'];
+        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'CREATOR', 'PUBLISHER', 'EDITOR', 'CONTRIBUTOR'];
+
+        console.log('UserManagement Auth Check:', { isAuthenticated, role, email });
 
         if (!isAuthenticated || !allowedRoles.includes(role)) {
+            console.warn('UserManagement: Unauthorized access or not authenticated. Redirecting to login.', { role, isAuthenticated });
             return navigate('/admin-login');
         }
 
         setUserRole(role);
-        setUserEmail(email);
+        setUserEmail(email || '');
+        console.debug('UserManagement: Initial Email Set:', email);
         setUserStatus(status);
 
         if (firstName && lastName) {
-            setUserFullName(`${firstName} ${lastName}`);
+            const fullName = `${firstName} ${lastName}`;
+            setUserFullName(fullName);
+            console.debug('UserManagement: Initial FullName Set from Context:', fullName);
         } else {
             api.get(API_CONFIG.ENDPOINTS.GET_PROFILE)
                 .then(res => {
                     const { firstName: fn, lastName: ln, status: st } = res.data;
                     setUserStatus(st);
                     if (fn && ln) {
-                        setUserFullName(`${fn} ${ln}`);
+                        const fullName = `${fn} ${ln}`;
+                        setUserFullName(fullName);
+                        console.debug('UserManagement: Fetched Profile Name:', fullName);
+                    } else {
+                        setUserFullName(email || '');
+                        console.warn('UserManagement: Profile name missing, using email');
                     }
                 })
-                .catch(() => setUserFullName(email));
+                .catch(err => {
+                    console.error('UserManagement: Profile fetch failed', err);
+                    setUserFullName(email || '');
+                });
         }
 
         // Subscribe to real-time updates
@@ -382,244 +401,95 @@ const UserManagement = () => {
         }
     };
 
-    return (
-        <div className="dashboard-wrapper">
-            {/* Sidebar */}
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-brand">
-                    <div className="brand-logo-circle">
-                        <i className="fas fa-graduation-cap"></i>
-                    </div>
-                    <span>Career Vedha</span>
-                </div>
+    const checkAccess = useCallback((module) => {
+        return checkAccessGlobal(userRole, module);
+    }, [userRole]);
 
-                <nav className="sidebar-menu">
-                    <button
-                        className="menu-item"
-                        onClick={() => navigate('/dashboard')}
-                    >
-                        <i className="fas fa-tachometer-alt"></i>
-                        <span>Overview</span>
-                    </button>
+    // Prepare sidebar props for CMSLayout
+    const sidebarProps = {
+        activeSection: 'users',
+        setActiveSection: (section) => {
+            if (section === 'users') {
+                // Already on users page
+            } else {
+                navigate(`/dashboard?tab=${section}`);
+            }
+        },
+        userRole,
+        userEmail,
+        userFullName,
+        userStatus,
+        navigate,
+        isCmsOpen,
+        setIsCmsOpen,
+        checkAccess,
+        MODULES,
+        onLogout: handleLogout
+    };
 
-                    <button
-                        className="menu-item"
-                        onClick={() => navigate('/dashboard?tab=roles')}
-                    >
-                        <i className="fas fa-users-gear"></i>
-                        <span>Role Control</span>
-                    </button>
-
-                    <button
-                        className="menu-item"
-                        onClick={() => navigate('/dashboard?tab=permissions')}
-                    >
-                        <i className="fas fa-fingerprint"></i>
-                        <span>Permissions</span>
-                    </button>
-
-                    <button
-                        className="menu-item"
-                        onClick={() => navigate('/dashboard?tab=quizzes')}
-                    >
-                        <i className="fas fa-book-open"></i>
-                        <span>Quiz Manager</span>
-                    </button>
-
-                    <button
-                        className="menu-item"
-                        onClick={() => navigate('/dashboard?tab=notifications')}
-                    >
-                        <i className="fas fa-bell"></i>
-                        <span>Notifications</span>
-                    </button>
-
-                    <button
-                        className="menu-item active"
-                        onClick={() => navigate('/user-management')}
-                    >
-                        <i className="fas fa-users-cog"></i>
-                        <span>User Management</span>
-                    </button>
-
-                    <div className="sidebar-divider" style={{ height: '1px', background: 'rgba(226, 232, 240, 0.5)', margin: '15px 24px' }}></div>
-
-                    <div 
-                        className="sidebar-group-label" 
-                        onClick={() => setIsCmsOpen(!isCmsOpen)}
-                        style={{ 
-                            padding: '20px 24px 10px', 
-                            fontSize: '0.7rem', 
-                            fontWeight: '800', 
-                            color: '#94a3b8', 
-                            textTransform: 'uppercase', 
-                            letterSpacing: '0.05em',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            cursor: 'pointer',
-                            userSelect: 'none'
-                        }}
-                    >
-                        <span>CMS</span>
-                        <i className={`fas fa-chevron-${isCmsOpen ? 'down' : 'right'}`} style={{ fontSize: '0.6rem' }}></i>
-                    </div>
-
-                    {isCmsOpen && (
-                        <>
-                            <button className="menu-item" onClick={() => navigate('/dashboard?tab=articles')}>
-                                <i className="fas fa-file-invoice"></i>
-                                <span>Articles</span>
-                            </button>
-                            <button className="menu-item" onClick={() => navigate('/cms/jobs')}>
-                                <i className="fas fa-briefcase"></i>
-                                <span>Jobs</span>
-                            </button>
-                            {(userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && (
-                                <button className="menu-item" onClick={() => navigate('/cms/taxonomy')}>
-                                    <i className="fas fa-tags"></i>
-                                    <span>Taxonomy</span>
-                                </button>
-                            )}
-                        </>
+    // Prepare navbar props for CMSLayout
+    const navbarProps = {
+        searchQuery: globalSearchQuery,
+        handleSearch: handleGlobalSearch,
+        showSearchResults: showGlobalSearchResults,
+        searchResults: globalSearchResults,
+        navigateToResult: navigateToGlobalResult,
+        userFullName,
+        userEmail,
+        userRole,
+        notificationPopover: (
+            <div className="notification-bell-container" ref={notificationContainerRef}>
+                <div className="notification-bell" onClick={() => setShowPopover(!showPopover)}>
+                    <i className="fas fa-bell"></i>
+                    {overallUnseenCount > 0 && (
+                        <span className="bell-badge">{overallUnseenCount > 15 ? '15+' : overallUnseenCount}</span>
                     )}
-                </nav>
-
-                <div className="sidebar-footer">
-                    <div
-                        className="user-profile-mini"
-                        onClick={() => navigate('/dashboard?tab=profile')}
-                        style={{ cursor: 'pointer' }}
-                        title="Go to My Profile"
-                    >
-                        <div className="avatar">
-                            {getRoleInitials(userRole)}
-                        </div>
-                        <div className="user-details">
-                            <div className="user-name" style={{ fontSize: '0.90rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                {userFullName || userEmail}
-                                {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
-                            </div>
-                            <div className="user-role-badge" style={{ fontSize: '0.65rem', padding: '2px 6px', marginTop: '2px', display: 'inline-block', opacity: 0.9 }}>
-                                {userRole}
-                            </div>
-                        </div>
-                    </div>
-                    <button onClick={handleLogout} className="logout-button-alt">
-                        <i className="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </button>
                 </div>
-            </aside>
 
-            {/* Main Content */}
-            <div className="dashboard-main">
-                <header className="main-top-header">
-                    <div className="header-search">
-                        <i className="fas fa-search"></i>
-                        <input
-                            type="text"
-                            placeholder="Search across portal..."
-                            value={globalSearchQuery}
-                            onChange={handleGlobalSearch}
-                            onFocus={() => globalSearchQuery && setShowGlobalSearchResults(true)}
-                            onBlur={() => setTimeout(() => setShowGlobalSearchResults(false), 200)}
-                        />
-
-                        {showGlobalSearchResults && (
-                            <div className="search-results-dropdown">
-                                {globalSearchResults.length === 0 ? (
-                                    <div className="search-empty">No results found for "{globalSearchQuery}"</div>
-                                ) : (
-                                    globalSearchResults.map(result => (
-                                        <div
-                                            key={result.id}
-                                            className="search-item"
-                                            onClick={() => navigateToGlobalResult(result)}
-                                        >
-                                            <div className="search-item-icon">
-                                                <i className={
-                                                    result.section === 'overview' ? 'fas fa-tachometer-alt' :
-                                                        result.section === 'roles' ? 'fas fa-users-gear' :
-                                                            result.section === 'permissions' ? 'fas fa-fingerprint' :
-                                                                result.section === 'quizzes' ? 'fas fa-book-open' :
-                                                                    result.section === 'notifications' ? 'fas fa-bell' : 'fas fa-hashtag'
-                                                }></i>
-                                            </div>
-                                            <div className="search-item-info">
-                                                <div className="search-item-title">{result.title}</div>
-                                                <div className="search-item-path">Go to {result.section}</div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="header-actions">
-                        <div className="notification-bell-container" ref={notificationContainerRef}>
-                            <div className="notification-bell" onClick={() => setShowPopover(!showPopover)}>
-                                <i className="fas fa-bell"></i>
-                                {overallUnseenCount > 0 && (
-                                    <span className="bell-badge">{overallUnseenCount > 15 ? '15+' : overallUnseenCount}</span>
-                                )}
-                            </div>
-
-                            {showPopover && (
-                                <div className="notification-popover">
-                                    <div className="popover-header">
-                                        <span>New Alerts ({overallUnseenCount})</span>
-                                        {overallUnseenCount > 0 && (
-                                            <button className="mark-all-btn" onClick={handleMarkAllSeen}>Mark all seen</button>
-                                        )}
-                                    </div>
-                                    <div className="popover-list">
-                                        {overallUnseenCount === 0 ? (
-                                            <div className="popover-empty">
-                                                <i className="fas fa-bell-slash"></i>
-                                                <p>No new alerts</p>
-                                            </div>
-                                        ) : (
-                                            notificationFeed.filter(n => {
-                                                const ts = n.localDateTime || n.timestamp;
-                                                const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
-                                                const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || suppressedNotificationIds.includes(n.id) || isSeenLocally;
-                                                return !isSeen;
-                                            }).slice(0, 10).map(n => (
-                                                <PopoverItem
-                                                    key={n.id}
-                                                    notification={n}
-                                                    onApprove={handleApprove}
-                                                    onReject={handleReject}
-                                                    onMarkSeen={handleMarkAsSeen}
-                                                />
-                                            ))
-                                        )}
-                                    </div>
-                                    <div className="popover-footer" onClick={() => { setShowPopover(false); navigate('/dashboard?tab=notifications'); }}>
-                                        View All History
-                                    </div>
-                                </div>
+                {showPopover && (
+                    <div className="notification-popover">
+                        <div className="popover-header">
+                            <span>New Alerts ({overallUnseenCount})</span>
+                            {overallUnseenCount > 0 && (
+                                <button className="mark-all-btn" onClick={handleMarkAllSeen}>Mark all seen</button>
                             )}
                         </div>
-
-                        <div className="top-user-profile">
-                            <div className="top-user-info">
-                                <span className="top-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    {userFullName || userEmail}
-                                    {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
-                                </span>
-                                <span className="top-user-role">{userRole}</span>
-                            </div>
-                            <div className="top-avatar">
-                                {getRoleInitials(userRole)}
-                            </div>
+                        <div className="popover-list">
+                            {overallUnseenCount === 0 ? (
+                                <div className="popover-empty">
+                                    <i className="fas fa-bell-slash"></i>
+                                    <p>No new alerts</p>
+                                </div>
+                            ) : (
+                                notificationFeed.filter(n => {
+                                    const ts = n.localDateTime || n.timestamp;
+                                    const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
+                                    const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || suppressedNotificationIds.includes(n.id) || isSeenLocally;
+                                    return !isSeen;
+                                }).slice(0, 10).map(n => (
+                                    <PopoverItem
+                                        key={n.id}
+                                        notification={n}
+                                        onApprove={handleApprove}
+                                        onReject={handleReject}
+                                        onMarkSeen={handleMarkAsSeen}
+                                    />
+                                ))
+                            )}
+                        </div>
+                        <div className="popover-footer" onClick={() => { setShowPopover(false); navigate('/dashboard?tab=notifications'); }}>
+                            View All History
                         </div>
                     </div>
-                </header>
+                )}
+            </div>
+        ),
+        userStatus
+    };
 
-                <div className="content-container">
+    return (
+        <CMSLayout sidebarProps={sidebarProps} navbarProps={navbarProps}>
+
                     {/* Header */}
                     <div className="um-header">
                         <div className="um-header-content">
@@ -763,22 +633,24 @@ const UserManagement = () => {
                                                     </td>
                                                     <td>
                                                         <div className="um-action-buttons">
-                                                            <button
-                                                                className={`um-action-btn ${user.status ? 'deactivate' : 'activate'}`}
-                                                                onClick={() => handleToggleStatus(user.email, user.status)}
-                                                                title={user.status ? 'Deactivate User' : 'Activate User'}
-                                                            >
-                                                                <i className={`fas ${user.status ? 'fa-ban' : 'fa-check'}`}></i>
-                                                            </button>
+                                                            <LuxuryTooltip content={user.status ? 'Deactivate User' : 'Activate User'}>
+                                                                <button
+                                                                    className={`um-action-btn ${user.status ? 'deactivate' : 'activate'}`}
+                                                                    onClick={() => handleToggleStatus(user.email, user.status)}
+                                                                >
+                                                                    <i className={`fas ${user.status ? 'fa-ban' : 'fa-check'}`}></i>
+                                                                </button>
+                                                            </LuxuryTooltip>
 
                                                             {userRole === 'SUPER_ADMIN' && (
-                                                                <button
-                                                                    className="um-action-btn change-role"
-                                                                    onClick={() => openRoleModal(user)}
-                                                                    title="Change Role"
-                                                                >
-                                                                    <i className="fas fa-user-shield"></i>
-                                                                </button>
+                                                                <LuxuryTooltip content="Change Role">
+                                                                    <button
+                                                                        className="um-action-btn change-role"
+                                                                        onClick={() => openRoleModal(user)}
+                                                                    >
+                                                                        <i className="fas fa-user-shield"></i>
+                                                                    </button>
+                                                                </LuxuryTooltip>
                                                             )}
                                                         </div>
                                                     </td>
@@ -819,9 +691,6 @@ const UserManagement = () => {
                             )}
                         </>
                     )}
-                </div>
-            </div>
-
             {/* Role Change Modal */}
             {showRoleModal && (
                 <div className="um-modal-overlay">
@@ -867,7 +736,7 @@ const UserManagement = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </CMSLayout>
     );
 };
 

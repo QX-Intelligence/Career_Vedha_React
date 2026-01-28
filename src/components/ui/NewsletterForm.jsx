@@ -34,20 +34,25 @@ const NewsletterForm = () => {
     };
 
     return (
-        <div className="sidebar-widget">
-            <h3 className="widget-title">Newsletter</h3>
-            <p>Subscribe to get daily updates</p>
+        <div className="sidebar-widget newsletter-widget">
+            <h3 className="widget-title">
+                <i className="fas fa-paper-plane"></i>
+                Newsletter
+            </h3>
+            <p className="newsletter-desc">Subscribe to get daily updates straight to your inbox.</p>
             <form className="newsletter-form" onSubmit={handleSubmit}>
-                <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                />
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Subscribing...' : 'Subscribe'}
-                </button>
+                <div className="input-group">
+                    <input
+                        type="email"
+                        placeholder="Enter your email address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={loading}
+                    />
+                    <button type="submit" disabled={loading}>
+                        {loading ? <i className="fas fa-spinner fa-spin"></i> : 'Subscribe'}
+                    </button>
+                </div>
             </form>
             {message && <p className="form-message">{message}</p>}
         </div>

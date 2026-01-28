@@ -45,7 +45,7 @@ const SectionCategoryBlocks = ({ section, title }) => {
                         </div>
                         <div className="block-articles">
                             {block.results.map((article) => (
-                                <Link key={article.id} to={`/${article.section}/${article.slug}`} className="block-article-item">
+                                <Link key={article.id} to={`/article/${article.section}/${article.slug}`} className="block-article-item">
                                     <div className="item-img">
                                         <img src={article.og_image_url || "https://placehold.co/100x100/333/fff?text=VEDHA"} alt={article.title} />
                                     </div>

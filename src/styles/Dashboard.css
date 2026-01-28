@@ -517,6 +517,31 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.user-info-text {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  justify-content: center;
+}
+
+.user-info-text .user-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--slate-800);
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-text .user-role {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary-yellow-hover);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .content-container {
   padding: 3rem;
   width: 100%;
@@ -4075,9 +4100,9 @@
 }
 
 .danger-hint::before {
-  content: " \f071\;
- font-family: \Font Awesome 5 Free\;
- font-weight: 900;
+  content: "\f071";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
 }
 
 
@@ -4369,3 +4394,44 @@
   box-shadow: 0 0 10px var(--primary-yellow);
 }
 
+
+/* CMS Breadcrumbs */
+.cms-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding: 0.75rem 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--slate-500);
+}
+
+.cms-breadcrumbs a {
+  color: var(--slate-500);
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cms-breadcrumbs a:hover {
+  color: var(--primary-yellow-hover);
+}
+
+.cms-breadcrumbs i {
+  font-size: 0.8rem;
+  color: var(--slate-300);
+}
+
+.cms-breadcrumbs .breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cms-breadcrumbs .breadcrumb-item.active {
+  color: var(--slate-900);
+  font-weight: 700;
+}

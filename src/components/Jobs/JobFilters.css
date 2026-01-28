@@ -1,20 +1,14 @@
-/* JobFilters.css */
+/* JobFilters.css - Luxury Redesign */
 
 .job-filters-sidebar {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
+    background: #FFFFFF;
     border-radius: 16px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 26px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
     height: fit-content;
     position: sticky;
     top: 80px;
-}
-
-.dark-mode .job-filters-sidebar {
-    background: rgba(30, 41, 59, 0.7);
-    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .filter-header {
@@ -23,22 +17,15 @@
     align-items: center;
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark-mode .filter-header {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--gray-100);
 }
 
 .filter-header h3 {
     margin: 0;
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--gray-900);
-}
-
-.dark-mode .filter-header h3 {
-    color: var(--white);
+    letter-spacing: -0.5px;
 }
 
 .clear-btn {
@@ -46,7 +33,7 @@
     border: none;
     color: var(--primary-yellow);
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: color 0.2s;
 }
@@ -57,26 +44,22 @@
 }
 
 .filter-section {
-    margin-bottom: 28px;
+    margin-bottom: 32px;
 }
 
 .filter-section h4 {
     margin: 0 0 16px 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--gray-700);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gray-500);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.dark-mode .filter-section h4 {
-    color: var(--gray-300);
+    letter-spacing: 1px;
 }
 
 .filter-options {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 /* Custom Checkbox Styling */
@@ -84,15 +67,17 @@
     display: flex;
     align-items: center;
     position: relative;
-    padding-left: 30px;
+    padding-left: 32px;
     cursor: pointer;
     user-select: none;
     font-size: 0.95rem;
     color: var(--gray-700);
+    font-weight: 500;
+    transition: color 0.2s;
 }
 
-.dark-mode .custom-checkbox {
-    color: var(--gray-300);
+.custom-checkbox:hover {
+    color: var(--gray-900);
 }
 
 .custom-checkbox input {
@@ -105,13 +90,13 @@
 
 .checkmark {
     position: absolute;
-    top: 0;
+    top: 2px;
     left: 0;
-    height: 20px;
-    width: 20px;
+    height: 18px;
+    width: 18px;
     background-color: transparent;
     border: 2px solid var(--gray-300);
-    border-radius: 4px;
+    border-radius: 4px; /* Rounded square */
     transition: all 0.2s;
 }
 
@@ -135,11 +120,11 @@
 }
 
 .custom-checkbox .checkmark:after {
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 9px;
+    border: solid var(--gray-900); /* Dark check on yellow */
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
@@ -152,7 +137,7 @@
 }
 
 .count-badge {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--gray-100);
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.75rem;
@@ -160,14 +145,8 @@
     font-weight: 600;
 }
 
-.dark-mode .count-badge {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--gray-400);
-}
-
 .filters-loading {
     padding: 20px;
     text-align: center;
     color: var(--gray-500);
-    font-style: italic;
 }

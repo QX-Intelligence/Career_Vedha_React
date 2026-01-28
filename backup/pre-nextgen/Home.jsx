@@ -5,7 +5,7 @@ import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 // import SecondaryNav from '../components/layout/SecondaryNav';
 import Footer from '../components/layout/Footer';
-import BreakingNews from '../components/home/BreakingNews'; // Keep for safety or remove if unused, but I'll keeping imports for now to avoid breaking other things if I reference them. actually I removed BreakingNews from JSX.
+import BreakingNews from '../components/home/BreakingNews';
 import QuickAccess from '../components/home/QuickAccess';
 import FeaturedStory from '../components/home/FeaturedStory';
 import SecondaryStories from '../components/home/SecondaryStories';
@@ -16,9 +16,6 @@ import SectionCategoryBlocks from '../components/home/SectionCategoryBlocks';
 import PreviousPapers from '../components/home/PreviousPapers';
 import MultiWidgets from '../components/home/MultiWidgets';
 import Shorts from '../components/home/Shorts';
-import QuickLinks from '../components/home/QuickLinks';
-import MustRead from '../components/home/MustRead';
-import HeroIntro from '../components/home/HeroIntro';
 
 const Home = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -65,39 +62,29 @@ const Home = () => {
                 onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
-            
-            {/* New Layout Order */}
-            {/* <QuickLinks /> */}
-            <MustRead />
-            <HeroIntro />
+            {/* <SecondaryNav /> */}
+            <BreakingNews data={homeData.breaking} />
             <QuickAccess />
-
-            <div className="latest-updates-header container">
-                <div className="section-marker"></div>
-                <h2>Latest Updates</h2>
-                <a href="/archive" className="see-all-btn">See All <i className="fas fa-chevron-right"></i></a>
-            </div>
 
             <main className="main-content">
                 <div className="container">
                     <div className="content-layout">
                         <div className="main-story-section">
-                            {/* Featured Story and Latest Articles combined in grid in Next Step */}
-                            <div className="updates-grid-layout">
-                                <FeaturedStory
-                                    story={homeData.hero?.[0]}
-                                    loading={loading}
-                                    activeLanguage={activeLanguage}
-                                />
-                            </div>
-                            
-                            <div className="latest-articles-full-width">
-                                <LatestArticles
-                                    latest={homeData.latest}
-                                    loading={loading}
-                                    activeLanguage={activeLanguage}
-                                />
-                            </div>
+                            <FeaturedStory
+                                story={homeData.hero?.[0]}
+                                loading={loading}
+                                activeLanguage={activeLanguage}
+                            />
+                            <SecondaryStories
+                                stories={homeData.top_stories}
+                                loading={loading}
+                                activeLanguage={activeLanguage}
+                            />
+                            <LatestArticles
+                                latest={homeData.latest}
+                                loading={loading}
+                                activeLanguage={activeLanguage}
+                            />
                         </div>
                         <Sidebar />
                     </div>

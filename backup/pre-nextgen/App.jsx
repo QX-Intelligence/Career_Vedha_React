@@ -16,7 +16,6 @@ import JobsList from './pages/Jobs/JobsList';
 import JobDetail from './pages/Jobs/JobDetail';
 import JobsManagement from './pages/CMS/JobsManagement';
 import JobEditor from './pages/CMS/JobEditor';
-import ArticleEditor from './pages/CMS/ArticleEditor';
 import TaxonomyManagement from './pages/CMS/TaxonomyManagement';
 
 function App() {
@@ -84,11 +83,8 @@ function App() {
 
                         {/* CMS Jobs Management */}
                         <Route path="/cms/jobs" element={<JobsManagement />} />
-                        <Route path="/cms/jobs/new" element={<JobEditor />} />
+                        <Route path="/cms/jobs/create" element={<JobEditor />} />
                         <Route path="/cms/jobs/edit/:id" element={<JobEditor />} />
-                        <Route path="/cms/articles/new" element={<ArticleEditor />} />
-                        <Route path="/cms/articles/edit/:section/:id" element={<ArticleEditor />} />
-                        <Route path="/cms/articles/edit/:id" element={<ArticleEditor />} />
                         <Route path="/cms/taxonomy" element={<TaxonomyManagement />} />
 
                         <Route path="*" element={<Navigate to="/" replace />} />

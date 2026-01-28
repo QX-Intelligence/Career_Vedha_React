@@ -39,8 +39,12 @@ export const newsService = {
     // Get Single Article Details
     getArticleDetail: async (section, slug, lang = 'te') => {
         try {
-            // Correct URL structure: /api/cms/articles/<section>/<slug>/
-            const response = await djangoApi.get(`cms/articles/${section}/${slug}/`, {
+            // If section is unknown, try direct slug fetch
+            const url = (section && section !== 'null' && section !== 'N/A')
+                ? `cms/articles/${section}/${slug}/`
+                : `cms/articles/${slug}/`;
+
+            const response = await djangoApi.get(url, {
                 params: { lang }
             });
             return response.data;

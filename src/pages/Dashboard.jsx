@@ -13,134 +13,151 @@ import CustomSelect from '../components/ui/CustomSelect';
 import UserProfileSection from '../components/dashboard/UserProfileSection';
 import { newsService } from '../services';
 import ArticleManagement from './ArticleManagement';
+import LuxuryTooltip from '../components/ui/LuxuryTooltip';
+import CMSLayout from '../components/layout/CMSLayout';
+import { MODULES, checkAccess as checkAccessGlobal } from '../config/accessControl.config.js';
+
+// MEMOIZED SUB-COMPONENTS - Moved outside to prevent re-creation and potential unmounting
+const NotificationItem = React.memo(({ notification, onApprove, onReject, onMarkSeen, isArchive, isSuppressed = false, lastSeenAllAt }) => {
+    const n = notification;
+    // Resilient 'seen' check (handles multiple backend naming conventions + local suppression + global timestamp suppression)
+    const ts = n.localDateTime || n.timestamp;
+    const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
+    const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || isSuppressed || isSeenLocally;
+
+    // Resilient identity mapping
+    const requesterIdentity = n.userEmail || n.targetEmail || n.requesterEmail || n.email;
+    const displayTitle = n.title || (isArchive ? 'Processed Action' : 'New User Request');
+
+    // Format timestamp
+    const formatTimestamp = (timestamp) => {
+        if (!timestamp) return null;
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        let relativeTime = '';
+        if (diffMins < 1) relativeTime = 'Just now';
+        else if (diffMins < 60) relativeTime = `${diffMins}m ago`;
+        else if (diffHours < 24) relativeTime = `${diffHours}h ago`;
+        else if (diffDays < 7) relativeTime = `${diffDays}d ago`;
+        else relativeTime = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+
+        const fullDateTime = date.toLocaleString(undefined, {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        return { relativeTime, fullDateTime };
+    };
+
+    const timeInfo = formatTimestamp(ts);
+
+    return (
+        <div key={n.id} className={`approval-card ${isArchive ? 'archived-item' : 'unread'}`}>
+            <div className="card-info">
+                <div className="user-avatar-small">
+                    <i className={isArchive ? "fas fa-check-circle" : "fas fa-user-clock"}></i>
+                </div>
+                <div className="request-text">
+                    <div className="notification-title-row">
+                        <strong>{displayTitle}</strong>
+                        {isArchive && n.notificationStatus && (
+                            <span className={`status-badge-mini ${n.notificationStatus.toLowerCase()}`}>
+                                {n.notificationStatus}
+                            </span>
+                        )}
+                        {!isSeen && !isArchive && (
+                            <LuxuryTooltip content="New alert">
+                                <span className="unseen-dot"></span>
+                            </LuxuryTooltip>
+                        )}
+                    </div>
+                    <div className="notification-meta">
+                        {isArchive && n.processedBy && (
+                            <LuxuryTooltip content="Who actioned this request">
+                                <span className="processor-badge">
+                                    <i className="fas fa-user-shield"></i> {n.processedBy}
+                                </span>
+                            </LuxuryTooltip>
+                        )}
+                        {requesterIdentity && (
+                            <LuxuryTooltip content="Identity of the subject">
+                                <span className="requester-badge">
+                                    <i className="fas fa-user"></i> {requesterIdentity}
+                                </span>
+                            </LuxuryTooltip>
+                        )}
+                        {!requesterIdentity && n.message && (
+                            <LuxuryTooltip content="System broadcast">
+                                <span className="requester-badge system">
+                                    <i className="fas fa-robot"></i> System Alert
+                                </span>
+                            </LuxuryTooltip>
+                        )}
+                    </div>
+                    <p>{n.message}</p>
+                </div>
+            </div>
+
+            <div className="card-actions">
+                {timeInfo && (
+                    <LuxuryTooltip content={timeInfo.fullDateTime}>
+                        <div className="timestamp-badge">
+                            <i className="far fa-clock"></i>
+                            <span>{timeInfo.relativeTime}</span>
+                        </div>
+                    </LuxuryTooltip>
+                )}
+                {isArchive ? (
+                    <div className="archive-date-info">
+                        <i className="far fa-calendar-alt"></i>
+                        {n.localDateTime ? new Date(n.localDateTime).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'History'}
+                    </div>
+                ) : (
+                    <>
+                        <button className="approve-btn-fancy" onClick={() => onApprove(n.id)}>Approve</button>
+                        <button className="reject-btn-fancy" onClick={() => onReject(n.id)}>Reject</button>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+});
+
+const PopoverItem = React.memo(({ notification, onApprove, onReject, onMarkSeen }) => {
+    const n = notification;
+    return (
+        <div key={n.id} className="popover-item">
+            <div className="popover-item-text">
+                <div className="popover-item-header">
+                    <strong>{n.title || 'New Request'}</strong>
+                    <LuxuryTooltip content="Mark as read" position="left">
+                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)}>
+                            <i className="fas fa-check"></i>
+                        </button>
+                    </LuxuryTooltip>
+                </div>
+                <p>{n.message}</p>
+            </div>
+            <div className="popover-actions">
+                <button className="popover-btn-approve" onClick={() => onApprove(n.id)}>Approve</button>
+                <button className="popover-btn-reject" onClick={() => onReject(n.id)}>Reject</button>
+            </div>
+        </div>
+    );
+});
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const { showSnackbar } = useSnackbar();
-
-    // MEMOIZED SUB-COMPONENTS
-    const NotificationItem = useMemo(() => React.memo(({ notification, onApprove, onReject, onMarkSeen, isArchive, isSuppressed = false }) => {
-        const n = notification;
-        // Resilient 'seen' check (handles multiple backend naming conventions + local suppression + global timestamp suppression)
-        const ts = n.localDateTime || n.timestamp;
-        const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
-        const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || isSuppressed || isSeenLocally;
-
-        // Resilient identity mapping
-        const requesterIdentity = n.userEmail || n.targetEmail || n.requesterEmail || n.email;
-        const displayTitle = n.title || (isArchive ? 'Processed Action' : 'New User Request');
-
-        // Format timestamp
-        const formatTimestamp = (timestamp) => {
-            if (!timestamp) return null;
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-
-            let relativeTime = '';
-            if (diffMins < 1) relativeTime = 'Just now';
-            else if (diffMins < 60) relativeTime = `${diffMins}m ago`;
-            else if (diffHours < 24) relativeTime = `${diffHours}h ago`;
-            else if (diffDays < 7) relativeTime = `${diffDays}d ago`;
-            else relativeTime = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-
-            const fullDateTime = date.toLocaleString(undefined, {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-
-            return { relativeTime, fullDateTime };
-        };
-
-        const timeInfo = formatTimestamp(ts);
-
-        return (
-            <div key={n.id} className={`approval-card ${isArchive ? 'archived-item' : 'unread'}`}>
-                <div className="card-info">
-                    <div className="user-avatar-small">
-                        <i className={isArchive ? "fas fa-check-circle" : "fas fa-user-clock"}></i>
-                    </div>
-                    <div className="request-text">
-                        <div className="notification-title-row">
-                            <strong>{displayTitle}</strong>
-                            {isArchive && n.notificationStatus && (
-                                <span className={`status-badge-mini ${n.notificationStatus.toLowerCase()}`}>
-                                    {n.notificationStatus}
-                                </span>
-                            )}
-                            {!isSeen && !isArchive && <span className="unseen-dot" data-tooltip="New alert"></span>}
-                        </div>
-                        <div className="notification-meta">
-                            {isArchive && n.processedBy && (
-                                <span className="processor-badge" data-tooltip="Who actioned this request">
-                                    <i className="fas fa-user-shield"></i> {n.processedBy}
-                                </span>
-                            )}
-                            {requesterIdentity && (
-                                <span className="requester-badge" data-tooltip="Identity of the subject">
-                                    <i className="fas fa-user"></i> {requesterIdentity}
-                                </span>
-                            )}
-                            {!requesterIdentity && n.message && (
-                                <span className="requester-badge system" data-tooltip="System broadcast">
-                                    <i className="fas fa-robot"></i> System Alert
-                                </span>
-                            )}
-                        </div>
-                        <p>{n.message}</p>
-                    </div>
-                </div>
-
-                <div className="card-actions">
-                    {timeInfo && (
-                        <div className="timestamp-badge" data-tooltip={timeInfo.fullDateTime}>
-                            <i className="far fa-clock"></i>
-                            <span>{timeInfo.relativeTime}</span>
-                        </div>
-                    )}
-                    {isArchive ? (
-                        <div className="archive-date-info">
-                            <i className="far fa-calendar-alt"></i>
-                            {n.localDateTime ? new Date(n.localDateTime).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'History'}
-                        </div>
-                    ) : (
-                        <>
-                            <button className="approve-btn-fancy" onClick={() => onApprove(n.id)}>Approve</button>
-                            <button className="reject-btn-fancy" onClick={() => onReject(n.id)}>Reject</button>
-                        </>
-                    )}
-                </div>
-            </div>
-        );
-    }), []);
-
-    const PopoverItem = useMemo(() => React.memo(({ notification, onApprove, onReject, onMarkSeen }) => {
-        const n = notification;
-        return (
-            <div key={n.id} className="popover-item">
-                <div className="popover-item-text">
-                    <div className="popover-item-header">
-                        <strong>{n.title || 'New Request'}</strong>
-                        <button className="item-seen-btn" onClick={() => onMarkSeen(n.id)} data-tooltip="Mark as read">
-                            <i className="fas fa-check"></i>
-                        </button>
-                    </div>
-                    <p>{n.message}</p>
-                </div>
-                <div className="popover-actions">
-                    <button className="popover-btn-approve" onClick={() => onApprove(n.id)}>Approve</button>
-                    <button className="popover-btn-reject" onClick={() => onReject(n.id)}>Reject</button>
-                </div>
-            </div>
-        );
-    }), []);
 
     const CustomDatePicker = ({ value, onChange, max }) => {
         const [isOpen, setIsOpen] = useState(false);
@@ -396,6 +413,10 @@ const Dashboard = () => {
     const [isCmsOpen, setIsCmsOpen] = useState(true);
 
     const setActiveSection = (section) => {
+        if (section === 'users') {
+            navigate('/user-management');
+            return;
+        }
         setActiveSectionState(section);
         setSearchParams({ tab: section });
     };
@@ -611,41 +632,19 @@ const Dashboard = () => {
     }, []);
 
 
-    const MODULES = {
-        ROLE_CONTROL: 'ROLE_CONTROL',
-        PERMISSIONS: 'PERMISSIONS',
-        QUIZ_MANAGER: 'QUIZ_MANAGER',
-        NOTIFICATIONS: 'NOTIFICATIONS',
-        OVERVIEW_STATS: 'OVERVIEW_STATS',
-        APPROVALS: 'APPROVALS',
-        USER_MANAGEMENT: 'USER_MANAGEMENT',
-        ARTICLE_MANAGEMENT: 'ARTICLE_MANAGEMENT',
-        JOB_MANAGEMENT: 'JOB_MANAGEMENT'
-    };
-
-    // Define access for non-super roles. Super Admin has wildcard access.
-    const ROLE_PERMISSIONS = {
-        ADMIN: [MODULES.ROLE_CONTROL, MODULES.PERMISSIONS, MODULES.QUIZ_MANAGER, MODULES.NOTIFICATIONS, MODULES.OVERVIEW_STATS, MODULES.APPROVALS, MODULES.USER_MANAGEMENT, MODULES.ARTICLE_MANAGEMENT, MODULES.JOB_MANAGEMENT],
-        CONTRIBUTOR: [MODULES.ARTICLE_MANAGEMENT, MODULES.OVERVIEW_STATS],
-        EDITOR: [MODULES.ARTICLE_MANAGEMENT, MODULES.OVERVIEW_STATS],
-        PUBLISHER: [MODULES.ARTICLE_MANAGEMENT, MODULES.QUIZ_MANAGER, MODULES.OVERVIEW_STATS, MODULES.JOB_MANAGEMENT],
-        // Legacy support
-        CREATOR: [MODULES.QUIZ_MANAGER, MODULES.OVERVIEW_STATS],
-    };
-
-    const checkAccess = (module) => {
-        if (!userRole) return false;
-        if (userRole === 'SUPER_ADMIN') return true;
-        const allowedModules = ROLE_PERMISSIONS[userRole] || [];
-        return allowedModules.includes(module);
-    };
+    const checkAccess = useCallback((module) => {
+        return checkAccessGlobal(userRole, module);
+    }, [userRole]);
 
     /* ================= AUTH CHECK ================= */
     useEffect(() => {
         const { role, email, isAuthenticated, firstName, lastName, status } = getUserContext();
-        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'CREATOR', 'PUBLISHER'];
+        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'CREATOR', 'PUBLISHER', 'EDITOR', 'CONTRIBUTOR'];
+
+        console.log('Dashboard Auth Check:', { isAuthenticated, role, email });
 
         if (!isAuthenticated || !allowedRoles.includes(role)) {
+            console.warn('Dashboard: Unauthorized access or not authenticated. Redirecting to login.', { role, isAuthenticated });
             return navigate('/admin-login');
         }
 
@@ -722,13 +721,16 @@ const Dashboard = () => {
     const [userFullName, setUserFullName] = useState('');
     const [userStatus, setUserStatus] = useState(null);
 
-    /* ================= SYNC URL WITH STATE ================= */
     useEffect(() => {
         const tab = searchParams.get('tab');
+        if (tab === 'users') {
+            navigate('/user-management');
+            return;
+        }
         if (tab && tab !== activeSection) {
             setActiveSectionState(tab);
         }
-    }, [searchParams]);
+    }, [searchParams, navigate]);
 
     /* ================= UNIFIED NOTIFICATION LOADING ================= */
     const fetchUnseenCount = async () => {
@@ -1340,264 +1342,78 @@ const Dashboard = () => {
         }
     };
 
-    return (
-        <div className="dashboard-wrapper">
-            {/* Sidebar */}
-            <aside className="dashboard-sidebar">
-                <div className="sidebar-brand">
-                    <div className="brand-logo-circle">
-                        <i className="fas fa-shield-halved"></i>
+    const notificationPopover = showPopover && (
+        <div className="notification-popover">
+            <div className="popover-header">
+                <span>New Alerts ({overallUnseenCount})</span>
+                {overallUnseenCount > 0 && (
+                    <button className="mark-all-btn" onClick={handleMarkAllSeen}>Mark all seen</button>
+                )}
+            </div>
+            <div className="popover-list">
+                {overallUnseenCount === 0 ? (
+                    <div className="popover-empty">
+                        <i className="fas fa-bell-slash"></i>
+                        <p>No new alerts</p>
                     </div>
-                    <span>CV Admin</span>
-                </div>
-
-                <nav className="sidebar-menu">
-                    <button
-                        className={`menu-item ${activeSection === 'overview' ? 'active' : ''}`}
-                        onClick={() => setActiveSection('overview')}
-                    >
-                        <i className="fas fa-tachometer-alt"></i>
-                        <span>Overview</span>
-                    </button>
-                    {checkAccess(MODULES.ROLE_CONTROL) && (
-                        <button
-                            className={`menu-item ${activeSection === 'roles' ? 'active' : ''}`}
-                            onClick={() => setActiveSection('roles')}
-                        >
-                            <i className="fas fa-users-gear"></i>
-                            <span>Role Control</span>
-                        </button>
-                    )}
-                    {checkAccess(MODULES.PERMISSIONS) && (
-                        <button
-                            className={`menu-item ${activeSection === 'permissions' ? 'active' : ''}`}
-                            onClick={() => setActiveSection('permissions')}
-                        >
-                            <i className="fas fa-fingerprint"></i>
-                            <span>Permissions</span>
-                        </button>
-                    )}
-                    {checkAccess(MODULES.QUIZ_MANAGER) && (
-                        <button
-                            className={`menu-item ${activeSection === 'quizzes' ? 'active' : ''}`}
-                            onClick={() => setActiveSection('quizzes')}
-                        >
-                            <i className="fas fa-book-open"></i>
-                            <span>Quiz Manager</span>
-                        </button>
-                    )}
-                    {checkAccess(MODULES.NOTIFICATIONS) && (
-                        <button
-                            className={`menu-item ${activeSection === 'notifications' ? 'active' : ''}`}
-                            onClick={() => setActiveSection('notifications')}
-                        >
-                            <i className="fas fa-bell"></i>
-                            <span className="menu-item-text">Notifications</span>
-                        </button>
-                    )}
-                    {checkAccess(MODULES.USER_MANAGEMENT) && (
-                        <button
-                            className={`menu-item ${activeSection === 'users' ? 'active' : ''}`}
-                            onClick={() => navigate('/user-management')}
-                        >
-                            <i className="fas fa-users-cog"></i>
-                            <span>User Management</span>
-                        </button>
-                    )}
-
-                    <div className="sidebar-divider" style={{ height: '1px', background: 'rgba(226, 232, 240, 0.5)', margin: '15px 24px' }}></div>
-
-                    <div 
-                        className="sidebar-group-label" 
-                        onClick={() => setIsCmsOpen(!isCmsOpen)}
-                        style={{ 
-                            padding: '20px 24px 10px', 
-                            fontSize: '0.7rem', 
-                            fontWeight: '800', 
-                            color: '#94a3b8', 
-                            textTransform: 'uppercase', 
-                            letterSpacing: '0.05em',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            cursor: 'pointer',
-                            userSelect: 'none'
-                        }}
-                    >
-                        <span>CMS</span>
-                        <i className={`fas fa-chevron-${isCmsOpen ? 'down' : 'right'}`} style={{ fontSize: '0.6rem' }}></i>
-                    </div>
-
-                    {isCmsOpen && (
-                        <>
-                            {checkAccess(MODULES.ARTICLE_MANAGEMENT) && (
-                                <button
-                                    className={`menu-item ${activeSection === 'articles' ? 'active' : ''}`}
-                                    onClick={() => setActiveSection('articles')}
-                                >
-                                    <i className="fas fa-file-invoice"></i>
-                                    <span>Articles</span>
-                                </button>
-                            )}
-                            {checkAccess(MODULES.JOB_MANAGEMENT) && (
-                                <button
-                                    className={`menu-item ${activeSection === 'jobs' ? 'active' : ''}`}
-                                    onClick={() => navigate('/cms/jobs')}
-                                >
-                                    <i className="fas fa-briefcase"></i>
-                                    <span>Jobs</span>
-                                </button>
-                            )}
-                            {(userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') && (
-                                <button
-                                    className="menu-item"
-                                    onClick={() => navigate('/cms/taxonomy')}
-                                >
-                                    <i className="fas fa-tags"></i>
-                                    <span>Taxonomy</span>
-                                </button>
-                            )}
-                        </>
-                    )}
-                </nav>
-
-                <div className="sidebar-footer">
-                    <div
-                        className="user-profile-mini"
-                        onClick={() => setActiveSection('profile')}
-                        style={{ cursor: 'pointer' }}
-                        title="Go to My Profile"
-                    >
-                        <div className="avatar">
-                            {getRoleInitials(userRole)}
-                        </div>
-                        <div className="user-details">
-                            <div className="user-name" style={{ fontSize: '0.90rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                {userFullName || userEmail}
-                                {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
-                            </div>
-                            <div className="user-role-badge" style={{ fontSize: '0.65rem', padding: '2px 6px', marginTop: '2px', display: 'inline-block', opacity: 0.9 }}>
-                                {userRole}
-                            </div>
-                        </div>
-                    </div>
-                    <button onClick={handleLogout} className="logout-button-alt">
-                        <i className="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Content Area */}
-            <div className="dashboard-main">
-                <header className="main-top-header">
-                    <div className="header-search" ref={searchContainerRef}>
-                        <i className="fas fa-search"></i>
-                        <input
-                            type="text"
-                            placeholder="Search across portal..."
-                            value={searchQuery}
-                            onChange={handleSearch}
-                            onFocus={() => searchQuery && setShowSearchResults(true)}
+                ) : (
+                    notificationFeed.filter(n => {
+                        const ts = n.localDateTime || n.timestamp;
+                        const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
+                        const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || suppressedNotificationIds.includes(n.id) || isSeenLocally;
+                        return !isSeen;
+                    }).slice(0, 10).map(n => (
+                        <PopoverItem
+                            key={n.id}
+                            notification={n}
+                            onApprove={(id) => { handleApprove(id); setShowPopover(false); }}
+                            onReject={(id) => { openRejectModal(id); setShowPopover(false); }}
+                            onMarkSeen={handleMarkAsSeen}
                         />
+                    ))
+                )}
+            </div>
+            <div className="popover-footer" onClick={() => { setShowPopover(false); setActiveSection('notifications'); }}>
+                View All History
+            </div>
+        </div>
+    );
 
-                        {showSearchResults && (
-                            <div className="search-results-dropdown">
-                                {searchResults.length === 0 ? (
-                                    <div className="search-empty">No results found for "{searchQuery}"</div>
-                                ) : (
-                                    searchResults.map(result => (
-                                        <div
-                                            key={result.id}
-                                            className="search-item"
-                                            onClick={() => navigateToResult(result)}
-                                        >
-                                            <div className="search-item-icon">
-                                                <i className={
-                                                    result.id === 'quiz-new' ? 'fas fa-plus-circle' :
-                                                        result.id === 'quiz-test' ? 'fas fa-eye-low-vision' :
-                                                            result.id.startsWith('role-data') ? 'fas fa-user-tag' :
-                                                                result.id.startsWith('perm-data') ? 'fas fa-key' :
-                                                                    result.id.startsWith('notif') ? 'fas fa-bell' :
-                                                                        result.id.startsWith('rc') ? 'fas fa-users-gear' :
-                                                                            result.id.startsWith('perm') ? 'fas fa-fingerprint' :
-                                                                                result.id === 'quizzes' ? 'fas fa-book-open' :
-                                                                                    result.section === 'articles' ? 'fas fa-file-invoice' :
-                                                                                        result.section === 'overview' ? 'fas fa-tachometer-alt' : 'fas fa-hashtag'
-                                                }></i>
-                                            </div>
-                                            <div className="search-item-info">
-                                                <div className="search-item-title">{result.title}</div>
-                                                <div className="search-item-path">in {result.section}</div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
-                    </div>
-                    <div className="header-actions">
-                        <div className="notification-bell-container" ref={notificationContainerRef}>
-                            <div className="notification-bell" onClick={() => setShowPopover(!showPopover)}>
-                                <i className="fas fa-bell"></i>
-                                {overallUnseenCount > 0 && (
-                                    <span className="bell-badge">{overallUnseenCount > 15 ? '15+' : overallUnseenCount}</span>
-                                )}
-                            </div>
+    const sidebarProps = {
+        activeSection,
+        setActiveSection,
+        userRole,
+        userEmail,
+        userFullName,
+        userStatus,
+        checkAccess,
+        MODULES,
+        onLogout: handleLogout,
+        isCmsOpen,
+        setIsCmsOpen
+    };
 
-                            {showPopover && (
-                                <div className="notification-popover">
-                                    <div className="popover-header">
-                                        <span>New Alerts ({overallUnseenCount})</span>
-                                        {overallUnseenCount > 0 && (
-                                            <button className="mark-all-btn" onClick={handleMarkAllSeen}>Mark all seen</button>
-                                        )}
-                                    </div>
-                                    <div className="popover-list">
-                                        {overallUnseenCount === 0 ? (
-                                            <div className="popover-empty">
-                                                <i className="fas fa-bell-slash"></i>
-                                                <p>No new alerts</p>
-                                            </div>
-                                        ) : (
-                                            notificationFeed.filter(n => {
-                                                const ts = n.localDateTime || n.timestamp;
-                                                const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
-                                                const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || suppressedNotificationIds.includes(n.id) || isSeenLocally;
-                                                return !isSeen;
-                                            }).slice(0, 10).map(n => (
-                                                <PopoverItem
-                                                    key={n.id}
-                                                    notification={n}
-                                                    onApprove={(id) => { handleApprove(id); setShowPopover(false); }}
-                                                    onReject={(id) => { openRejectModal(id); setShowPopover(false); }}
-                                                    onMarkSeen={handleMarkAsSeen}
-                                                />
-                                            ))
-                                        )}
-                                    </div>
-                                    <div className="popover-footer" onClick={() => { setShowPopover(false); setActiveSection('notifications'); }}>
-                                        View All History
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <div className="top-user-profile">
-                            <div className="top-user-info">
-                                <span className="top-user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    {userFullName || userEmail}
-                                    {userStatus !== null && <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`} title={userStatus ? 'Active' : 'Inactive'}></span>}
-                                </span>
-                                <span className="top-user-role">{userRole}</span>
-                            </div>
-                            <div className="top-avatar">
-                                {getRoleInitials(userRole)}
-                            </div>
-                        </div>
-                    </div>
-                </header>
+    const navbarProps = {
+        searchQuery,
+        handleSearch,
+        showSearchResults,
+        searchResults,
+        navigateToResult,
+        setShowSearchResults,
+        overallUnseenCount,
+        setShowPopover,
+        userFullName,
+        userEmail,
+        userRole,
+        notificationPopover,
+        handleMarkAllSeen,
+        userStatus
+    };
 
-                <div className="content-container">
+    return (
+        <CMSLayout sidebarProps={sidebarProps} navbarProps={navbarProps}>
+
+
                     {/* Render Overview Section */}
                     {activeSection === 'overview' && (
                         <div className="section-fade-in">
@@ -1659,6 +1475,7 @@ const Dashboard = () => {
                                                 onReject={openRejectModal}
                                                 onMarkSeen={handleMarkAsSeen}
                                                 isArchive={false}
+                                                lastSeenAllAt={lastSeenAllAt}
                                             />
                                         ))
                                     )}
@@ -2016,7 +1833,9 @@ const Dashboard = () => {
                                                         </td>
                                                         <td>#{q.id}</td>
                                                         <td>
-                                                            <div className="q-text-cell" title={q.question}>{q.question}</div>
+                                                            <LuxuryTooltip content={q.question}>
+                                                                <div className="q-text-cell">{q.question}</div>
+                                                            </LuxuryTooltip>
                                                         </td>
                                                         <td>
                                                             <div className="q-opts-cell">
@@ -2042,12 +1861,16 @@ const Dashboard = () => {
                                                         </td>
                                                         <td>
                                                             <div className="action-buttons">
-                                                                <button className="btn-icon-edit" onClick={() => handleEditQuestion(q)} title="Edit">
-                                                                    <i className="fas fa-edit"></i>
-                                                                </button>
-                                                                <button className="btn-icon-delete" onClick={() => handleDeleteQuestion(q.id)} title="Delete">
-                                                                    <i className="fas fa-trash-alt"></i>
-                                                                </button>
+                                                                <LuxuryTooltip content="Edit">
+                                                                    <button className="btn-icon-edit" onClick={() => handleEditQuestion(q)}>
+                                                                        <i className="fas fa-edit"></i>
+                                                                    </button>
+                                                                </LuxuryTooltip>
+                                                                <LuxuryTooltip content="Delete">
+                                                                    <button className="btn-icon-delete" onClick={() => handleDeleteQuestion(q.id)}>
+                                                                        <i className="fas fa-trash-alt"></i>
+                                                                    </button>
+                                                                </LuxuryTooltip>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -2104,9 +1927,11 @@ const Dashboard = () => {
                                             max={today}
                                         />
                                         {pendingFilterDate && (
-                                            <button className="clear-chip" onClick={() => setPendingFilterDate('')} title="Clear filter">
-                                                <i className="fas fa-times"></i>
-                                            </button>
+                                            <LuxuryTooltip content="Clear filter">
+                                                <button className="clear-chip" onClick={() => setPendingFilterDate('')}>
+                                                    <i className="fas fa-times"></i>
+                                                </button>
+                                            </LuxuryTooltip>
                                         )}
                                     </div>
                                 </div>
@@ -2167,7 +1992,6 @@ const Dashboard = () => {
                                     <div className="title-stack">
                                         <div className="title-with-count">
                                             <h3><i className="fas fa-box-archive"></i> Notification Archive</h3>
-                                            <span className="count-pill">{archiveFilterDate ? archiveNotifications.length : totalArchiveCount}</span>
                                         </div>
                                         <p className="subtitle-mini">Historical records</p>
                                     </div>
@@ -2178,13 +2002,12 @@ const Dashboard = () => {
                                             max={today}
                                         />
                                         {archiveFilterDate && (
-                                            <button className="clear-chip" onClick={() => setArchiveFilterDate('')} title="Clear filter">
-                                                <i className="fas fa-times"></i>
-                                            </button>
+                                            <LuxuryTooltip content="Clear filter">
+                                                <button className="clear-chip" onClick={() => setArchiveFilterDate('')}>
+                                                    <i className="fas fa-times"></i>
+                                                </button>
+                                            </LuxuryTooltip>
                                         )}
-                                        <button className="m-btn-text" onClick={() => loadArchiveFeed(true)} title="Refresh Archive">
-                                            <i className={`fas fa-sync-alt ${isLoadingArchive ? 'fa-spin' : ''}`}></i>
-                                        </button>
                                     </div>
                                 </div>
 
@@ -2250,8 +2073,6 @@ const Dashboard = () => {
                     {activeSection === 'articles' && checkAccess(MODULES.ARTICLE_MANAGEMENT) && (
                         <ArticleManagement activeLanguage={localStorage.getItem('preferredLanguage') || 'telugu'} />
                     )}
-                </div >
-            </div >
 
             {/* REJECT MODAL */}
             {
@@ -2410,7 +2231,7 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-        </div >
+        </CMSLayout>
     );
 };
 
