@@ -37,7 +37,7 @@ export const newsService = {
     },
 
     // Get Single Article Details
-    getArticleDetail: async (section, slug, lang = 'te') => {
+    getArticleDetail: async (section, slug, lang = 'en') => {
         try {
             // If section is unknown, try direct slug fetch
             const url = (section && section !== 'null' && section !== 'N/A')
@@ -50,6 +50,17 @@ export const newsService = {
             return response.data;
         } catch (error) {
             console.error(`Error fetching article detail for ${section}/${slug}:`, error);
+            throw error;
+        }
+    },
+
+    // Get Admin Article Detail (Full translations)
+    getAdminArticleDetail: async (id) => {
+        try {
+            const response = await djangoApi.get(`cms/articles/${id}/`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching admin article detail for ID ${id}:`, error);
             throw error;
         }
     },
@@ -70,18 +81,10 @@ export const newsService = {
         try {
             const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
 
-            // Try the CMS prefixed URL first
-            let response;
-            try {
-                response = await djangoApi.get('cms/articles/home/', {
-                    params: { lang: langCode, limit, offset }
-                });
-            } catch (err) {
-                // Fallback to non-CMS prefixed public URL if CMS one fails
-                response = await djangoApi.get('articles/home/', {
-                    params: { lang: langCode, limit, offset }
-                });
-            }
+            // Try the CMS prefixed URL
+            const response = await djangoApi.get('cms/articles/home/', {
+                params: { lang: langCode, limit, offset }
+            });
 
             const data = response.data;
 
@@ -95,9 +98,9 @@ export const newsService = {
                 trending: trendingList,
                 latest: latestData,
                 // Direct mapping for UI widgets
-                hero: featuredList.slice(0, 5),
-                top_stories: featuredList.slice(5),
-                breaking: featuredList.filter(a => (a.feature_type || a.type) === 'BREAKING')
+                hero: (data.hero && data.hero.length > 0) ? data.hero : featuredList.slice(0, 5),
+                top_stories: (data.top_stories && data.top_stories.length > 0) ? data.top_stories : featuredList.slice(5),
+                breaking: (data.breaking && data.breaking.length > 0) ? data.breaking : featuredList.filter(a => (a.feature_type || a.type) === 'BREAKING')
             };
         } catch (error) {
             console.warn(`[newsService] Home Feed (${lang}) fetch failed totally.`, error.message);
@@ -172,7 +175,7 @@ export const newsService = {
         try {
             const response = await djangoApi.get('cms/articles/features/', { params });
             const featureType = response.data.feature_type;
-            const features = response.data.features || [];
+            const features = response.data.results || [];
             // Inject feature_type into each item since backend puts it at root
             return features.map(f => ({ ...f, feature_type: featureType }));
         } catch (error) {
@@ -249,15 +252,26 @@ export const newsService = {
         }
     },
 
-    // 6. Admin List (For Management Table)
-    getAdminArticles: async () => {
+    // 5e. Admin Direct Publish (Schedule)
+    directPublish: async (articleId, data = {}) => {
         try {
-            const response = await djangoApi.get('cms/articles/admin/list/');
-            // Handle both direct array and paginated { results: [] } formats
-            return response.data.results || response.data;
+            const response = await djangoApi.patch(`cms/articles/${articleId}/direct-publish/`, data);
+            return response.data;
+        } catch (error) {
+            console.error('Error directly publishing article:', error);
+            throw error;
+        }
+    },
+
+    // 6. Admin List (For Management Table)
+    getAdminArticles: async (params = {}) => {
+        try {
+            const response = await djangoApi.get('cms/articles/admin/list/', { params });
+            // Return full paginated response for cursor support
+            return response.data;
         } catch (error) {
             console.error('Error fetching admin articles:', error);
-            return [];
+            return { results: [], next_cursor: null, has_next: false };
         }
     },
 
@@ -281,6 +295,78 @@ export const newsService = {
             return response.data;
         } catch (error) {
             console.error(`Error fetching taxonomy for ${section}:`, error);
+            return [];
+        }
+    },
+
+    getAdminCategories: async (params = {}) => {
+        try {
+            const response = await djangoApi.get('taxonomy/categories/', { params });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching admin categories:', error);
+            return { results: [], next_cursor: null, has_next: false };
+        }
+    },
+
+    createCategory: async (categoryData) => {
+        try {
+            const response = await djangoApi.post('taxonomy/categories/create/', categoryData);
+            return response.data;
+        } catch (error) {
+            console.error('Error creating category:', error);
+            throw error;
+        }
+    },
+
+    updateCategory: async (id, categoryData) => {
+        try {
+            const response = await djangoApi.patch(`taxonomy/categories/${id}/`, categoryData);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating category:', error);
+            throw error;
+        }
+    },
+
+    deleteCategory: async (id) => {
+        try {
+            const response = await djangoApi.delete(`taxonomy/categories/${id}/delete/`);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            throw error;
+        }
+    },
+
+    disableCategory: async (id) => {
+        try {
+            const response = await djangoApi.patch(`taxonomy/categories/${id}/disable/`);
+            return response.data;
+        } catch (error) {
+            console.error('Error disabling category:', error);
+            throw error;
+        }
+    },
+
+    enableCategory: async (id) => {
+        try {
+            const response = await djangoApi.patch(`taxonomy/categories/${id}/enable/`);
+            return response.data;
+        } catch (error) {
+            console.error('Error enabling category:', error);
+            throw error;
+        }
+    },
+
+    getCategoryChildren: async (section, parentId) => {
+        try {
+            const response = await djangoApi.get(`taxonomy/${section}/children/`, {
+                params: { parent_id: parentId }
+            });
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching category children for ${section}/${parentId}:`, error);
             return [];
         }
     },

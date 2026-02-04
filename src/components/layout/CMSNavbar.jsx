@@ -1,5 +1,46 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LuxuryTooltip from '../ui/LuxuryTooltip';
+import { useNotifications } from '../../hooks/useNotifications';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { getUserContext } from '../../services/api';
+import '../../styles/Notifications.css';
+
+const ArticleNotificationItem = ({ item, onMarkSeen }) => (
+    <div className={`notification-item-compact ${!item.seen ? 'unseen' : ''}`} onClick={() => !item.seen && onMarkSeen(item.notificationId)}>
+        <div className="notification-icon-circle article">
+            <i className="fas fa-file-alt"></i>
+        </div>
+        <div className="notification-content-compact">
+            <p className="notification-text-compact">{item.message}</p>
+            <div className="notification-time-compact">
+                {new Date(item.createdAt).toLocaleString()}
+                {!item.seen && <span className="unseen-dot" style={{ marginLeft: '8px' }}></span>}
+            </div>
+        </div>
+    </div>
+);
+
+const ApprovalNotificationItem = ({ item, onApprove, onReject }) => (
+    <div className="popover-item">
+        <div className="popover-item-text">
+            <div className="popover-item-header">
+                <strong>{item.role} Request</strong>
+                <span className="meta-item user">
+                    <i className="fas fa-user-circle"></i> {item.email.split('@')[0]}
+                </span>
+            </div>
+            <p className="popover-item-message">{item.message}</p>
+            <div className="notification-time-compact">
+                {new Date(item.localDateTime).toLocaleString()}
+            </div>
+        </div>
+        <div className="popover-actions">
+            <button className="popover-btn-approve" onClick={() => onApprove(item.id)}>Approve</button>
+            <button className="popover-btn-reject" onClick={() => onReject(item.id)}>Reject</button>
+        </div>
+    </div>
+);
 
 const CMSNavbar = ({ 
     searchQuery, 
@@ -8,16 +49,51 @@ const CMSNavbar = ({
     searchResults, 
     navigateToResult, 
     setShowSearchResults,
-    overallUnseenCount,
-    setShowPopover,
-    userFullName,
-    userEmail,
-    userRole,
-    notificationPopover,
-    handleMarkAllSeen,
-    userStatus
+    onProfileClick
 }) => {
     const searchContainerRef = useRef(null);
+    const notificationContainerRef = useRef(null);
+    const [showPopover, setShowPopover] = useState(false);
+    const [activeTab, setActiveTab] = useState('approvals'); // 'approvals' as default
+    const navigate = useNavigate();
+    
+    // Global Hooks
+    const { data: profile } = useUserProfile();
+    const { 
+        totalUnseenCount,
+        articleUnseenCount,
+        articleItems,
+        roleUnseenCount,
+        roleItems,
+        markArticleSeen,
+        markRoleSeen,
+        approve, 
+        reject 
+    } = useNotifications();
+    const { role, email } = getUserContext();
+
+    // Click outside handler for notifications
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (notificationContainerRef.current && !notificationContainerRef.current.contains(event.target)) {
+                setShowPopover(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleMarkAllRoleSeen = () => {
+        const unseenIds = roleItems.map(item => item.id);
+        if (unseenIds.length > 0) {
+            markRoleSeen(unseenIds);
+        }
+    };
+
+    const handleViewAll = () => {
+        setShowPopover(false);
+        navigate('/dashboard?tab=notifications');
+    };
 
     return (
         <header className="main-top-header">
@@ -55,27 +131,104 @@ const CMSNavbar = ({
             </div>
 
             <div className="header-actions">
-                {!notificationPopover && (
-                    <div className="notification-bell-container">
-                        <div className="notification-bell" onClick={() => setShowPopover && setShowPopover(prev => !prev)}>
-                            <i className="far fa-bell"></i>
-                            {overallUnseenCount > 0 && <span className="bell-badge">{overallUnseenCount}</span>}
-                        </div>
+                <div className="notification-bell-container" ref={notificationContainerRef}>
+                    <div className="notification-bell" onClick={() => setShowPopover(!showPopover)}>
+                        <i className={`far fa-bell ${totalUnseenCount > 0 ? 'pulse' : ''}`}></i>
+                        {totalUnseenCount > 0 && <span className="bell-badge">{totalUnseenCount}</span>}
                     </div>
-                )}
-                {notificationPopover}
 
-                <div className="top-user-profile">
+                    {showPopover && (
+                        <div className="notification-popover">
+                            <div className="popover-tabs-container luxury-switch-header">
+                                <div 
+                                    className={`switch-label ${activeTab === 'approvals' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('approvals')}
+                                >
+                                    <i className="fas fa-user"></i>
+                                    <span>Approvals</span>
+                                    {roleUnseenCount > 0 && <span className="switch-badge">{roleUnseenCount}</span>}
+                                </div>
+
+                                <div 
+                                    className={`luxury-physical-switch ${activeTab}`}
+                                    onClick={() => setActiveTab(activeTab === 'approvals' ? 'articles' : 'approvals')}
+                                >
+                                    <div className="switch-track">
+                                        <div className="switch-knob">
+                                            <div className="knob-inner"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div 
+                                    className={`switch-label ${activeTab === 'articles' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('articles')}
+                                >
+                                    <i className="fas fa-file-alt"></i>
+                                    <span>Articles</span>
+                                    {articleUnseenCount > 0 && <span className="switch-badge">{articleUnseenCount}</span>}
+                                </div>
+                            </div>
+
+                            <div className="popover-header">
+                                <span>{activeTab === 'articles' ? 'Article Updates' : 'Role Requests'}</span>
+                                {activeTab === 'approvals' && roleUnseenCount > 0 && (
+                                    <button className="mark-all-btn" onClick={handleMarkAllRoleSeen}>Mark all seen</button>
+                                )}
+                            </div>
+
+                            <div className="popover-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                {activeTab === 'articles' ? (
+                                    articleItems.length === 0 ? (
+                                        <div className="popover-empty">
+                                            <i className="fas fa-bell-slash"></i>
+                                            <p>No article updates</p>
+                                        </div>
+                                    ) : (
+                                        articleItems.slice(0, 10).map(n => (
+                                            <ArticleNotificationItem 
+                                                key={n.notificationId} 
+                                                item={n} 
+                                                onMarkSeen={markArticleSeen}
+                                            />
+                                        ))
+                                    )
+                                ) : (
+                                    roleItems.length === 0 ? (
+                                        <div className="popover-empty">
+                                            <i className="fas fa-check-circle"></i>
+                                            <p>No pending approvals</p>
+                                        </div>
+                                    ) : (
+                                        roleItems.map(n => (
+                                            <ApprovalNotificationItem
+                                                key={n.id}
+                                                item={n}
+                                                onApprove={(id) => { approve(id); setShowPopover(false); }}
+                                                onReject={(id) => { reject({ id }); setShowPopover(false); }}
+                                            />
+                                        ))
+                                    )
+                                )}
+                            </div>
+                            <div className="popover-footer" onClick={handleViewAll}>
+                                View All History
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="top-user-profile" onClick={onProfileClick} style={{ cursor: 'pointer' }}>
                     <div className="user-info-text">
                         <span className="user-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            {userFullName || userEmail}
-                            {userStatus !== null && (
-                                <LuxuryTooltip content={userStatus ? 'Active' : 'Inactive'}>
-                                    <span className={`status-dot-mini ${userStatus ? 'active' : 'inactive'}`}></span>
+                            {(profile?.firstName || profile?.lastName) ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim() : (email || 'User')}
+                            {profile && profile.status !== undefined && (
+                                <LuxuryTooltip content={profile.status ? 'Active' : 'Inactive'}>
+                                    <span className={`status-dot-mini ${profile.status ? 'active' : 'inactive'}`}></span>
                                 </LuxuryTooltip>
                             )}
                         </span>
-                        <span className="user-role">{userRole}</span>
+                        <span className="user-role">{role}</span>
                     </div>
                 </div>
             </div>

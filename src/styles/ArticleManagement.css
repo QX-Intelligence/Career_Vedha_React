@@ -395,6 +395,8 @@
 .am-modal-body {
     padding: 2rem 1.5rem;
     text-align: center;
+    max-height: 70vh;
+    overflow-y: auto;
 }
 
 .am-warning-icon {
@@ -685,3 +687,195 @@
     transform: rotate(45deg);
 }
 
+/* ========================================
+   Luxury Date Time Picker Styles
+   ======================================== */
+
+.am-calendar-container.datetime-picker {
+    width: 100%;
+    height: auto;
+    min-height: 52px;
+}
+
+.am-cal-trigger {
+    justify-content: space-between;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.trigger-text {
+    letter-spacing: 0.05em;
+    flex: 1;
+}
+
+.trigger-icon {
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+.am-calendar-dropdown.wide-dropdown {
+    width: 540px;
+    padding: 1.5rem;
+    max-width: 95vw;
+    left: 0;
+    right: auto;
+    z-index: 1001;
+}
+
+.datetime-grid {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.calendar-section {
+    flex: 1.3;
+    border-right: 1px solid var(--slate-200);
+    padding-right: 1.5rem;
+}
+
+.time-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.time-header {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--slate-900);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.time-columns {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+    height: 220px;
+}
+
+.time-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--slate-50);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--slate-200);
+}
+
+.col-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--slate-500);
+    padding: 0.5rem;
+    background: white;
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid var(--slate-200);
+    z-index: 2;
+    position: sticky;
+    top: 0;
+}
+
+.scroll-options {
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--slate-300) transparent;
+    padding: 0.5rem 0;
+}
+
+.scroll-options::-webkit-scrollbar {
+    width: 4px;
+}
+
+.scroll-options::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scroll-options::-webkit-scrollbar-thumb {
+    background: var(--slate-300);
+    border-radius: 4px;
+}
+
+.scroll-options::-webkit-scrollbar-thumb:hover {
+    background: var(--slate-400);
+}
+
+.time-opt {
+    padding: 0.6rem 0;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--slate-600);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-opt:hover {
+    background: rgba(250, 204, 21, 0.15);
+    color: var(--slate-900);
+}
+
+.time-opt.selected {
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(250, 204, 21, 0.3);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+    .am-calendar-dropdown.wide-dropdown {
+        width: 95vw;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 1rem;
+    }
+
+    .datetime-grid {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .calendar-section {
+        border-right: none;
+        border-bottom: 1px solid var(--slate-200);
+        padding-right: 0;
+        padding-bottom: 1.5rem;
+    }
+
+    .time-columns {
+        height: 200px;
+    }
+
+    .time-opt {
+        padding: 0.5rem 0;
+        font-size: 0.85rem;
+    }
+
+    .time-opt.selected {
+        font-size: 0.95rem;
+    }
+}
+
+/* Scheduled Tab Styling */
+.am-tab.scheduled.active {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.am-tab.scheduled:hover {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: #fbbf24;
+}

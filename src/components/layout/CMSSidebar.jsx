@@ -1,14 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getRoleInitials } from '../../utils/roleUtils';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { getUserContext } from '../../services/api';
 
 const CMSSidebar = ({ 
     activeSection, 
     setActiveSection, 
-    userRole, 
-    userEmail, 
-    userFullName, 
-    userStatus,
     checkAccess,
     MODULES,
     onLogout,
@@ -16,6 +14,14 @@ const CMSSidebar = ({
     setIsCmsOpen
 }) => {
     const navigate = useNavigate();
+    const { data: profile } = useUserProfile();
+    const userContext = getUserContext();
+    const { role: userRole, email: userEmail } = userContext;
+    const userFullName = (profile?.firstName || profile?.lastName)
+        ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+        : (userContext.firstName || userContext.lastName)
+            ? `${userContext.firstName || ''} ${userContext.lastName || ''}`.trim()
+            : null;
 
     const handleMenuClick = (section) => {
         if (typeof setActiveSection === 'function') {
@@ -27,7 +33,7 @@ const CMSSidebar = ({
     };
 
     return (
-        <aside className="dashboard-sidebar">
+        <aside className="dashboard-sidebar desktop-only">
             <div className="sidebar-brand">
                 <div className="brand-logo-circle"><i className="fas fa-graduation-cap"></i></div>
                 <span>Career Vedha</span>
@@ -144,12 +150,23 @@ const CMSSidebar = ({
                             <i className="fas fa-tags"></i>
                             <span>Taxonomy</span>
                         </button>
+
+                         {checkAccess(MODULES.MEDIA_MANAGEMENT) && (
+                            <button
+                                className={`menu-item ${activeSection === 'media' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/media')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-images"></i>
+                                <span>Media</span>
+                            </button>
+                        )}
                     </>
                 )}
             </nav>
 
             <div className="sidebar-footer">
-                <div className="user-profile-mini">
+                <div className="user-profile-mini" onClick={() => handleMenuClick('profile')} style={{ cursor: 'pointer' }}>
                     <div className="avatar">
                         {getRoleInitials(userRole)}
                     </div>

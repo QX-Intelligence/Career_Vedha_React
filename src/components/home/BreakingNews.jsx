@@ -35,7 +35,7 @@ const BreakingNews = ({ data }) => {
         <div className="breaking-news">
             <div className="news-container">
                 <div className="news-ticker slide-mode">
-                    <div className="must-read-label">
+                    <div className="must-read-brand-label">
                         <i className="fas fa-bolt"></i> Must Read
                     </div>
                     <div className="current-news-item-wrapper">

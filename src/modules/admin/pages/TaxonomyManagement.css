@@ -1,0 +1,338 @@
+/* TaxonomyManagement.css - Professional Sync with Article Management */
+
+/* Inherits primary styles from ArticleManagement.css */
+
+.am-tab {
+    padding: 0.5rem 1.5rem;
+}
+
+.am-tab i {
+    font-size: 0.8rem;
+    color: var(--slate-900);
+}
+
+.am-table-container {
+    margin-top: 1rem;
+}
+
+/* Custom styles for Taxonomy specific elements */
+
+.am-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.am-btn-primary {
+    background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+    color: #0f172a;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.am-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(250, 204, 21, 0.4);
+}
+
+.am-btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Modal Form Styles */
+.am-modal-form {
+    padding: 0;
+}
+
+.am-modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.am-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.am-label {
+    font-weight: 600;
+    color: var(--slate-700);
+    font-size: 0.9rem;
+    display: block;
+}
+
+.am-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--slate-200);
+    background: var(--slate-50);
+    color: var(--slate-900);
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.am-input:focus {
+    border-color: #fbbf24;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.1);
+}
+
+.am-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: flex-end;
+}
+
+.am-modal-footer {
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.am-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.am-modal {
+    background: white;
+    width: 100%;
+    max-width: 550px;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.am-modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.am-modal-header h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+/* Premium Switch / Toggle Styles */
+.am-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.am-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.am-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.am-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .am-slider {
+    background-color: #fbbf24;
+}
+
+input:focus + .am-slider {
+    box-shadow: 0 0 1px #fbbf24;
+}
+
+input:checked + .am-slider:before {
+    transform: translateX(24px);
+}
+
+.am-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.am-modal-close:hover {
+    color: #0f172a;
+    transform: scale(1.2);
+}
+
+.am-btn-secondary {
+    background: white;
+    color: var(--slate-700);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: 1px solid var(--slate-200);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.am-btn-secondary:hover {
+    background: var(--slate-50);
+    border-color: var(--slate-300);
+}
+
+.am-actions-cell {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.am-action-btn.edit { color: #2563eb; background: #eff6ff; }
+.am-action-btn.edit:hover { background: #2563eb; color: white; }
+
+.am-action-btn.archive { color: #c2410c; background: #fff7ed; }
+.am-action-btn.archive:hover { background: #c2410c; color: white; }
+
+.am-action-btn.publish { color: #166534; background: #dcfce7; }
+.am-action-btn.publish:hover { background: #166534; color: white; }
+
+.am-action-btn.delete { color: #dc2626; background: #fef2f2; }
+.am-action-btn.delete:hover { background: #dc2626; color: white; }
+
+code {
+    background: var(--slate-100);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+}
+
+/* Hierarchical Table Styles - Professional Tree Look */
+.am-table tr {
+    transition: all 0.2s ease;
+}
+
+.am-row-expanded {
+    background-color: #fffbeb !important; /* Soft yellow for active parent */
+}
+
+.am-row-child {
+    background-color: #fdfaf3 !important; 
+}
+
+.am-row-child td:first-child {
+    position: relative;
+    padding-left: 2rem !important;
+}
+
+/* The vertical line connecting children to parent */
+.am-row-child td:first-child::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: -1px;
+    bottom: -1px;
+    width: 2px;
+    background: #e2e8f0;
+}
+
+/* The horizontal branch for each child */
+.am-row-child td:first-child::after {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    width: 0.8rem;
+    height: 2px;
+    background: #cbd5e1;
+}
+
+/* Hide line after the last child of a group - harder with flat tables, 
+   but we can at least make the lines look cleaner. 
+*/
+
+.am-row-child td {
+    border-bottom: 1px solid #f8fafc;
+}
+
+.am-expand-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    transition: all 0.2s ease;
+    margin-right: 0.75rem;
+    z-index: 2;
+    position: relative;
+}
+
+.am-expand-btn:hover {
+    background: #fbbf24;
+    color: white;
+    border-color: #fbbf24;
+    transform: scale(1.1);
+}
+
+.am-expand-btn.active {
+    background: #0f172a;
+    color: #fbbf24;
+    border-color: #0f172a;
+}

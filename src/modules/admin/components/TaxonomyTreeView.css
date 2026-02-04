@@ -1,0 +1,227 @@
+.tree-viewport-container {
+    width: 100%;
+    height: 750px;
+    background: #f5e6ca; /* Premium Wheat/Cream */
+    background-image: 
+        linear-gradient(rgba(139, 92, 24, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 24, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    border-radius: 20px;
+    border: 1px solid rgba(139, 92, 24, 0.2);
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 0 100px rgba(139, 92, 24, 0.1), 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.taxonomy-tree-container-premium {
+    width: 100%;
+    height: 100%;
+}
+
+/* D3 Tree Link (Connector) Styling - More Developed */
+.tree-connector-path-premium {
+    fill: none;
+    stroke: #b45309; /* Deep Bronze/Brown for visibility on wheat */
+    stroke-width: 4px;
+    stroke-opacity: 0.8;
+    transition: all 0.3s ease;
+    animation: pulseGlowWheat 4s infinite alternate;
+}
+
+@keyframes pulseGlowWheat {
+    from {
+        stroke-opacity: 0.6;
+        filter: drop-shadow(0 0 2px rgba(180, 83, 9, 0.2));
+    }
+    to {
+        stroke-opacity: 0.9;
+        filter: drop-shadow(0 0 10px rgba(180, 83, 9, 0.5));
+    }
+}
+
+.tree-connector-path-premium:hover {
+    stroke-opacity: 1;
+    stroke-width: 6px;
+    stroke: #fbbf24;
+    filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.8));
+}
+
+/* Node Container */
+.tree-node-wrapper {
+    overflow: visible;
+}
+
+/* Luxury Node Card - Adjusted for D3 foreignObject */
+.node-card-premium {
+    width: 240px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 8px 30px rgba(139, 92, 24, 0.15); /* Warmer shadow for light theme */
+    border: 1px solid rgba(139, 92, 24, 0.15);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: grab;
+}
+
+.node-card-premium:active {
+    cursor: grabbing;
+}
+
+.node-card-premium:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 45px rgba(139, 92, 24, 0.25);
+    border-color: #fbbf24;
+}
+
+.node-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, #b45309, #fbbf24, #b45309);
+}
+
+.node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.node-id-pill {
+    background: #fffbeb;
+    color: #b45309;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 1px solid rgba(180, 83, 9, 0.1);
+}
+
+.node-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.disabled .node-status-dot {
+    background: #94a3b8;
+    box-shadow: none;
+}
+
+.node-main {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.node-icon {
+    width: 44px;
+    height: 44px;
+    background: #fffbeb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fbbf24;
+    font-size: 1.3rem;
+    box-shadow: inset 0 2px 5px rgba(251, 191, 36, 0.1);
+}
+
+.node-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.node-name-premium {
+    font-weight: 800;
+    color: #1e1b16; /* Darker warm color */
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+}
+
+.node-slug-premium {
+    font-size: 0.75rem;
+    color: #78350f; /* Warm wood color */
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    opacity: 0.7;
+    margin-top: 1px;
+}
+
+.node-footer-premium {
+    display: flex;
+    gap: 12px;
+    border-top: 1px solid rgba(139, 92, 24, 0.1);
+    padding-top: 14px;
+}
+
+.node-action-btn-p {
+    flex: 1;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(180, 83, 9, 0.1);
+    background: #fffcf5;
+    color: #b45309;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.node-action-btn-p i {
+    font-size: 0.9rem;
+}
+
+.node-action-btn-p:hover {
+    background: #fbbf24;
+    color: white;
+    border-color: #fbbf24;
+    transform: translateY(-2px);
+}
+
+.node-action-btn-p.disable:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+.node-action-btn-p.enable:hover {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+}
+
+.tree-empty-premium {
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #b45309;
+    gap: 20px;
+    background: #f5e6ca;
+    border-radius: 20px;
+}
+
+.tree-empty-premium i {
+    font-size: 5rem;
+    opacity: 0.1;
+    color: #b45309;
+}
+
+.tree-empty-premium p {
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}

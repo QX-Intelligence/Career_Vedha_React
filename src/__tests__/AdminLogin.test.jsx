@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import AdminLogin from '../pages/AdminLogin';
+import AdminLogin from '../modules/auth/pages/AdminLogin';
 import { SnackbarProvider } from '../context/SnackbarContext';
 import api, { getUserContext } from '../services/api';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';

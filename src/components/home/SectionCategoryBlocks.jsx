@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { newsService } from '../../services';
 import { Link } from 'react-router-dom';
+import { filterPublishedArticles } from '../../utils/articleUtils';
 
 const SectionCategoryBlocks = ({ section, title }) => {
     const [blocks, setBlocks] = useState([]);
@@ -11,7 +12,14 @@ const SectionCategoryBlocks = ({ section, title }) => {
         const fetchBlocks = async () => {
             try {
                 const data = await newsService.getCategoryBlocks(section, lang);
-                setBlocks(data.blocks || []);
+                
+                // Filter scheduled articles from each block
+                const filteredBlocks = (data.blocks || []).map(block => ({
+                    ...block,
+                    results: filterPublishedArticles(block.results || [])
+                })).filter(block => block.results.length > 0); // Remove empty blocks
+                
+                setBlocks(filteredBlocks);
             } catch (error) {
                 console.error(`Error fetching category blocks for ${section}:`, error);
             } finally {

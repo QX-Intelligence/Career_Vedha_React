@@ -19,6 +19,7 @@ import Shorts from '../components/home/Shorts';
 import QuickLinks from '../components/home/QuickLinks';
 import MustRead from '../components/home/MustRead';
 import HeroIntro from '../components/home/HeroIntro';
+import { filterPublishedArticles } from '../utils/articleUtils';
 
 const Home = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -37,7 +38,23 @@ const Home = () => {
         setLoading(true);
         try {
             const data = await newsService.getHomeContent(lang);
-            setHomeData(data);
+            console.log('[Home] Raw Data:', data);
+            
+            // Filter out scheduled articles (published_at > now)
+            const filteredData = {
+                hero: filterPublishedArticles(data.hero || []),
+                breaking: filterPublishedArticles(data.breaking || []),
+                top_stories: filterPublishedArticles(data.top_stories || []),
+                featured: filterPublishedArticles(data.featured || []),
+                trending: filterPublishedArticles(data.trending || []),
+                latest: {
+                    ...data.latest,
+                    results: filterPublishedArticles(data.latest?.results || [])
+                }
+            };
+            console.log('[Home] Filtered Data:', filteredData);
+            
+            setHomeData(filteredData);
         } catch (error) {
             console.error('Error fetching home data:', error);
         } finally {
@@ -56,7 +73,8 @@ const Home = () => {
     };
 
     return (
-        <>
+        <div className="home-page">
+            {/* These components handle their own desktop-only visibility via CSS media queries in MobileLayout/index.css */}
             <TopBar />
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -66,10 +84,10 @@ const Home = () => {
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
             
-            {/* New Layout Order */}
-            {/* <QuickLinks /> */}
             <MustRead />
-            <HeroIntro />
+            <div className="responsive-hero-section">
+                <HeroIntro />
+            </div>
             <QuickAccess />
 
             <div className="latest-updates-header container">
@@ -82,7 +100,6 @@ const Home = () => {
                 <div className="container">
                     <div className="content-layout">
                         <div className="main-story-section">
-                            {/* Featured Story and Latest Articles combined in grid in Next Step */}
                             <div className="updates-grid-layout">
                                 <FeaturedStory
                                     story={homeData.hero?.[0]}
@@ -99,7 +116,9 @@ const Home = () => {
                                 />
                             </div>
                         </div>
-                        <Sidebar />
+                        <div className="sidebar-container desktop-only">
+                            <Sidebar />
+                        </div>
                     </div>
                 </div>
             </main>
@@ -112,7 +131,7 @@ const Home = () => {
             <MultiWidgets />
             <Shorts />
             <Footer />
-        </>
+        </div>
     );
 };
 
