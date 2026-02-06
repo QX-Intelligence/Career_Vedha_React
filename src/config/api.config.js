@@ -58,6 +58,7 @@ const API_CONFIG = {
         // Post Notifications (Articles)
         POST_NOTIFICATIONS: 'post-notifications',
         POST_UNSEEN_COUNT: 'post-unseen-count',
+        SEND_NOTIFICATION: 'send-post-notification', // Added for frontend-triggered notifications
         POST_MARK_SEEN: (id) => `post-notifications/${id}/seen`,
 
         // User Management
@@ -76,7 +77,7 @@ const API_CONFIG = {
         HOME_ARTICLES: 'cms/articles/home/',
     },
     
-    DJANGO_MEDIA_BASE_URL: import.meta.env.VITE_API_URL_DJANGO_MEDIA || 'http://localhost:8001/api',
+    DJANGO_MEDIA_BASE_URL: import.meta.env.VITE_API_URL_DJANGO_MEDIA || 'http://localhost:8000/api',
 
     MEDIA: {
         UPLOAD: 'media/upload/',

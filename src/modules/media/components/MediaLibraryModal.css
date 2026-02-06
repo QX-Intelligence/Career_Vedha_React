@@ -1,0 +1,301 @@
+/* MediaLibraryModal.css */
+.mlm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.mlm-container {
+    background: var(--white);
+    width: 100%;
+    max-width: 900px;
+    height: 85vh;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid var(--slate-200);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mlm-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--slate-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, #ffffff, #f8fafc);
+}
+
+.mlm-title-area h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--slate-900);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mlm-title-area h3 i {
+    color: var(--primary-yellow);
+}
+
+.mlm-title-area p {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--slate-500);
+}
+
+.mlm-close {
+    background: var(--slate-100);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--slate-600);
+}
+
+.mlm-close:hover {
+    background: var(--danger);
+    color: white;
+    transform: rotate(90deg);
+}
+
+.mlm-controls {
+    padding: 1rem 2rem;
+    background: #fff;
+    border-bottom: 1px solid var(--slate-100);
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.mlm-search-box {
+    flex: 1;
+    position: relative;
+}
+
+.mlm-search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--slate-400);
+}
+
+.mlm-search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.mlm-search-box input:focus {
+    background: #fff;
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 4px var(--primary-yellow-light);
+}
+
+.mlm-purpose-select {
+    padding: 0.75rem 1rem;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    outline: none;
+    color: var(--slate-700);
+    cursor: pointer;
+}
+
+.mlm-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+    background: #f8fafc;
+}
+
+.mlm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.25rem;
+}
+
+.mlm-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.mlm-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--slate-200);
+}
+
+.mlm-card.selected {
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 4px var(--primary-yellow-light);
+}
+
+.mlm-preview {
+    height: 120px;
+    background: var(--slate-100);
+    position: relative;
+    overflow: hidden;
+}
+
+.mlm-preview img, .mlm-preview video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mlm-selected-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(250, 204, 21, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--primary-yellow-dark);
+}
+
+.mlm-info {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mlm-item-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mlm-item-meta {
+    font-size: 0.7rem;
+    color: var(--slate-500);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.mlm-loading, .mlm-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--slate-400);
+    gap: 1rem;
+}
+
+.mlm-loading i, .mlm-empty i {
+    font-size: 2.5rem;
+}
+
+.mlm-loading-more {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem;
+    color: var(--primary-yellow);
+}
+
+.mlm-footer {
+    padding: 1.25rem 2rem;
+    background: white;
+    border-top: 1px solid var(--slate-100);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.mlm-btn-cancel {
+    background: var(--slate-100);
+    color: var(--slate-700);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mlm-btn-cancel:hover {
+    background: var(--slate-200);
+}
+
+.mlm-btn-select {
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
+}
+
+.mlm-btn-select:hover:not(:disabled) {
+    background: var(--primary-yellow-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(250, 204, 21, 0.3);
+}
+
+.mlm-btn-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--slate-200);
+    box-shadow: none;
+}
+
+@media (max-width: 640px) {
+    .mlm-overlay {
+        padding: 0;
+    }
+    .mlm-container {
+        height: 100vh;
+        border-radius: 0;
+    }
+    .mlm-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

@@ -11,67 +11,6 @@ import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/acces
 import '../../../styles/MediaManagement.css';
 import '../../../styles/Dashboard.css';
 
-const ResolvedMediaItem = ({ item }) => {
-    const [url, setUrl] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(false);
-
-    useEffect(() => {
-        // Only resolve for images and videos in the grid
-        if (item.media_type === 'image' || item.media_type === 'video') {
-            setLoading(true);
-            mediaService.getPresigned(item.id)
-                .then(data => {
-                    if (data.presigned_url) {
-                        setUrl(data.presigned_url);
-                    } else {
-                        setError(true);
-                    }
-                })
-                .catch(() => setError(true))
-                .finally(() => setLoading(false));
-        }
-    }, [item.id, item.media_type]);
-
-    const renderSkeleton = () => (
-        <div className="mm-branded-skeleton">
-            <div className="mm-skeleton-icon">
-                <i className="fas fa-graduation-cap"></i>
-            </div>
-            <img src="/favicon.png" alt="Brand Logo" className="mm-preview-skeleton" />
-        </div>
-    );
-
-    if (loading || error || !url) {
-        return renderSkeleton();
-    }
-
-    if (item.media_type === 'video') {
-        return (
-            <video 
-                src={url} 
-                muted 
-                autoPlay 
-                loop 
-                playsInline 
-                className="mm-grid-preview-video"
-            />
-        );
-    }
-
-    if (item.media_type === 'image') {
-        return (
-            <img 
-                src={url} 
-                alt={item.title} 
-                className="mm-grid-preview-image"
-            />
-        );
-    }
-
-    return renderSkeleton();
-};
-
 const MediaManagement = () => {
     const navigate = useNavigate();
     const { showSnackbar } = useSnackbar();
@@ -85,20 +24,9 @@ const MediaManagement = () => {
     const [searchTerm, setSearchTerm] = useState(''); // Client-side filter for now
 
     // Pagination State
-    const [page, setPage] = useState(1);
-    const [allMedia, setAllMedia] = useState(() => {
-        // Correct initialization from cache considering current filters
-        try {
-            const cached = queryClient.getQueryData(['media', '', '', 1]);
-            return cached?.results || [];
-        } catch (e) {
-            return [];
-        }
-    });
-
-    // Refs for tracking state across renders
-    const isInitialMount = useRef(true);
-    const [hasMore, setHasMore] = useState(true);
+    const [cursor, setCursor] = useState(null);
+    const [allMedia, setAllMedia] = useState([]);
+    const [hasNext, setHasNext] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
 
     // Modal States
@@ -172,11 +100,16 @@ const MediaManagement = () => {
         data: mediaResponse, 
         isLoading, 
         isFetching,
-        error,
-        refetch
+        error: fetchError
     } = useQuery({
-        queryKey: ['media', purpose, section, page],
-        queryFn: () => mediaService.list({ purpose, section, page, page_size: 20 }),
+        queryKey: ['media', purpose, section, searchTerm, cursor],
+        queryFn: () => mediaService.list({ 
+            purpose: purpose || undefined, 
+            section: section || undefined, 
+            q: searchTerm || undefined,
+            cursor: cursor || undefined,
+            limit: 20 
+        }),
         staleTime: 60 * 1000,
         placeholderData: (previousData) => previousData,
     });
@@ -187,50 +120,35 @@ const MediaManagement = () => {
     // Update media list when new data arrives
     useEffect(() => {
         if (mediaResponse?.results) {
-            if (page === 1) {
+            if (!cursor) {
                 setAllMedia(mediaResponse.results);
             } else {
                 setAllMedia(prev => {
-                    // Prevent duplicate accumulation if effect runs twice
                     const existingIds = new Set(prev.map(i => i.id));
                     const newItems = mediaResponse.results.filter(i => !existingIds.has(i.id));
                     return [...prev, ...newItems];
                 });
             }
             setTotalCount(mediaResponse.count || 0);
-            setHasMore(!!mediaResponse.next);
+            setHasNext(mediaResponse.has_next);
         }
-    }, [mediaResponse, page]);
+    }, [mediaResponse, cursor]);
 
     // Reset pagination ONLY when filters actually change
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
-        setPage(1);
-        // We DON'T setAllMedia([]) here anymore. 
-        // This prevents the screen from going blank while waiting for the new page 1 data.
-        // The data-sync useEffect below will naturally replace the list when the new data arrives.
-        setHasMore(true);
-    }, [purpose, section]);
+        setCursor(null);
+        setHasNext(true);
+    }, [purpose, section, searchTerm]);
 
-    // Robust Data Derivation: Ensure we never flash "No data" if data exists in cache or state
+    // Robust Data Derivation
     const currentResults = useMemo(() => {
-        // If we are on page 1 and the query has fresh results, those are the most authoritative
-        if (page === 1 && mediaResponse?.results && mediaResponse.results.length > 0) {
+        if (!cursor && mediaResponse?.results?.length > 0) {
             return mediaResponse.results;
         }
-        // Otherwise use our accumulated state
         return allMedia;
-    }, [allMedia, mediaResponse?.results, page]);
+    }, [allMedia, mediaResponse?.results, cursor]);
 
-    const filteredMedia = useMemo(() => {
-        return currentResults.filter(item => 
-            item.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            item.file_key?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [currentResults, searchTerm]);
+    const filteredMedia = currentResults; 
 
     /* ================= MUTATIONS ================= */
     const uploadMutation = useMutation({
@@ -320,8 +238,8 @@ const MediaManagement = () => {
     };
 
     const loadMoreMedia = () => {
-        if (hasMore && !isLoading) {
-            setPage(prev => prev + 1);
+        if (hasNext && !isLoading && mediaResponse?.next_cursor) {
+            setCursor(mediaResponse.next_cursor);
         }
     };
 
@@ -564,7 +482,18 @@ const MediaManagement = () => {
                             filteredMedia.map(item => (
                                 <div key={item.id} className="mm-card">
                                     <div className="mm-media-wrapper" onClick={() => handleView(item)}>
-                                        <ResolvedMediaItem item={item} />
+                                        {item.media_type === 'video' ? (
+                                            <video src={item.url} muted autoPlay loop playsInline className="mm-grid-preview-video" />
+                                        ) : item.media_type === 'image' ? (
+                                            <img src={item.url} alt={item.title} className="mm-grid-preview-image" />
+                                        ) : (
+                                            <div className="mm-branded-skeleton">
+                                                <div className="mm-skeleton-icon">
+                                                    <i className="fas fa-graduation-cap"></i>
+                                                </div>
+                                                <img src="/favicon.png" alt="Brand Logo" className="mm-preview-skeleton" />
+                                            </div>
+                                        )}
                                         
                                         <div className="mm-glass-info">
                                             <h3 className="mm-card-title">{item.title}</h3>
@@ -612,7 +541,7 @@ const MediaManagement = () => {
                             <div className="mm-pagination-info">
                                 Showing {filteredMedia.length} of {totalCount} items
                             </div>
-                            {hasMore && (
+                            {hasNext && (
                                 <button 
                                     className="mm-load-more-btn" 
                                     onClick={loadMoreMedia}

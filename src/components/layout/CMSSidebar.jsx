@@ -151,7 +151,7 @@ const CMSSidebar = ({
                             <span>Taxonomy</span>
                         </button>
 
-                         {checkAccess(MODULES.MEDIA_MANAGEMENT) && (
+                        {checkAccess(MODULES.MEDIA_MANAGEMENT) && (
                             <button
                                 className={`menu-item ${activeSection === 'media' ? 'active' : ''}`}
                                 onClick={() => navigate('/cms/media')}
@@ -159,6 +159,17 @@ const CMSSidebar = ({
                             >
                                 <i className="fas fa-images"></i>
                                 <span>Media</span>
+                            </button>
+                        )}
+                        
+                        {checkAccess(MODULES.ACADEMICS_MANAGEMENT) && (
+                            <button
+                                className={`menu-item ${activeSection === 'academics' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/academics')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-graduation-cap"></i>
+                                <span>Academics</span>
                             </button>
                         )}
                     </>

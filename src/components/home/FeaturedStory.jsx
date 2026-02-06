@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { mockFeaturedStory } from '../../utils/mockData';
 // import { newsService } from '../../services';
 
@@ -28,7 +29,7 @@ const FeaturedStory = ({ story, loading, activeLanguage }) => {
     return (
         <article className="featured-story">
             <img
-                src={story.og_image_url || "https://placehold.co/800x450/FFC107/333333?text=Featured+Story"}
+                src={story.featured_media?.url || story.og_image_url || "https://placehold.co/800x450/FFC107/333333?text=Featured+Story"}
                 alt={story.title}
                 onError={(e) => {
                     e.target.src = "https://placehold.co/800x450/FFC107/333333?text=Featured+Story";
@@ -42,9 +43,9 @@ const FeaturedStory = ({ story, loading, activeLanguage }) => {
                     <span><i className="far fa-user"></i> Admin</span>
                 </p>
                 <p className="story-excerpt">{story.summary || story.title}</p>
-                <a href={`/article/${story.section || 'general'}/${story.slug}`} className="read-more">
-                    Read Full Story <i className="fas fa-arrow-right"></i>
-                </a>
+                <Link to={`/article/${story.section || 'general'}/${story.slug}`} className="story-link">
+                    <h3>{story.title}</h3>
+                </Link>
             </div>
         </article>
     );

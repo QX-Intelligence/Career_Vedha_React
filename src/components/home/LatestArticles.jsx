@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { newsService } from '../../services';
 
 const LatestArticles = ({ latest: initialLatest, loading: initialLoading, activeLanguage }) => {
@@ -81,7 +82,7 @@ const LatestArticles = ({ latest: initialLatest, loading: initialLoading, active
                     <article key={article.id} className="article-card">
                         <div className="article-image">
                             <img
-                                src={article.og_image_url || "https://placehold.co/400x250/FFC107/333333?text=Article"}
+                                src={article.featured_media?.url || article.og_image_url || "https://placehold.co/400x250/FFC107/333333?text=Article"}
                                 alt={article.title}
                                 onError={(e) => {
                                     e.target.src = "https://placehold.co/400x250/FFC107/333333?text=Article";
@@ -98,9 +99,9 @@ const LatestArticles = ({ latest: initialLatest, loading: initialLoading, active
                             <p className="article-summary">
                                 {article.summary || article.title}
                             </p>
-                            <a href={`/article/${article.section}/${article.slug}`} className="read-link">
+                            <Link to={`/article/${article.section}/${article.slug}`} className="read-link">
                                 Read More <i className="fas fa-arrow-right"></i>
-                            </a>
+                            </Link>
                         </div>
                     </article>
                 ))}

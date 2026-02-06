@@ -19,6 +19,7 @@ import Shorts from '../components/home/Shorts';
 import QuickLinks from '../components/home/QuickLinks';
 import MustRead from '../components/home/MustRead';
 import HeroIntro from '../components/home/HeroIntro';
+import AcademicsHighlights from '../components/home/AcademicsHighlights';
 import { filterPublishedArticles } from '../utils/articleUtils';
 
 const Home = () => {
@@ -123,7 +124,9 @@ const Home = () => {
                 </div>
             </main>
 
-            <SectionCategoryBlocks section="academics" title="Academic Excellence" />
+            <AcademicsHighlights />
+
+            <SectionCategoryBlocks section="academics" title="Latest from Academics" />
             <SectionCategoryBlocks section="jobs" title="Career Opportunities" />
 
             <ExploreMore />

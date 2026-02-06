@@ -1,6 +1,8 @@
 import apiClient from './api.service';
 import djangoApi from './djangoApi';
 import API_CONFIG from '../config/api.config';
+import { academicsService } from './academicsService';
+
 
 // News Service
 export const newsService = {
@@ -113,7 +115,35 @@ export const newsService = {
     // 1. Create Article (DRAFT)
     createArticle: async (articleData) => {
         try {
-            const response = await djangoApi.post('cms/articles/', articleData);
+            // Check if we have file uploads
+            const hasFiles = articleData.banner_file instanceof File;
+            
+            let payload = articleData;
+            let headers = {};
+            
+            if (hasFiles) {
+                // Convert to FormData for file upload
+                const formData = new FormData();
+                Object.keys(articleData).forEach(key => {
+                    if (articleData[key] !== null && articleData[key] !== undefined) {
+                        if (key === 'translations' && Array.isArray(articleData[key])) {
+                            formData.append(key, JSON.stringify(articleData[key]));
+                        } else if (key === 'category_ids' && Array.isArray(articleData[key])) {
+                            articleData[key].forEach(id => formData.append('category_ids', id));
+                        } else if (key === 'tags' && Array.isArray(articleData[key])) {
+                            articleData[key].forEach(tag => formData.append('tags', tag));
+                        } else if (key === 'keywords' && Array.isArray(articleData[key])) {
+                            articleData[key].forEach(kw => formData.append('keywords', kw));
+                        } else {
+                            formData.append(key, articleData[key]);
+                        }
+                    }
+                });
+                payload = formData;
+                headers = { 'Content-Type': 'multipart/form-data' };
+            }
+            
+            const response = await djangoApi.post('cms/articles/', payload, { headers });
             return response.data;
         } catch (error) {
             console.error('Error creating article:', error);
@@ -135,7 +165,33 @@ export const newsService = {
     // 2b. Update Full Article
     updateArticle: async (articleId, articleData) => {
         try {
-            const response = await djangoApi.patch(`cms/articles/${articleId}/`, articleData);
+            // Check if we have file uploads
+            const hasFiles = articleData.banner_file instanceof File;
+            
+            let payload = articleData;
+            let headers = {};
+            
+            if (hasFiles) {
+                // Convert to FormData for file upload
+                const formData = new FormData();
+                Object.keys(articleData).forEach(key => {
+                    if (articleData[key] !== null && articleData[key] !== undefined) {
+                        if (key === 'category_ids' && Array.isArray(articleData[key])) {
+                            articleData[key].forEach(id => formData.append('category_ids', id));
+                        } else if (key === 'tags' && Array.isArray(articleData[key])) {
+                            articleData[key].forEach(tag => formData.append('tags', tag));
+                        } else if (key === 'keywords' && Array.isArray(articleData[key])) {
+                            articleData[key].forEach(kw => formData.append('keywords', kw));
+                        } else {
+                            formData.append(key, articleData[key]);
+                        }
+                    }
+                });
+                payload = formData;
+                headers = { 'Content-Type': 'multipart/form-data' };
+            }
+            
+            const response = await djangoApi.patch(`cms/articles/${articleId}/`, payload, { headers });
             return response.data;
         } catch (error) {
             console.error('Error updating article:', error);
@@ -570,10 +626,15 @@ export const searchService = {
         try {
             return await apiClient.get(API_CONFIG.ENDPOINTS.SEARCH, {
                 params: { q: query, ...filters }
-            });
+            })
+;
         } catch (error) {
             console.error('Error searching:', error);
             return { data: [] };
         }
     }
 };
+
+// Export academicsService
+export { academicsService };
+

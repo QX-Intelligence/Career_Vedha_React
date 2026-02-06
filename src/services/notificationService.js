@@ -60,6 +60,14 @@ export const markArticleSeen = async (id) => {
     return await api.patch(url);
 };
 
+export const sendPostNotification = async (postId, receiverRole, message) => {
+    return await api.post(API_CONFIG.ENDPOINTS.SEND_NOTIFICATION, {
+        postId,
+        receiverRole,
+        message
+    });
+};
+
 /**
  * General Actions
  */

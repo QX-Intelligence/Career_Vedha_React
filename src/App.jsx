@@ -34,6 +34,10 @@ import JobEditor from './modules/jobs/pages/JobEditor';
 import ArticleEditor from './modules/articles/pages/ArticleEditor';
 import TaxonomyManagement from './modules/admin/pages/TaxonomyManagement';
 import MediaManagement from './modules/admin/pages/MediaManagement';
+import AcademicsHome from './modules/academics/pages/AcademicsHome';
+import SubjectDetail from './modules/academics/pages/SubjectDetail';
+import MaterialDetail from './modules/academics/pages/MaterialDetail';
+import AcademicsManagement from './modules/admin/pages/AcademicsManagement';
 
 function App() {
     const [isInitializing, setIsInitializing] = useState(true);
@@ -111,6 +115,15 @@ function App() {
                                     <Route path="/cms/articles/edit/:id" element={<ArticleEditor />} />
                                     <Route path="/cms/taxonomy" element={<TaxonomyManagement />} />
                                     <Route path="/cms/media" element={<MediaManagement />} />
+
+                                    {/* Academics Module Public Routes */}
+                                    <Route path="/academics" element={<AcademicsHome />} />
+                                    <Route path="/academics/level/:slug" element={<AcademicsHome />} /> {/* Reusing Home for now as it handles board/level filters */}
+                                    <Route path="/academics/subject/:slug" element={<SubjectDetail />} />
+                                    <Route path="/academics/material/:slug" element={<MaterialDetail />} />
+
+                                    {/* Academics Module CMS Routes */}
+                                    <Route path="/cms/academics" element={<AcademicsManagement />} />
 
                                     <Route path="*" element={<Navigate to="/" replace />} />
                                 </Routes>

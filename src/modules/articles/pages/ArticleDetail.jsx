@@ -28,7 +28,7 @@ const ArticleDetail = () => {
                 // Track view after successful fetch
                 newsService.trackView(section, slug);
             } catch (error) {
-                console.error('Error fetching article:', error);
+                // console.error('Error fetching article:', error);
             } finally {
                 setLoading(false);
             }
@@ -98,6 +98,63 @@ const ArticleDetail = () => {
                                 <span className="current">{article.title}</span>
                             </nav>
 
+                            {/* Featured Media Section - Blocked Banner, showing MAIN as per request */}
+                            {(() => {
+                                // Handle both 'media' (public API) and 'media_links' (CMS API)
+                                const mediaArray = article.media || article.media_links || [];
+                                
+                                // Priority: MAIN media file (robust check)
+                                const mainMedia = mediaArray.filter(item => {
+                                    const usage = (item.usage || '').toUpperCase();
+                                    return usage === 'MAIN' || usage === 'INLINE' || usage === 'GALLERY';
+                                }).sort((a, b) => (a.position || 0) - (b.position || 0));
+
+                                if (mainMedia.length === 0) {
+                                    // Fallback if no MAIN media - check for other non-BANNER media or use article image
+                                    // User said: "block banner and show the main media file"
+                                    const fallbackImage = article.og?.image || article.og?.image_url || article.og_image_url || article.image || "https://placehold.co/1200x600/FFC107/333333?text=Career+Vedha";
+                                    return (
+                                        <div className="article-featured-image main-banner">
+                                            <img
+                                                src={fallbackImage}
+                                                alt={article.title}
+                                            />
+                                            {article.section && <span className="image-badge">{article.section.toUpperCase()}</span>}
+                                        </div>
+                                    );
+                                }
+
+                                // We render the FIRST MAIN media to avoid duplication
+                                const item = mainMedia[0];
+                                const mediaUrl = item.url || item.media_details?.url;
+                                const mediaType = item.media_type || item.media_details?.media_type;
+                                const mediaTitle = item.media_details?.title || article.title;
+
+                                if (!mediaUrl) return null;
+
+                                return (
+                                    <div className="article-featured-media main-banner">
+                                        {mediaType === 'image' || mediaType === 'banner' ? (
+                                            <div className="article-featured-image">
+                                                <img
+                                                    src={mediaUrl}
+                                                    alt={mediaTitle}
+                                                />
+                                                {article.section && <span className="image-badge">{article.section.toUpperCase()}</span>}
+                                            </div>
+                                        ) : mediaType === 'video' ? (
+                                            <div className="article-featured-video">
+                                                <video controls style={{ width: '100%', borderRadius: '12px' }}>
+                                                    <source src={mediaUrl} type="video/mp4" />
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                                {article.section && <span className="image-badge">{article.section.toUpperCase()}</span>}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                );
+                            })()}
+
                             <h1 className="article-main-title">{article.title}</h1>
 
                             <div className="article-meta-large">
@@ -113,14 +170,6 @@ const ArticleDetail = () => {
                                     <i className="far fa-eye"></i>
                                     <span>{article.views_count || 0} Views</span>
                                 </div>
-                            </div>
-
-                            <div className="article-featured-image">
-                                <img
-                                    src={article.og?.image || article.og?.image_url || article.og_image_url || article.image || "https://placehold.co/1200x600/FFC107/333333?text=Career+Vedha"}
-                                    alt={article.title}
-                                />
-                                {article.section && <span className="image-badge">{article.section}</span>}
                             </div>
 
                             <div className="article-body-content">

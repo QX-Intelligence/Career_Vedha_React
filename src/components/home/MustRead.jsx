@@ -32,7 +32,7 @@ const MustRead = () => {
 
                 <div className="must-read-ticker-container">
                     <div className="ticker-item-wrapper" key={currentArticle.id}>
-                        <Link to={`/article/${currentArticle.slug}`} className="must-read-item">
+                        <Link to={`/article/${currentArticle.section || 'news'}/${currentArticle.slug}`} className="must-read-item">
                             <span className="ticket-tag">{currentArticle.tag}</span>
                             <p>{currentArticle.title}</p>
                         </Link>

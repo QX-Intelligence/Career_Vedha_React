@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import LuxuryTooltip from '../../../components/ui/LuxuryTooltip';
 import CustomSelect from '../../../components/ui/CustomSelect';
 import LuxuryDateTimePicker from '../../../components/ui/LuxuryDateTimePicker';
+import MediaLibraryModal from '../../media/components/MediaLibraryModal';
 import api, { getUserContext, subscribeToAuthChanges } from '../../../services/api';
 import { newsService } from '../../../services';
 import { useSnackbar } from '../../../context/SnackbarContext';
@@ -10,6 +11,7 @@ import { getRoleInitials } from '../../../utils/roleUtils';
 import API_CONFIG from '../../../config/api.config';
 import CMSLayout from '../../../components/layout/CMSLayout';
 import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/accessControl.config.js';
+import { sendPostNotification } from '../../../services/notificationService';
 import './ArticleEditor.css';
 import '../../../styles/Dashboard.css';
 
@@ -49,6 +51,18 @@ const ArticleEditor = () => {
         expires_at: '',
         status: 'DRAFT'
     });
+
+    // Media Upload State
+    const [bannerFile, setBannerFile] = useState(null);
+    const [bannerMediaId, setBannerMediaId] = useState(null);
+    const [bannerPreview, setBannerPreview] = useState(null);
+    
+    const [mainFile, setMainFile] = useState(null);
+    const [mainMediaId, setMainMediaId] = useState(null);
+    const [mainPreview, setMainPreview] = useState(null);
+    
+    const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+    const [activeMediaTarget, setActiveMediaTarget] = useState('banner'); // 'banner' or 'main'
 
     // Admin Publish State
     const [showPublishModal, setShowPublishModal] = useState(false);
@@ -147,6 +161,21 @@ const ArticleEditor = () => {
                         
                         category_ids: article.article_categories ? article.article_categories.map(c => c.category_id) : (article.categories ? article.categories.map(c => c.id) : [])
                     });
+
+                    // Prefill Media Previews
+                    const mediaLinks = article.media_links || [];
+                    const bannerMedia = mediaLinks.find(m => m.usage === 'BANNER');
+                    const mainMedia = mediaLinks.find(m => m.usage === 'MAIN');
+
+                    if (bannerMedia && bannerMedia.media_details) {
+                        setBannerMediaId(bannerMedia.media_details.id);
+                        setBannerPreview(bannerMedia.media_details.url);
+                    }
+
+                    if (mainMedia && mainMedia.media_details) {
+                        setMainMediaId(mainMedia.media_details.id);
+                        setMainPreview(mainMedia.media_details.url);
+                    }
                 } catch (error) {
                     console.error('Error fetching article:', error);
                     showSnackbar('Failed to load article data', 'error');
@@ -175,6 +204,78 @@ const ArticleEditor = () => {
                 : [...current, catId];
             return { ...prev, category_ids: updated };
         });
+    };
+
+    // Media Upload Handlers
+    const handleBannerFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'video/mp4', 'application/pdf'];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (!validTypes.includes(file.type)) {
+                showSnackbar('Invalid file type. Please upload an image, video, or PDF.', 'error');
+                return;
+            }
+            if (file.size > maxSize) {
+                showSnackbar('File size exceeds 10MB limit.', 'error');
+                return;
+            }
+            setBannerFile(file);
+            setBannerMediaId(null);
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onloadend = () => setBannerPreview(reader.result);
+                reader.readAsDataURL(file);
+            } else setBannerPreview(null);
+        }
+    };
+
+    const handleMainFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'video/mp4', 'application/pdf'];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (!validTypes.includes(file.type)) {
+                showSnackbar('Invalid file type. Please upload an image, video, or PDF.', 'error');
+                return;
+            }
+            if (file.size > maxSize) {
+                showSnackbar('File size exceeds 10MB limit.', 'error');
+                return;
+            }
+            setMainFile(file);
+            setMainMediaId(null);
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onloadend = () => setMainPreview(reader.result);
+                reader.readAsDataURL(file);
+            } else setMainPreview(null);
+        }
+    };
+
+    const handleMediaLibrarySelect = (mediaId, mediaUrl) => {
+        if (activeMediaTarget === 'banner') {
+            setBannerMediaId(mediaId);
+            setBannerFile(null);
+            setBannerPreview(mediaUrl);
+        } else {
+            setMainMediaId(mediaId);
+            setMainFile(null);
+            setMainPreview(mediaUrl);
+        }
+        setShowMediaLibrary(false);
+    };
+
+    const clearBannerMedia = () => {
+        setBannerFile(null);
+        setBannerMediaId(null);
+        setBannerPreview(null);
+    };
+
+    const clearMainMedia = () => {
+        setMainFile(null);
+        setMainMediaId(null);
+        setMainPreview(null);
     };
 
     const handleDirectPublish = async (e) => {
@@ -215,12 +316,12 @@ const ArticleEditor = () => {
                 }
                 
                 const payload = {
-                    slug: formData.slug,
-                    section: formData.section,
+                    slug: formData.slug || '',
+                    section: formData.section || '',
                     translations: translations,
                     category_ids: formData.category_ids || [],
-                    tags: formData.tags || [],
-                    keywords: formData.keywords || [],
+                    tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : [],
+                    keywords: typeof formData.keywords === 'string' ? formData.keywords.split(',').map(k => k.trim()).filter(k => k) : [],
                     canonical_url: formData.canonical_url || '',
                     meta_title: formData.meta_title || '',
                     meta_description: formData.meta_description || '',
@@ -229,7 +330,11 @@ const ArticleEditor = () => {
                     og_image_url: formData.og_image_url || '',
                     noindex: formData.noindex || false,
                     expires_at: formData.expires_at || null,
-                    status: scheduleDate ? 'SCHEDULED' : 'PUBLISHED'
+                    status: scheduleDate ? 'SCHEDULED' : 'PUBLISHED',
+                    banner_file: bannerFile,
+                    banner_media_id: bannerMediaId,
+                    main_file: mainFile,
+                    main_media_id: mainMediaId
                 };
                 
                 // Add scheduled_at if scheduling
@@ -241,13 +346,29 @@ const ArticleEditor = () => {
                 targetId = newArticle.id;
             } else {
                 // For EXISTING articles: Update first, then call direct-publish
-                await newsService.updateArticle(id, formData);
+                const payload = {
+                    ...formData,
+                    tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : formData.tags,
+                    keywords: typeof formData.keywords === 'string' ? formData.keywords.split(',').map(k => k.trim()).filter(k => k) : formData.keywords
+                };
+                await newsService.updateArticle(id, payload);
                 
-                const payload = scheduleDate ? { scheduled_at: new Date(scheduleDate).toISOString() } : {};
-                await newsService.directPublish(targetId, payload);
+                const publishPayload = scheduleDate ? { scheduled_at: new Date(scheduleDate).toISOString() } : {};
+                await newsService.directPublish(targetId, publishPayload);
             }
 
             showSnackbar(`Article ${scheduleDate ? 'scheduled' : 'published'} successfully`, 'success');
+            
+            // Trigger Notification for Published Articles
+            try {
+                const articleTitle = formData.eng_title || formData.tel_title || 'New Article';
+                const message = `Article Published: ${articleTitle}`;
+                await sendPostNotification(targetId, 'ADMIN', message);
+                await sendPostNotification(targetId, 'SUPER_ADMIN', message);
+            } catch (notifError) {
+                console.error('Notification failed:', notifError);
+            }
+            
             navigate('/dashboard?tab=articles');
         } catch (error) {
             console.error('Publish error:', error);
@@ -264,10 +385,31 @@ const ArticleEditor = () => {
         try {
             let targetId = id;
             
+            // Prepare payload with media
+            const payload = { 
+                ...formData,
+                tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : formData.tags,
+                keywords: typeof formData.keywords === 'string' ? formData.keywords.split(',').map(k => k.trim()).filter(k => k) : formData.keywords
+            };
+            
+            // Add media fields if present
+            if (bannerFile) {
+                payload.banner_file = bannerFile;
+            }
+            if (bannerMediaId) {
+                payload.banner_media_id = bannerMediaId;
+            }
+            if (mainFile) {
+                payload.main_file = mainFile;
+            }
+            if (mainMediaId) {
+                payload.main_media_id = mainMediaId;
+            }
+            
             if (isEditMode) {
-                await newsService.updateArticle(id, formData);
+                await newsService.updateArticle(id, payload);
             } else {
-                const newArticle = await newsService.createArticle(formData);
+                const newArticle = await newsService.createArticle(payload);
                 targetId = newArticle.id;
             }
 
@@ -277,6 +419,19 @@ const ArticleEditor = () => {
             }
 
             showSnackbar(isEditMode ? 'Article updated successfully' : 'Article created as Draft', 'success');
+            
+            // Trigger Notification for New Articles (not edits)
+            if (!isEditMode) {
+                try {
+                    const articleTitle = formData.eng_title || formData.tel_title || 'New Article';
+                    const message = `New Article Created: ${articleTitle}`;
+                    await sendPostNotification(targetId, 'ADMIN', message);
+                    await sendPostNotification(targetId, 'SUPER_ADMIN', message);
+                } catch (notifError) {
+                    console.error('Notification failed:', notifError);
+                }
+            }
+            
             navigate('/dashboard?tab=articles');
         } catch (error) {
             console.error('Save error:', error);
@@ -420,15 +575,15 @@ const ArticleEditor = () => {
                                 <div className="form-section">
                                     <div className="form-section">
                                         <label>Title (English)</label>
-                                        <input name="eng_title" value={formData.eng_title} onChange={handleInputChange} placeholder="Enter a compelling headline in English..." required />
+                                        <input name="eng_title" value={formData.eng_title || ''} onChange={handleInputChange} placeholder="Enter a compelling headline in English..." required />
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
                                         <label>Summary / Excerpt (English)</label>
-                                        <textarea name="eng_summary" value={formData.eng_summary} onChange={handleInputChange} placeholder="Short teaser in English..." rows="3" />
+                                        <textarea name="eng_summary" value={formData.eng_summary || ''} onChange={handleInputChange} placeholder="Short teaser in English..." rows="3"></textarea>
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
                                         <label>Main Body (English HTML)</label>
-                                        <textarea name="eng_content" value={formData.eng_content} onChange={handleInputChange} placeholder="HTML content supported..." rows="20" required />
+                                        <textarea name="eng_content" value={formData.eng_content || ''} onChange={handleInputChange} placeholder="HTML content supported..." rows="20" required></textarea>
                                         <span className="html-editor-info"><i className="fas fa-code"></i> Raw HTML Editor - Use tags for formatting (p, br, h3, ul, li)</span>
                                     </div>
                                 </div>
@@ -436,15 +591,15 @@ const ArticleEditor = () => {
                                 <div className="form-section">
                                     <div className="form-section">
                                         <label>Title (Telugu)</label>
-                                        <input name="tel_title" value={formData.tel_title} onChange={handleInputChange} placeholder="తెలుగులో హెడ్ లైన్ ఇవ్వండి..." />
+                                        <input name="tel_title" value={formData.tel_title || ''} onChange={handleInputChange} placeholder="తెలుగులో హెడ్ లైన్ ఇవ్వండి..." />
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
                                         <label>Summary / Excerpt (Telugu)</label>
-                                        <textarea name="tel_summary" value={formData.tel_summary} onChange={handleInputChange} placeholder="తెలుగులో సారాంశం..." rows="3" />
+                                        <textarea name="tel_summary" value={formData.tel_summary || ''} onChange={handleInputChange} placeholder="తెలుగులో సారాంశం..." rows="3"></textarea>
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
                                         <label>Main Body (Telugu HTML)</label>
-                                        <textarea name="tel_content" value={formData.tel_content} onChange={handleInputChange} placeholder="తెలుగు కంటెంట్..." rows="20" />
+                                        <textarea name="tel_content" value={formData.tel_content || ''} onChange={handleInputChange} placeholder="తెలుగు కంటెంట్..." rows="20"></textarea>
                                         <span className="html-editor-info"><i className="fas fa-code"></i> Raw HTML Editor for Telugu translation</span>
                                     </div>
                                 </div>
@@ -456,12 +611,12 @@ const ArticleEditor = () => {
                             <div className="form-row" style={{ marginTop: '1.5rem' }}>
                                 <div className="form-section">
                                     <label>Tags</label>
-                                    <input name="tags" value={formData.tags} onChange={handleInputChange} placeholder="news, updates, primary" />
+                                    <input name="tags" value={formData.tags || ''} onChange={handleInputChange} placeholder="news, updates, primary" />
                                 </div>
                                 <div className="form-section">
                                     <label>Sections</label>
                                     <CustomSelect 
-                                        value={formData.section} 
+                                        value={formData.section || ''} 
                                         onChange={(val) => setFormData(prev => ({...prev, section: val}))}
                                         options={sections.map(s => s.id)}
                                         placeholder="Select Destination"
@@ -487,22 +642,131 @@ const ArticleEditor = () => {
                     </div>
 
                     <div className="editor-side-panel">
+                        {/* MAIN MEDIA SECTION */}
                         <div className="glass-card">
+                            <div className="side-card-title">
+                                <i className="fas fa-play-circle"></i> Main Media
+                            </div>
+                            
+                            {mainPreview && (
+                                <div style={{ marginTop: '1rem', position: 'relative' }}>
+                                    <img 
+                                        src={mainPreview} 
+                                        alt="Main preview" 
+                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover' }} 
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={clearMainMedia}
+                                        style={{
+                                            position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.7)',
+                                            color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px',
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}
+                                    >
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            )}
+                            
+                            <div className="form-section" style={{ marginTop: '1rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <i className="fas fa-upload"></i> {mainFile ? 'Replace Main File' : 'Upload Main Media'}
+                                </label>
+                                <input 
+                                    type="file" 
+                                    accept="image/*,video/mp4,application/pdf"
+                                    onChange={handleMainFileChange}
+                                    style={{ padding: '0.75rem', border: '2px dashed var(--slate-200)', borderRadius: '8px', width: '100%', cursor: 'pointer' }}
+                                />
+                            </div>
+                            
+                            <div style={{ margin: '1rem 0', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>OR</div>
+                            
+                            <button
+                                type="button"
+                                onClick={() => { setActiveMediaTarget('main'); setShowMediaLibrary(true); }}
+                                className="ae-media-lib-btn"
+                                style={{
+                                    width: '100%', padding: '0.75rem', background: 'var(--slate-50)', border: '1px solid var(--slate-200)',
+                                    borderRadius: '8px', color: 'var(--slate-700)', fontWeight: '600', cursor: 'pointer'
+                                }}
+                            >
+                                <i className="fas fa-folder-open"></i> Select from Library
+                            </button>
+                        </div>
+
+                        {/* BANNER MEDIA SECTION */}
+                        <div className="glass-card" style={{ marginTop: '1.5rem' }}>
+                            <div className="side-card-title">
+                                <i className="fas fa-image"></i> Banner Media
+                            </div>
+                            
+                            {bannerPreview && (
+                                <div style={{ marginTop: '1rem', position: 'relative' }}>
+                                    <img 
+                                        src={bannerPreview} 
+                                        alt="Banner preview" 
+                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover' }} 
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={clearBannerMedia}
+                                        style={{
+                                            position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.7)',
+                                            color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px',
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}
+                                    >
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            )}
+                            
+                            <div className="form-section" style={{ marginTop: '1rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <i className="fas fa-upload"></i> {bannerFile ? 'Replace Banner File' : 'Upload Banner'}
+                                </label>
+                                <input 
+                                    type="file" 
+                                    accept="image/*,video/mp4,application/pdf"
+                                    onChange={handleBannerFileChange}
+                                    style={{ padding: '0.75rem', border: '2px dashed var(--slate-200)', borderRadius: '8px', width: '100%', cursor: 'pointer' }}
+                                />
+                            </div>
+                            
+                            <div style={{ margin: '1rem 0', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>OR</div>
+                            
+                            <button
+                                type="button"
+                                onClick={() => { setActiveMediaTarget('banner'); setShowMediaLibrary(true); }}
+                                className="ae-media-lib-btn"
+                                style={{
+                                    width: '100%', padding: '0.75rem', background: 'var(--slate-50)', border: '1px solid var(--slate-200)',
+                                    borderRadius: '8px', color: 'var(--slate-700)', fontWeight: '600', cursor: 'pointer'
+                                }}
+                            >
+                                <i className="fas fa-folder-open"></i> Select from Library
+                            </button>
+                        </div>
+
+                        <div className="glass-card">
+
                             <div className="side-card-title">Article Configuration</div>
                             <div className="form-section">
                                 <label>URL Slug</label>
-                                <input name="slug" value={formData.slug} onChange={handleInputChange} placeholder="e.g. ap-inter-results-2024" required disabled={isEditMode} />
+                                <input name="slug" value={formData.slug || ''} onChange={handleInputChange} placeholder="e.g. ap-inter-results-2024" required disabled={isEditMode} />
                             </div>
                             
                             <div className="form-section" style={{ marginTop: '1.5rem' }}>
                                 <label>Expiry Date (Optional)</label>
-                                <input type="date" name="expires_at" value={formData.expires_at} onChange={handleInputChange} />
+                                <input type="date" name="expires_at" value={formData.expires_at || ''} onChange={handleInputChange} />
                             </div>
 
                             <div className="status-toggle-container" style={{ marginTop: '1.5rem' }}>
                                 <span>No-Index (SEO Hide)</span>
                                 <label className="switch">
-                                    <input type="checkbox" name="noindex" checked={formData.noindex} onChange={handleInputChange} />
+                                    <input type="checkbox" name="noindex" checked={formData.noindex || false} onChange={handleInputChange} />
                                     <span className="slider round"></span>
                                 </label>
                             </div>
@@ -512,11 +776,11 @@ const ArticleEditor = () => {
                             <div className="side-card-title">SEO Optimization</div>
                             <div className="form-section">
                                 <label>Keywords</label>
-                                <textarea name="keywords" value={formData.keywords} onChange={handleInputChange} rows="2" placeholder="keyword1, keyword2..." />
+                                <textarea name="keywords" value={formData.keywords || ''} onChange={handleInputChange} rows="2" placeholder="keyword1, keyword2..."></textarea>
                             </div>
                             <div className="form-section" style={{ marginTop: '1rem' }}>
                                 <label>Meta Description</label>
-                                <textarea name="meta_description" value={formData.meta_description} onChange={handleInputChange} rows="3" placeholder="SEO Description..." />
+                                <textarea name="meta_description" value={formData.meta_description || ''} onChange={handleInputChange} rows="3" placeholder="SEO Description..."></textarea>
                             </div>
                         </div>
 
@@ -524,12 +788,20 @@ const ArticleEditor = () => {
                             <div className="side-card-title">Social Visibility</div>
                             <div className="form-section">
                                 <label>OG Image URL</label>
-                                <input name="og_image_url" value={formData.og_image_url} onChange={handleInputChange} placeholder="https://..." />
+                                <input name="og_image_url" value={formData.og_image_url || ''} onChange={handleInputChange} placeholder="https://..." />
                             </div>
                         </div>
                     </div>
                 </div>
             </form>
+
+            {/* Media Library Modal */}
+            <MediaLibraryModal 
+                isOpen={showMediaLibrary}
+                onClose={() => setShowMediaLibrary(false)}
+                onSelect={(id, url) => handleMediaLibrarySelect(id, url)}
+                targetType={activeMediaTarget}
+            />
         </CMSLayout>
     );
 };

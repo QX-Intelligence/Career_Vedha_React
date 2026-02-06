@@ -196,54 +196,54 @@ const JobEditor = () => {
                     <div className="editor-main-panel glass-card">
                         <section className="form-section">
                             <label>Job Title</label>
-                            <input name="title" value={formData.title} onChange={handleChange} placeholder="e.g. Software Engineer" required />
+                            <input name="title" value={formData.title || ''} onChange={handleChange} placeholder="e.g. Software Engineer" required />
                         </section>
 
                         <div className="form-row">
                             <section className="form-section">
                                 <label>Organization</label>
-                                <input name="organization" value={formData.organization} onChange={handleChange} placeholder="Company name" required />
+                                <input name="organization" value={formData.organization || ''} onChange={handleChange} placeholder="Company name" required />
                             </section>
                             <section className="form-section">
                                 <label>Location</label>
-                                <input name="location" value={formData.location} onChange={handleChange} placeholder="e.g. Remote, Hyderabad" required />
+                                <input name="location" value={formData.location || ''} onChange={handleChange} placeholder="e.g. Remote, Hyderabad" required />
                             </section>
                         </div>
 
                         <div className="form-row">
                             <section className="form-section">
                                 <label>Slug (URL Identifier)</label>
-                                <input name="slug" value={formData.slug} onChange={handleChange} placeholder="e.g. software-engineer-hyd" required />
+                                <input name="slug" value={formData.slug || ''} onChange={handleChange} placeholder="e.g. software-engineer-hyd" required />
                             </section>
                             <section className="form-section">
                                 <label>Department</label>
-                                <input name="department" value={formData.department} onChange={handleChange} placeholder="e.g. IT, Education" />
+                                <input name="department" value={formData.department || ''} onChange={handleChange} placeholder="e.g. IT, Education" />
                             </section>
                         </div>
 
                         <section className="form-section">
                             <label>Job Description</label>
-                            <textarea name="job_description" value={formData.job_description} onChange={handleChange} placeholder="Detailed role description" rows="8" required />
+                            <textarea name="job_description" value={formData.job_description || ''} onChange={handleChange} placeholder="Detailed role description" rows="8" required></textarea>
                         </section>
 
                         <section className="form-section">
                             <label>Eligibility Criteria</label>
-                            <textarea name="eligibility" value={formData.eligibility} onChange={handleChange} placeholder="Who can apply?" rows="4" />
+                            <textarea name="eligibility" value={formData.eligibility || ''} onChange={handleChange} placeholder="Who can apply?" rows="4"></textarea>
                         </section>
 
                         <section className="form-section">
                             <label>Selection Process</label>
-                            <textarea name="selection_process" value={formData.selection_process} onChange={handleChange} placeholder="How are candidates selected?" rows="4" />
+                            <textarea name="selection_process" value={formData.selection_process || ''} onChange={handleChange} placeholder="How are candidates selected?" rows="4"></textarea>
                         </section>
 
                         <div className="form-row">
                             <section className="form-section">
                                 <label>Qualification</label>
-                                <input name="qualification" value={formData.qualification} onChange={handleChange} placeholder="e.g. B.Tech, Any Degree" />
+                                <input name="qualification" value={formData.qualification || ''} onChange={handleChange} placeholder="e.g. B.Tech, Any Degree" />
                             </section>
                             <section className="form-section">
                                 <label>Experience</label>
-                                <input name="experience" value={formData.experience} onChange={handleChange} placeholder="e.g. 2-5 years" />
+                                <input name="experience" value={formData.experience || ''} onChange={handleChange} placeholder="e.g. 2-5 years" />
                             </section>
                         </div>
                     </div>
@@ -251,7 +251,7 @@ const JobEditor = () => {
                     <div className="editor-side-panel glass-card">
                         <section className="form-section">
                             <label>Job Type</label>
-                            <select name="job_type" value={formData.job_type} onChange={handleChange}>
+                            <select name="job_type" value={formData.job_type || 'PRIVATE'} onChange={handleChange}>
                                 <option value="PRIVATE">Private Sector</option>
                                 <option value="GOVT">Government / Public Sector</option>
                             </select>
@@ -260,32 +260,32 @@ const JobEditor = () => {
                         <div className="form-row">
                             <section className="form-section">
                                 <label>Salary Range</label>
-                                <input name="salary" value={formData.salary} onChange={handleChange} placeholder="e.g. 5-8 LPA" />
+                                <input name="salary" value={formData.salary || ''} onChange={handleChange} placeholder="e.g. 5-8 LPA" />
                             </section>
                             <section className="form-section">
                                 <label>Vacancies</label>
-                                <input type="number" name="vacancies" value={formData.vacancies} onChange={handleChange} />
+                                <input type="number" name="vacancies" value={formData.vacancies || 0} onChange={handleChange} />
                             </section>
                         </div>
 
                         <section className="form-section">
                             <label>Application Link</label>
-                            <input name="apply_url" value={formData.apply_url} onChange={handleChange} placeholder="Official application URL" />
+                            <input name="apply_url" value={formData.apply_url || ''} onChange={handleChange} placeholder="Official application URL" />
                         </section>
 
                         <section className="form-section">
                             <label>Start Date</label>
-                            <input type="date" name="application_start_date" value={formData.application_start_date} onChange={handleChange} />
+                            <input type="date" name="application_start_date" value={formData.application_start_date || ''} onChange={handleChange} />
                         </section>
 
                         <section className="form-section">
                             <label>End Date (Deadline)</label>
-                            <input type="date" name="application_end_date" value={formData.application_end_date} onChange={handleChange} required />
+                            <input type="date" name="application_end_date" value={formData.application_end_date || ''} onChange={handleChange} required />
                         </section>
 
                         <section className="form-section">
                             <label>Exam Date (Optional)</label>
-                            <input type="date" name="exam_date" value={formData.exam_date} onChange={handleChange} />
+                            <input type="date" name="exam_date" value={formData.exam_date || ''} onChange={handleChange} />
                         </section>
 
                         <div className="status-toggle-container">

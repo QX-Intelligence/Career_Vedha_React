@@ -276,6 +276,7 @@
     display: inline-block;
     width: 52px;
     height: 28px;
+    padding-left: 2rem;
 }
 
 .slider {
@@ -340,4 +341,28 @@ input:checked + .slider:before {
 @media (max-width: 1200px) {
     .editor-grid { grid-template-columns: 1fr; }
     .editor-side-panel { position: static; }
+}
+
+.ae-media-lib-btn {
+    background: var(--slate-100) !important;
+    color: var(--slate-700) !important;
+    border: 1px solid var(--slate-200) !important;
+    padding: 0.6rem 1rem !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.ae-media-lib-btn:hover {
+    background: var(--primary-yellow) !important;
+    color: var(--slate-900) !important;
+    border-color: var(--primary-yellow) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
 }

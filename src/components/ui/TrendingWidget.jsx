@@ -10,6 +10,7 @@ const TrendingWidget = () => {
     useEffect(() => {
         const fetchTrending = async () => {
             try {
+                console.log('DEBUG: TrendingWidget fetching articles for lang:', lang);
                 const data = await newsService.getTrendingArticles({ limit: 5, lang });
                 setTrending(data.results || []);
             } catch (error) {
@@ -42,7 +43,7 @@ const TrendingWidget = () => {
             <ul className="latest-updates">
                 {trending.map((article, index) => (
                     <li key={article.id}>
-                        <Link to={`/${article.section}/${article.slug}`}>
+                        <Link to={`/article/${article.section}/${article.slug}`}>
                             <div className="trending-item">
                                 <span className="trending-rank">0{index + 1}</span>
                                 <div className="trending-content">

@@ -7,7 +7,7 @@ const QuickAccess = () => {
             icon: 'fas fa-book',
             title: 'Study Materials & Syllabus',
             description: 'Comprehensive study materials for all subjects',
-            link: '#'
+            link: '/academics'
         },
         {
             icon: 'fas fa-newspaper',
@@ -19,7 +19,7 @@ const QuickAccess = () => {
             icon: 'fas fa-graduation-cap',
             title: '10th Class Study Material (AP)',
             description: 'Comprehensive study materials for comprehensive & academic exams.',
-            link: '#'
+            link: '/academics?level=10th-class-ap'
         }
     ];
 
