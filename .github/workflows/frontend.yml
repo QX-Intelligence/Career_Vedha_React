@@ -1,0 +1,46 @@
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: ap-south-2
+      S3_BUCKET: cvedha-frontend-prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build React App
+        run: npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload to S3
+        run: |
+          aws s3 sync build/ s3://$S3_BUCKET --delete
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+          --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*"
