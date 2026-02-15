@@ -1,0 +1,129 @@
+/* Paper Viewer Page Styles */
+.paper-viewer-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--gray-50);
+}
+
+.paper-viewer-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.paper-viewer-header .container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--gray-100);
+    border: none;
+    border-radius: 8px;
+    color: var(--gray-700);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: var(--gray-200);
+    color: var(--gray-900);
+}
+
+.paper-viewer-title {
+    flex: 1;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.open-new-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--primary-yellow);
+    border: none;
+    border-radius: 8px;
+    color: var(--gray-900);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.open-new-tab-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.paper-viewer-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pdf-iframe {
+    width: 100%;
+    max-width: 1200px;
+    height: calc(100vh - 120px);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    background: var(--white);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.paper-viewer-error {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.paper-viewer-error h2 {
+    font-size: 24px;
+    color: var(--gray-700);
+    margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .paper-viewer-header .container {
+        flex-wrap: wrap;
+    }
+
+    .paper-viewer-title {
+        order: 3;
+        width: 100%;
+        margin-top: 10px;
+        font-size: 16px;
+    }
+
+    .open-new-tab-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    .pdf-iframe {
+        height: calc(100vh - 160px);
+    }
+}

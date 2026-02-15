@@ -1,0 +1,451 @@
+/* Page Layout & Container */
+.quiz-management-container {
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: 24px;
+    box-shadow: var(--shadow-premium);
+    min-height: 80vh;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.section-fade-in {
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Filter Labels Styling */
+.filter-group label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Empty State Styling */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 2rem;
+    color: var(--slate-400);
+    text-align: center;
+    gap: 1.5rem;
+    background: #f8fafc;
+    border-radius: 20px;
+    border: 2px dashed var(--slate-100);
+}
+
+.empty-state-icon {
+    font-size: 3.5rem;
+    background: white;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    color: var(--slate-200);
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    max-width: 400px;
+}
+
+/* Table Design */
+.table-container-modern {
+    margin-top: 1.5rem;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.quiz-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.quiz-table th {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--slate-100);
+    text-align: left;
+}
+
+.quiz-table td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--slate-700);
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.quiz-table tr:hover td {
+    background: #fcfcfc;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--slate-200);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--slate-500);
+}
+
+.btn-icon:hover {
+    border-color: var(--primary-yellow);
+    color: var(--primary-yellow-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--primary-yellow-glow);
+}
+
+.btn-icon.delete:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.table-footer-info {
+    padding: 1rem 1.5rem;
+    background: #f8fafc;
+    color: var(--slate-500);
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-top: 1px solid var(--slate-100);
+}
+
+.badge-na {
+    color: var(--slate-300);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--slate-900);
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--slate-700);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.form-input, .form-select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: var(--slate-50);
+    color: var(--slate-900);
+    font-weight: 500;
+    width: 100%;
+}
+
+.form-input:focus, .form-select:focus {
+    border-color: var(--primary-yellow);
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 4px var(--primary-yellow-glow);
+}
+
+.btn-primary {
+    background: var(--primary-yellow);
+    border: 1px solid var(--primary-yellow);
+    color: var(--slate-900);
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px var(--primary-yellow-glow);
+}
+
+.btn-primary:hover {
+    background: var(--primary-yellow-hover);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: white;
+    border: 1px solid var(--slate-200);
+    color: var(--slate-700);
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--slate-50);
+    border-color: var(--slate-300);
+}
+
+.btn-reject {
+    background: #fee2e2;
+    color: var(--danger);
+    border: 1px solid #fecaca;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-reject:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Quiz Management Specific Styles */
+.question-form-card {
+    background: #f8fafc;
+    border: 1px solid var(--slate-200);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.question-form-card:hover {
+    border-color: var(--primary-yellow-glow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--slate-100);
+}
+
+.form-header h4 {
+    margin: 0;
+    color: var(--slate-800);
+    font-weight: 700;
+}
+
+.remove-q-btn {
+    background: #fee2e2;
+    color: var(--danger);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remove-q-btn:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.option-tag {
+    width: 32px;
+    height: 32px;
+    background: var(--slate-100);
+    color: var(--slate-500);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    border: 2px solid transparent;
+}
+
+.option-tag:hover {
+    background: var(--slate-200);
+    color: var(--slate-700);
+}
+
+.option-tag.active {
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+    border-color: var(--primary-yellow-hover);
+    box-shadow: 0 4px 8px var(--primary-yellow-glow);
+}
+
+.form-group.full textarea {
+    min-height: 80px;
+    width: 100%;
+}
+
+.modal-body-scroll {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.large-modal {
+    max-width: 900px !important;
+}
+
+.add-more-btn {
+    width: 100%;
+    padding: 1rem;
+    background: white;
+    border: 2px dashed var(--slate-200);
+    color: var(--slate-500);
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.add-more-btn:hover {
+    border-color: var(--primary-yellow);
+    color: var(--primary-yellow-hover);
+    background: var(--primary-yellow-light);
+}
+
+/* Aligning filters in main view */
+.filters-row {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--slate-100);
+    margin-bottom: 2rem;
+}
+
+.q-text {
+    font-weight: 600;
+    color: var(--slate-800);
+}
+
+.badge-correct {
+    background: var(--success);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.m-tag {
+    background: var(--primary-yellow-light);
+    color: var(--primary-yellow-hover);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.m-tag.gray {
+    background: var(--slate-100);
+    color: var(--slate-500);
+}
+
+/* Modal UI Consistency */
+.close-btn:hover {
+    color: var(--danger);
+}
+
+/* Bulk Import & Validation Styles */
+.bulk-textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    background: #f8fafc;
+    resize: vertical;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', monospace;
+    font-size: 0.85rem;
+}
+
+.bulk-textarea:focus {
+    border-color: var(--primary-yellow);
+    background: white;
+    box-shadow: 0 0 0 4px var(--primary-yellow-glow);
+}
+
+.helper-text {
+    font-size: 0.85rem;
+    color: var(--slate-500);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.helper-text code {
+    background: var(--slate-100);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+/* Override option-tag active color to success green for clarity */
+.option-tag.active {
+    background: #10b981 !important;
+    color: white !important;
+    border-color: #059669 !important;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important;
+}

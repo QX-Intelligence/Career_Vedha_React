@@ -1,0 +1,119 @@
+/* Terms and Conditions Page Styling */
+.terms-page {
+    padding: 60px 0;
+    min-height: calc(100vh - 400px);
+    background-color: var(--off-white);
+}
+
+.terms-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.terms-header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-bottom: 10px;
+    position: relative;
+    display: inline-block;
+}
+
+.terms-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background-color: var(--primary-yellow);
+    border-radius: 2px;
+}
+
+.last-updated {
+    color: var(--text-gray);
+    font-size: 14px;
+    font-style: italic;
+}
+
+.terms-content {
+    background-color: var(--white);
+    padding: 40px 60px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.terms-content section {
+    margin-bottom: 35px;
+    padding: 0; /* Override global section padding */
+}
+
+.terms-content section:last-child {
+    margin-bottom: 0;
+}
+
+.terms-content h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 15px;
+}
+
+.terms-content p {
+    color: var(--gray-700);
+    line-height: 1.7;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.terms-content ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 15px;
+}
+
+.terms-content ul li {
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 10px;
+    color: var(--gray-700);
+    font-size: 15px;
+}
+
+.terms-content ul li::before {
+    content: '\f058';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 0;
+    color: var(--primary-yellow);
+}
+
+.contact-details {
+    background-color: var(--gray-50);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-yellow);
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .terms-page {
+        padding: 40px 0;
+    }
+
+    .terms-header h1 {
+        font-size: 28px;
+    }
+
+    .terms-content {
+        padding: 25px;
+    }
+
+    .terms-content h2 {
+        font-size: 18px;
+    }
+}

@@ -60,6 +60,10 @@ export const markArticleSeen = async (id) => {
     return await api.patch(url);
 };
 
+export const resetArticleUnseenCount = async () => {
+    return await api.put(API_CONFIG.ENDPOINTS.POST_RESET_UNSEEN);
+};
+
 export const sendPostNotification = async (postId, receiverRole, message) => {
     return await api.post(API_CONFIG.ENDPOINTS.SEND_NOTIFICATION, {
         postId,

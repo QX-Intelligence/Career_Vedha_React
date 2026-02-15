@@ -6,6 +6,14 @@ import { getUserContext } from '../../../services/api';
 import CustomSelect from '../../../components/ui/CustomSelect';
 import LuxuryCalendar from '../../../components/ui/LuxuryCalendar';
 import LuxuryTooltip from '../../../components/ui/LuxuryTooltip';
+import { useArticles } from '../../../hooks/useArticles';
+import { useHomeContent } from '../../../hooks/useHomeContent';
+import {
+    useToggleCategoryStatus,
+    useFetchCategoryChildren,
+    useSections
+} from '../../../hooks/useTaxonomy';
+import Skeleton, { SkeletonTable } from '../../../components/ui/Skeleton';
 import '../../../styles/ArticleManagement.css';
 
 const ArticleManagement = ({ activeLanguage }) => {
@@ -13,12 +21,18 @@ const ArticleManagement = ({ activeLanguage }) => {
     const navigate = useNavigate();
     const { role: userRole } = getUserContext();
 
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [nextCursor, setNextCursor] = useState(null);
-    const cursorRef = useRef(null); // Stable ref for pagination
-    const [hasNext, setHasNext] = useState(false);
+    // Use React Query hook for articles
+    const [activeTab, setActiveTab] = useState('PUBLISHED');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterDate, setFilterDate] = useState('');
+    
+    const { data: articlesData, isLoading: loading, refetch } = useArticles({
+        status: (activeTab === 'SCHEDULED' || activeTab === 'FEATURED') ? 'PUBLISHED' : activeTab,
+        q: searchQuery.trim() || undefined,
+        limit: 50 // Fetch enough but avoid exhausting connections
+    });
+    
+    const articles = articlesData?.results || [];
     const [currentArticle, setCurrentArticle] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [articleToDelete, setArticleToDelete] = useState(null);
@@ -26,12 +40,8 @@ const ArticleManagement = ({ activeLanguage }) => {
     const [articleToDeactivate, setArticleToDeactivate] = useState(null);
     const [showActivateModal, setShowActivateModal] = useState(false);
     const [articleToActivate, setArticleToActivate] = useState(null);
-    const [filterDate, setFilterDate] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-    const [activeTab, setActiveTab] = useState('PUBLISHED');
     const [showFeatureModal, setShowFeatureModal] = useState(false);
     const [articleToFeature, setArticleToFeature] = useState(null);
     const [featureData, setFeatureData] = useState({
@@ -40,161 +50,56 @@ const ArticleManagement = ({ activeLanguage }) => {
         rank: 1
     });
 
-    const observer = useRef();
-    const lastArticleElementRef = (node) => {
-        if (loading || loadingMore) return;
-        if (observer.current) observer.current.disconnect();
-        observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasNext) {
-                fetchArticles(true);
+    const { data: dynamicSections } = useSections();
+    const sections = useMemo(() => [
+        { id: '', name: 'Global' },
+        ...(dynamicSections || [])
+    ], [dynamicSections]);
+
+    const { data: homeContentTe, refetch: refetchHomeTe } = useHomeContent('telugu');
+    const { data: homeContentEn, refetch: refetchHomeEn } = useHomeContent('english');
+
+    // Sync features when articles or home content loads
+    const featureMap = useMemo(() => {
+        const homePinned = [
+            ...(homeContentTe?.featured || []),
+            ...(homeContentEn?.featured || []),
+            ...(homeContentTe?.hero || []),
+            ...(homeContentEn?.hero || []),
+            ...(homeContentTe?.top_stories || []),
+            ...(homeContentEn?.top_stories || []),
+            ...(homeContentTe?.breaking || []),
+            ...(homeContentEn?.breaking || []),
+            ...(homeContentTe?.must_read || []),
+            ...(homeContentEn?.must_read || [])
+        ];
+
+        const idMap = {};
+        homePinned.forEach(item => {
+            const id = item.article_id || item.article?.id || item.pk || item.id;
+            if (!id) return;
+            const sId = String(id);
+            const feat = {
+                feature_type: item.feature_type || item.type || 'FEATURED',
+                section: item.section || ''
+            };
+            if (!idMap[sId]) idMap[sId] = [];
+            if (!idMap[sId].some(f => f.feature_type === feat.feature_type && f.section === feat.section)) {
+                idMap[sId].push(feat);
             }
         });
-        if (node) observer.current.observe(node);
-    };
+        return idMap;
+    }, [homeContentTe, homeContentEn]);
 
-    const sections = [
-        { id: '', name: 'Global' },
-        { id: 'academics', name: 'Academics' },
-        { id: 'jobs', name: 'Jobs' },
-        { id: 'tech', name: 'Tech' },
-        { id: 'business', name: 'Business' }
-    ];
+    // Inject featureMap into articles
+    const mappedArticles = useMemo(() => {
+        return articles.map(article => ({
+            ...article,
+            features: featureMap[String(article.id)] || []
+        }));
+    }, [articles, featureMap]);
 
-    // Helper to sanitize cursor
-    const sanitizeCursor = (cursorStr) => {
-        if (!cursorStr) return null;
-        try {
-            // 1. URL decode to get the actual string
-            let decoded = decodeURIComponent(cursorStr);
-            // 2. If it contains other params (like &limit=...), strip them
-            // The cursor usually starts with cD0... (base64)
-            // We split by '&' and take the first part if it looks like a param string
-            if (decoded.includes('&')) {
-                const parts = decoded.split('&');
-                // Check if the first part is the cursor itself
-                // Sometimes the backend sends "cursor=cD0...&limit=20..."
-                // Or just "cD0...&limit=20..."
-                for (const part of parts) {
-                    if (part.startsWith('cursor=')) {
-                        return part.replace('cursor=', '');
-                    }
-                    // If it's just the base64 string (starts with cD...), return it
-                    if (part.startsWith('cD')) {
-                        return part;
-                    }
-                }
-                // Fallback: return the first part if no specific cursor param found
-                return parts[0];
-            }
-            return decoded;
-        } catch (e) {
-            console.warn('Failed to sanitize cursor:', e);
-            return cursorStr;
-        }
-    };
-
-    // Sync ref when state changes
-    useEffect(() => {
-        cursorRef.current = nextCursor;
-    }, [nextCursor]);
-
-    const fetchArticles = useCallback(async (loadMore = false) => {
-        if (loadMore) {
-            setLoadingMore(true);
-        } else {
-            setLoading(true);
-            setArticles([]); // Reset list on new filter/search
-            setNextCursor(null); // CRITICAL: Reset cursor on fresh fetch
-            cursorRef.current = null;
-        }
-
-        try {
-            const params = loadMore 
-                ? { cursor: sanitizeCursor(cursorRef.current) } 
-                : {
-                    limit: 20,
-                    // For SCHEDULED tab, fetch PUBLISHED articles (we'll filter client-side)
-                    status: (activeTab === 'SCHEDULED' || activeTab === 'FEATURED') ? 'PUBLISHED' : activeTab,
-                    q: searchQuery.trim() || undefined
-                };
-
-            const response = await newsService.getAdminArticles(params);
-            const newArticles = response.results || [];
-
-            if (loadMore) {
-                setArticles(prev => [...prev, ...newArticles]);
-            } else {
-                setArticles(newArticles);
-            }
-
-            setNextCursor(response.next_cursor);
-            setHasNext(response.has_next);
-
-        } catch (error) {
-            console.error('Error fetching articles:', error);
-            showSnackbar('Failed to fetch articles', 'error');
-        } finally {
-            setLoading(false);
-            setLoadingMore(false);
-        }
-    }, [activeTab, searchQuery, showSnackbar]); // nextCursor removed from dependencies
-
-    const syncFeatures = useCallback(async () => {
-        try {
-            // Simplified feature syncing using HomeFeed (contains Hero, Top, Breaking for global)
-            // This is much faster than 36+ individual calls
-            const homeContentTe = await newsService.getHomeContent('te');
-            const homeContentEn = await newsService.getHomeContent('en');
-
-            const homePinned = [
-                ...(homeContentTe.featured || []),
-                ...(homeContentEn.featured || []),
-                ...(homeContentTe.hero || []),
-                ...(homeContentEn.hero || []),
-                ...(homeContentTe.top_stories || []),
-                ...(homeContentEn.top_stories || []),
-                ...(homeContentTe.breaking || []),
-                ...(homeContentEn.breaking || [])
-            ];
-
-            const idMap = {};
-            homePinned.forEach(item => {
-                const id = item.article_id || item.article?.id || item.pk || item.id;
-                if (!id) return;
-                const sId = String(id);
-                const feat = {
-                    feature_type: item.feature_type || item.type || 'FEATURED',
-                    section: item.section || ''
-                };
-                if (!idMap[sId]) idMap[sId] = [];
-                if (!idMap[sId].some(f => f.feature_type === feat.feature_type && f.section === feat.section)) {
-                    idMap[sId].push(feat);
-                }
-            });
-
-            // Update visible articles with their pinning status
-            setArticles(prev => prev.map(article => {
-                const features = idMap[String(article.id)] || [];
-                return { ...article, features };
-            }));
-
-        } catch (error) {
-            console.warn('[Articles] Feature sync partial failure:', error.message);
-        }
-    }, []);
-
-    // Unified effect for initial load, filter changes, and debounced search
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            const load = async () => {
-                await fetchArticles();
-                await syncFeatures();
-            };
-            load();
-        }, searchQuery.trim() ? 500 : 0); // Debounce ONLY if searching
-        
-        return () => clearTimeout(timer);
-    }, [activeTab, filterDate, searchQuery, fetchArticles, syncFeatures]);
+    // Cleanup empty useEffect
 
 
 
@@ -247,7 +152,7 @@ const ArticleManagement = ({ activeLanguage }) => {
             showSnackbar(`${selectedIds.length} articles deleted`, 'success');
             setSelectedIds([]);
             setShowBulkDeleteModal(false);
-            fetchArticles();
+            refetch();
         } catch (error) {
             const msg = error.response?.data?.error || error.response?.data?.message || 'Bulk delete failed';
             showSnackbar(msg, 'error');
@@ -304,7 +209,7 @@ const ArticleManagement = ({ activeLanguage }) => {
             }
 
             setShowForm(false);
-            fetchArticles();
+            refetch();
         } catch (error) {
             console.error(error);
             const msg = error.response?.data?.error || error.response?.data?.message || 'Operation failed';
@@ -337,7 +242,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                 setShowFeatureModal(true);
                 return;
             } else if (action === 'unpin') {
-                const article = articles.find(a => a.id === id);
+                const article = mappedArticles.find(a => a.id === id);
                 if (article && article.features && article.features.length > 0) {
                     // If multiple features, we might want to let the user pick, 
                     // but for common cases, we unpin the FIRST one or show a choice.
@@ -353,7 +258,10 @@ const ArticleManagement = ({ activeLanguage }) => {
                     showSnackbar('No active pinning found to remove', 'info');
                 }
             }
-            fetchArticles();
+            // Refetch both articles and feature sources
+            refetch();
+            refetchHomeTe();
+            refetchHomeEn();
         } catch (error) {
             const msg = error.response?.data?.error || error.response?.data?.message || `Action ${action} failed`;
             showSnackbar(msg, 'error');
@@ -366,7 +274,9 @@ const ArticleManagement = ({ activeLanguage }) => {
             showSnackbar(`Article pinned as ${featureData.feature_type}`, 'success');
             setShowFeatureModal(false);
             setArticleToFeature(null);
-            fetchArticles();
+            refetch();
+            refetchHomeTe();
+            refetchHomeEn();
         } catch (error) {
             const msg = error.response?.data?.error || error.response?.data?.message || 'Feature failed';
             showSnackbar(msg, 'error');
@@ -378,7 +288,7 @@ const ArticleManagement = ({ activeLanguage }) => {
         try {
             await newsService.deleteArticle(articleToDelete);
             showSnackbar('Article deleted successfully', 'success');
-            fetchArticles();
+            refetch();
         } catch (error) {
             const msg = error.response?.data?.error || error.response?.data?.message || 'Delete failed';
             showSnackbar(msg, 'error');
@@ -393,7 +303,7 @@ const ArticleManagement = ({ activeLanguage }) => {
         try {
             await newsService.deactivateArticle(articleToDeactivate);
             showSnackbar('Article deactivated (INACTIVE)', 'success');
-            fetchArticles();
+            refetch();
         } catch (error) {
             const msg = error.response?.data?.error || error.response?.data?.message || 'Deactivate failed';
             showSnackbar(msg, 'error');
@@ -408,7 +318,7 @@ const ArticleManagement = ({ activeLanguage }) => {
         try {
             await newsService.activateArticle(articleToActivate);
             showSnackbar('Article reactivated (PUBLISHED)', 'success');
-            fetchArticles();
+            refetch();
         } catch (error) {
             const msg = error.response?.data?.error || error.response?.data?.message || 'Activation failed';
             showSnackbar(msg, 'error');
@@ -445,13 +355,14 @@ const ArticleManagement = ({ activeLanguage }) => {
         });
     };
 
-    // Client-side filtering for SCHEDULED vs PUBLISHED tabs
+    // Client-side filtering for SCHEDULED vs PUBLISHED vs FEATURED tabs
     const filteredArticles = useMemo(() => {
         const now = new Date();
+        const baseArticles = mappedArticles;
         
         if (activeTab === 'SCHEDULED') {
             // Show explicit SCHEDULED status OR PUBLISHED articles with future dates
-            return articles.filter(a => {
+            return baseArticles.filter(a => {
                 if (a.status === 'SCHEDULED') return true;
                 if (a.status === 'PUBLISHED' && a.published_at) {
                     return new Date(a.published_at) > now;
@@ -460,38 +371,42 @@ const ArticleManagement = ({ activeLanguage }) => {
             });
         } else if (activeTab === 'PUBLISHED') {
             // Show PUBLISHED articles that have reached their publish time
-            return articles.filter(a => {
+            return baseArticles.filter(a => {
                 if (a.status !== 'PUBLISHED') return false;
                 if (!a.published_at) return true; // No scheduled date = published immediately
                 return new Date(a.published_at) <= now;
             });
+        } else if (activeTab === 'FEATURED') {
+            // Show only articles that have pinning/feature info
+            return baseArticles.filter(a => a.features && a.features.length > 0);
         }
         
-        // For other tabs, return all articles
-        return articles;
-    }, [articles, activeTab]);
+        // For other tabs (DRAFT, REVIEW, INACTIVE), return from base
+        return baseArticles.filter(a => a.status === activeTab);
+    }, [mappedArticles, activeTab]);
 
     const statusCounts = useMemo(() => {
         const now = new Date();
+        const baseArticles = mappedArticles;
         return {
-            PUBLISHED: articles.filter(a => {
+            PUBLISHED: baseArticles.filter(a => {
                 if (a.status !== 'PUBLISHED') return false;
                 if (!a.published_at) return true;
                 return new Date(a.published_at) <= now;
             }).length,
-            SCHEDULED: articles.filter(a => {
+            SCHEDULED: baseArticles.filter(a => {
                 if (a.status === 'SCHEDULED') return true;
                 if (a.status === 'PUBLISHED' && a.published_at) {
                     return new Date(a.published_at) > now;
                 }
                 return false;
             }).length,
-            DRAFT: articles.filter(a => a.status === 'DRAFT').length,
-            REVIEW: articles.filter(a => a.status === 'REVIEW').length,
-            INACTIVE: articles.filter(a => a.status === 'INACTIVE').length,
-            FEATURED: articles.filter(a => a.features && a.features.length > 0).length
+            DRAFT: baseArticles.filter(a => a.status === 'DRAFT').length,
+            REVIEW: baseArticles.filter(a => a.status === 'REVIEW').length,
+            INACTIVE: baseArticles.filter(a => a.status === 'INACTIVE').length,
+            FEATURED: baseArticles.filter(a => a.features && a.features.length > 0).length
         };
-    }, [articles]);
+    }, [mappedArticles]);
 
     return (
         <div className="section-fade-in">
@@ -551,14 +466,14 @@ const ArticleManagement = ({ activeLanguage }) => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
-                                        fetchArticles();
+                                        refetch();
                                     }
                                 }}
                                 className="am-search-input"
                             />
                             {searchQuery && (
                                 <button
-                                    onClick={() => { setSearchQuery(''); fetchArticles(); }}
+                                    onClick={() => { setSearchQuery(''); refetch(); }}
                                     style={{
                                         border: 'none', background: 'transparent',
                                         color: '#94a3b8', cursor: 'pointer', padding: '0 8px'
@@ -591,10 +506,7 @@ const ArticleManagement = ({ activeLanguage }) => {
             {/* Content Table */}
             <div className="dashboard-section">
                 {loading ? (
-                    <div className="am-loading">
-                        <i className="fas fa-spinner fa-spin fa-2x"></i>
-                        <p>Fetching articles...</p>
-                    </div>
+                    <SkeletonTable columns={7} rows={8} />
                 ) : articles.length === 0 ? (
                     <div className="am-empty-state">
                         <i className="fas fa-newspaper"></i>
@@ -632,257 +544,125 @@ const ArticleManagement = ({ activeLanguage }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredArticles.map((article, index) => {
-                                    if (filteredArticles.length === index + 1) {
-                                        return (
-                                            <tr key={article.id} ref={lastArticleElementRef}>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <div className="custom-checkbox">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            id={`chk-${article.id}`}
-                                                            checked={selectedIds.includes(article.id)}
-                                                            onChange={() => {
-                                                                if (selectedIds.includes(article.id)) {
-                                                                    setSelectedIds(selectedIds.filter(id => id !== article.id));
-                                                                } else {
-                                                                    setSelectedIds([...selectedIds, article.id]);
-                                                                }
-                                                            }}
-                                                        />
-                                                        <label htmlFor={`chk-${article.id}`}></label>
-                                                    </div>
-                                                </td>
-                                                <td style={{ fontWeight: 'bold', color: 'var(--slate-500)' }}>#{article.id}</td>
-                                                <td>
-                                                    <div style={{ fontWeight: '600', color: 'var(--slate-900)' }}>
-                                                        {article.title || 'Untitled Article'}
-                                                    </div>
-                                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                                            <i className="fas fa-link" style={{ fontSize: '0.7rem' }}></i> {article.slug}
-                                                        </div>
-                                                        {article.features && article.features.length > 0 && article.features.map((feat, idx) => (
-                                                            <span key={idx} style={{
-                                                                fontSize: '0.65rem',
-                                                                background: '#fff1f2',
-                                                                color: '#e11d48',
-                                                                padding: '1px 6px',
-                                                                borderRadius: '4px',
-                                                                fontWeight: '700',
-                                                                border: '1px solid #fecaca',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px'
-                                                            }}>
-                                                                <i className="fas fa-thumbtack" style={{ fontSize: '0.6rem' }}></i> {feat.feature_type}
-                                                                {feat.section && <span style={{ opacity: 0.7, fontWeight: '400' }}>({feat.section})</span>}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                                                   {getDisplayDate(article)}
-                                                </td>
-                                                <td><span className="am-status-badge draft">{article.section}</span></td>
-                                                <td>
-                                                    <span className={`am-status-badge ${article.status?.toLowerCase()}`}>
-                                                        {article.status}
+                                {filteredArticles.map((article, index) => (
+                                    <tr key={article.id}>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <div className="custom-checkbox">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id={`chk-${article.id}`}
+                                                    checked={selectedIds.includes(article.id)}
+                                                    onChange={() => {
+                                                        if (selectedIds.includes(article.id)) {
+                                                            setSelectedIds(selectedIds.filter(id => id !== article.id));
+                                                        } else {
+                                                            setSelectedIds([...selectedIds, article.id]);
+                                                        }
+                                                    }}
+                                                />
+                                                <label htmlFor={`chk-${article.id}`}></label>
+                                            </div>
+                                        </td>
+                                        <td style={{ fontWeight: 'bold', color: 'var(--slate-500)' }}>#{article.id}</td>
+                                        <td>
+                                            <div style={{ fontWeight: '600', color: 'var(--slate-900)' }}>
+                                                {article.title || 'Untitled Article'}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                                                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                                    <i className="fas fa-link" style={{ fontSize: '0.7rem' }}></i> {article.slug}
+                                                </div>
+                                                {article.features && article.features.length > 0 && article.features.map((feat, idx) => (
+                                                    <span key={idx} style={{
+                                                        fontSize: '0.65rem',
+                                                        background: '#fff1f2',
+                                                        color: '#e11d48',
+                                                        padding: '1px 6px',
+                                                        borderRadius: '4px',
+                                                        fontWeight: '700',
+                                                        border: '1px solid #fecaca',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px'
+                                                    }}>
+                                                        <i className="fas fa-thumbtack" style={{ fontSize: '0.6rem' }}></i> {feat.feature_type}
+                                                        {feat.section && <span style={{ opacity: 0.7, fontWeight: '400' }}>({feat.section})</span>}
                                                     </span>
-                                                </td>
-                                                <td>
-                                                    <div className="am-action-buttons">
-                                                        {canEdit && (
-                                                            <LuxuryTooltip content="Edit / Translate">
-                                                                <button className="am-action-btn am-btn-edit" onClick={() => openEditForm(article)}>
-                                                                    <i className="fas fa-edit"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canReview && article.status === 'DRAFT' && (
-                                                            <LuxuryTooltip content="Move to Review">
-                                                                <button className="am-action-btn am-btn-edit" onClick={() => handleAction(article.id, 'review')}>
-                                                                    <i className="fas fa-file-export"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && (article.status === 'REVIEW' || article.status === 'DRAFT') && (
-                                                            <LuxuryTooltip content="Publish Live">
-                                                                <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'publish')}>
-                                                                    <i className="fas fa-paper-plane"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && article.status === 'PUBLISHED' && (
-                                                            <LuxuryTooltip content={article.features?.length > 0 ? "Unpin Article" : "Pin Article"}>
-                                                                <button 
-                                                                    className={`am-action-btn am-btn-pin ${article.features && article.features.length > 0 ? 'pinned' : ''}`}
-                                                                    onClick={() => handleAction(article.id, article.features?.length > 0 ? 'unpin' : 'feature')}
-                                                                >
-                                                                    <i className="fas fa-thumbtack"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && (article.status !== 'INACTIVE') && (
-                                                            <LuxuryTooltip content="Deactivate / Hide">
-                                                                <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'deactivate')}>
-                                                                    <i className="fas fa-eye-slash"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && (article.status === 'INACTIVE') && (
-                                                            <LuxuryTooltip content="Re-activate / Show">
-                                                                <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'activate')}>
-                                                                    <i className="fas fa-redo"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canDelete && (
-                                                            <LuxuryTooltip content="Delete Permanently">
-                                                                <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'delete')}>
-                                                                    <i className="fas fa-trash-alt"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    } else {
-                                        return (
-                                            <tr key={article.id}>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <div className="custom-checkbox">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            id={`chk-${article.id}`}
-                                                            checked={selectedIds.includes(article.id)}
-                                                            onChange={() => {
-                                                                if (selectedIds.includes(article.id)) {
-                                                                    setSelectedIds(selectedIds.filter(id => id !== article.id));
-                                                                } else {
-                                                                    setSelectedIds([...selectedIds, article.id]);
-                                                                }
-                                                            }}
-                                                        />
-                                                        <label htmlFor={`chk-${article.id}`}></label>
-                                                    </div>
-                                                </td>
-                                                <td style={{ fontWeight: 'bold', color: 'var(--slate-500)' }}>#{article.id}</td>
-                                                <td>
-                                                    <div style={{ fontWeight: '600', color: 'var(--slate-900)' }}>
-                                                        {article.title || 'Untitled Article'}
-                                                    </div>
-                                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                                            <i className="fas fa-link" style={{ fontSize: '0.7rem' }}></i> {article.slug}
-                                                        </div>
-                                                        {article.features && article.features.length > 0 && article.features.map((feat, idx) => (
-                                                            <span key={idx} style={{
-                                                                fontSize: '0.65rem',
-                                                                background: '#fff1f2',
-                                                                color: '#e11d48',
-                                                                padding: '1px 6px',
-                                                                borderRadius: '4px',
-                                                                fontWeight: '700',
-                                                                border: '1px solid #fecaca',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px'
-                                                            }}>
-                                                                <i className="fas fa-thumbtack" style={{ fontSize: '0.6rem' }}></i> {feat.feature_type}
-                                                                {feat.section && <span style={{ opacity: 0.7, fontWeight: '400' }}>({feat.section})</span>}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                                                   {getDisplayDate(article)}
-                                                </td>
-                                                <td><span className="am-status-badge draft">{article.section}</span></td>
-                                                <td>
-                                                    <span className={`am-status-badge ${article.status?.toLowerCase()}`}>
-                                                        {article.status}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div className="am-action-buttons">
-                                                        {canEdit && (
-                                                            <LuxuryTooltip content="Edit / Translate">
-                                                                <button className="am-action-btn am-btn-edit" onClick={() => openEditForm(article)}>
-                                                                    <i className="fas fa-edit"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canReview && article.status === 'DRAFT' && (
-                                                            <LuxuryTooltip content="Move to Review">
-                                                                <button className="am-action-btn am-btn-edit" onClick={() => handleAction(article.id, 'review')}>
-                                                                    <i className="fas fa-file-export"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && (article.status === 'REVIEW' || article.status === 'DRAFT') && (
-                                                            <LuxuryTooltip content="Publish Live">
-                                                                <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'publish')}>
-                                                                    <i className="fas fa-paper-plane"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && article.status === 'PUBLISHED' && (
-                                                            <LuxuryTooltip content={article.features?.length > 0 ? "Unpin Article" : "Pin Article"}>
-                                                                <button 
-                                                                    className={`am-action-btn am-btn-pin ${article.features && article.features.length > 0 ? 'pinned' : ''}`}
-                                                                    onClick={() => handleAction(article.id, article.features?.length > 0 ? 'unpin' : 'feature')}
-                                                                >
-                                                                    <i className="fas fa-thumbtack"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && (article.status !== 'INACTIVE') && (
-                                                            <LuxuryTooltip content="Deactivate / Hide">
-                                                                <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'deactivate')}>
-                                                                    <i className="fas fa-eye-slash"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canPublish && (article.status === 'INACTIVE') && (
-                                                            <LuxuryTooltip content="Re-activate / Show">
-                                                                <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'activate')}>
-                                                                    <i className="fas fa-redo"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                        {canDelete && (
-                                                            <LuxuryTooltip content="Delete Permanently">
-                                                                <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'delete')}>
-                                                                    <i className="fas fa-trash-alt"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    }
-                                })}
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                                           {getDisplayDate(article)}
+                                        </td>
+                                        <td><span className="am-status-badge draft">{article.section}</span></td>
+                                        <td>
+                                            <span className={`am-status-badge ${article.status?.toLowerCase()}`}>
+                                                {article.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="am-action-buttons">
+                                                {canEdit && (
+                                                    <LuxuryTooltip content="Edit / Translate">
+                                                        <button className="am-action-btn am-btn-edit" onClick={() => openEditForm(article)}>
+                                                            <i className="fas fa-edit"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
+                                                )}
+                                                {canReview && article.status === 'DRAFT' && (
+                                                    <LuxuryTooltip content="Move to Review">
+                                                        <button className="am-action-btn am-btn-edit" onClick={() => handleAction(article.id, 'review')}>
+                                                            <i className="fas fa-file-export"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
+                                                )}
+                                                {canPublish && (article.status === 'REVIEW' || article.status === 'DRAFT') && (
+                                                    <LuxuryTooltip content="Publish Live">
+                                                        <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'publish')}>
+                                                            <i className="fas fa-paper-plane"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
+                                                )}
+                                                {canPublish && article.status === 'PUBLISHED' && (
+                                                    <LuxuryTooltip content={article.features?.length > 0 ? "Unpin Article" : "Pin Article"}>
+                                                        <button 
+                                                            className={`am-action-btn am-btn-pin ${article.features && article.features.length > 0 ? 'pinned' : ''}`}
+                                                            onClick={() => handleAction(article.id, article.features?.length > 0 ? 'unpin' : 'feature')}
+                                                        >
+                                                            <i className="fas fa-thumbtack"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
+                                                )}
+                                                {canPublish && (article.status !== 'INACTIVE') && (
+                                                    <LuxuryTooltip content="Deactivate / Hide">
+                                                        <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'deactivate')}>
+                                                            <i className="fas fa-eye-slash"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
+                                                )}
+                                                {canPublish && (article.status === 'INACTIVE') && (
+                                                    <LuxuryTooltip content="Re-activate / Show">
+                                                        <button className="am-action-btn am-btn-publish" onClick={() => handleAction(article.id, 'activate')}>
+                                                            <i className="fas fa-redo"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
+                                                )}
+                                                {canDelete && (
+                                                    <LuxuryTooltip content="Delete Permanently">
+                                                        <button className="am-action-btn am-btn-delete" onClick={() => handleAction(article.id, 'delete')}>
+                                                            <i className="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </LuxuryTooltip>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 )}
-                {loadingMore && (
-                    <div className="am-loading-more" style={{ 
-                        textAlign: 'center', 
-                        padding: '1.5rem', 
-                        color: 'var(--slate-500)', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        gap: '10px' 
-                    }}>
-                        <i className="fas fa-spinner fa-spin"></i>
-                        <span style={{ fontWeight: '500' }}>Loading more articles...</span>
-                    </div>
-                )}
+
             </div>
 
             {/* Form and Modals would go here but now handled by dedicated page */}

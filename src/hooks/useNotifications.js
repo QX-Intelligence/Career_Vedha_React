@@ -5,6 +5,7 @@ import {
     fetchArticleNotifications, 
     fetchArticleUnseenCount, 
     markArticleSeen,
+    resetArticleUnseenCount,
     approveRequest,
     rejectRequest
 } from '../services/notificationService';
@@ -13,14 +14,14 @@ import API_CONFIG from '../config/api.config';
 import { useSnackbar } from '../context/SnackbarContext';
 import { useEffect, useMemo, useRef } from 'react';
 import SockJS from 'sockjs-client';
-import { Client } from '@stomp/stompjs';
+import { useRealTime } from './useRealTime';
 
 /**
  * Hook to manage system notifications across the application.
  * Supports legacy Article notifications and new Role Approval notifications.
  */
 export const useNotifications = () => {
-    const { role, id: userId } = getUserContext();
+    const { role, id: userId, isAuthenticated } = getUserContext();
     const queryClient = useQueryClient();
     const { showSnackbar } = useSnackbar();
     
@@ -30,8 +31,8 @@ export const useNotifications = () => {
     const articleUnseenCountQuery = useQuery({
         queryKey: ['notifications', 'articles', 'unseen-count'],
         queryFn: fetchArticleUnseenCount,
-        enabled: !!userId,
-        refetchInterval: 60000,
+        enabled: isAuthenticated && role !== 'CONTRIBUTOR',
+        refetchInterval: 120000, // 2 minutes
     });
 
     // Infinite Feed
@@ -47,11 +48,19 @@ export const useNotifications = () => {
             };
         },
         initialPageParam: {},
-        enabled: !!userId,
+        enabled: isAuthenticated && role !== 'CONTRIBUTOR',
     });
 
     const markArticleSeenMutation = useMutation({
         mutationFn: markArticleSeen,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications', 'articles'] });
+            articleUnseenCountQuery.refetch();
+        },
+    });
+
+    const resetArticleSeenMutation = useMutation({
+        mutationFn: resetArticleUnseenCount,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['notifications', 'articles'] });
             articleUnseenCountQuery.refetch();
@@ -64,7 +73,7 @@ export const useNotifications = () => {
         queryKey: ['notifications', 'roles', 'unseen'],
         queryFn: () => fetchUnseenRoleNotifications(),
         enabled: !!role && (role === 'ADMIN' || role === 'SUPER_ADMIN'),
-        refetchInterval: 30000,
+        refetchInterval: 60000, // 1 minute
     });
 
     const markRoleSeenMutation = useMutation({
@@ -93,36 +102,24 @@ export const useNotifications = () => {
 
     // --- 3. WebSocket Real-time Sync ---
 
-    useEffect(() => {
-        if (!userId || !role) return;
+    useRealTime(
+        [`/topic/notifications/${role}`],
+        null, // No specific callback needed if using invalidate
+        {
+            enabled: isAuthenticated && !!role && role !== 'CONTRIBUTOR',
+            invalidate: [['notifications', 'articles'], ['notifications', 'articles', 'unseen-count']]
+        }
+    );
 
-        const stompClient = new Client({
-            webSocketFactory: () => new SockJS(API_CONFIG.WS_URL),
-            reconnectDelay: 5000,
-            onConnect: () => {
-                // Subscribe to Post Notifications
-                stompClient.subscribe(`/topic/notifications/${role}`, (msg) => {
-                    const notification = JSON.parse(msg.body);
-                    // Add to infinite query data or just refetch
-                    queryClient.invalidateQueries({ queryKey: ['notifications', 'articles'] });
-                    articleUnseenCountQuery.refetch();
-                });
-
-                // Subscribe to Role Approvals
-                if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
-                    const topics = role === 'SUPER_ADMIN' ? ['ADMIN', 'SUPER_ADMIN'] : ['ADMIN'];
-                    topics.forEach(t => {
-                        stompClient.subscribe(`/topic/approvals/${t}`, (msg) => {
-                            queryClient.invalidateQueries({ queryKey: ['notifications', 'roles'] });
-                        });
-                    });
-                }
-            },
-        });
-
-        stompClient.activate();
-        return () => stompClient.deactivate();
-    }, [userId, role, queryClient]);
+    useRealTime(
+        role === 'SUPER_ADMIN' ? [`/topic/approvals/ADMIN`, `/topic/approvals/SUPER_ADMIN`] : 
+        role === 'ADMIN' ? [`/topic/approvals/ADMIN`] : [],
+        null,
+        {
+            enabled: isAuthenticated && (role === 'ADMIN' || role === 'SUPER_ADMIN'),
+            invalidate: [['notifications', 'roles']]
+        }
+    );
 
     // --- Derived Data ---
 
@@ -142,6 +139,7 @@ export const useNotifications = () => {
         hasNextArticlesPage: articleNotificationsQuery.hasNextPage,
         fetchNextArticles: articleNotificationsQuery.fetchNextPage,
         markArticleSeen: markArticleSeenMutation.mutate,
+        resetArticleUnseen: resetArticleSeenMutation.mutate,
 
         // Role logic
         roleUnseenCount: roleItems.length,

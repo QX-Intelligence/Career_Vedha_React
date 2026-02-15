@@ -17,9 +17,17 @@ const API_CONFIG = {
         // Study Materials
         STUDY_MATERIALS: 'study-materials',
         PREVIOUS_PAPERS: 'previous-papers',
+        CREATE_PREV_PAPERS: 'create-prev-papers/materials',
+        GET_PAPERS_BY_CATEGORY: 'get-papers/bycategory',
+        DELETE_PAPERS: 'delete-papers',
+        ACADEMICS_HIERARCHY: 'internal/academics/hierarchy',
 
-        // Current Affairs
-        CURRENT_AFFAIRS: 'current-affairs',
+        // Current Affairs (Spring Boot)
+        CREATE_CURRENT_AFFAIRS: 'current-affairs',
+        GET_ALL_AFFAIRS: 'get-all-affairs',
+        UPDATE_CURRENT_AFFAIR: (id) => `update-ca/${id}`,
+        DELETE_CURRENT_AFFAIR: (id) => `delete-ca/${id}`,
+        CURRENT_AFFAIRS_BY_REGION: 'current-affairs/by-region',
 
         // Jobs
         JOBS: 'jobs',
@@ -32,20 +40,19 @@ const API_CONFIG = {
         // User
         NEWSLETTER_SUBSCRIBE: 'newsletter/subscribe',
         CONTACT: 'contact',
+        CONTACT_SUBMIT: 'contact',
 
         // Search
         SEARCH: 'search',
 
         // Quiz / Exam Module
-        GET_QUESTIONS: 'get-questions',
         SUBMIT_EXAM: 'submit-exam',
-        POST_QUESTION: 'post-question',
+        CREATE_QUESTION: 'post-question',
         EDIT_QUESTION: 'edit-question',
         DELETE_QUESTION: 'delete-question',
         GET_RANDOM_QUESTIONS_BY_CHAPTER: 'questions-random-chapterid',
         GET_RANDOM_QUESTIONS_BY_CATEGORY: 'questions-random-category',
         GET_EXAM_CATEGORIES: 'get-exam-categories',
-        CREATE_QUESTION: 'post-question',
 
         // Auth & Notifications (Synced with Controller.java)
         LOGOUT: 'log-out',
@@ -58,8 +65,9 @@ const API_CONFIG = {
         // Post Notifications (Articles)
         POST_NOTIFICATIONS: 'post-notifications',
         POST_UNSEEN_COUNT: 'post-unseen-count',
-        SEND_NOTIFICATION: 'send-post-notification', // Added for frontend-triggered notifications
+        
         POST_MARK_SEEN: (id) => `post-notifications/${id}/seen`,
+        POST_RESET_UNSEEN: 'reset-unseen',
 
         // User Management
         ACTIVE: 'get-active-users',
@@ -75,6 +83,8 @@ const API_CONFIG = {
 
     DJANGO_ENDPOINTS: {
         HOME_ARTICLES: 'cms/articles/home/',
+        PUBLISHED_ARTICLES: 'cms/articles/published/',
+        TAXONOMY_SECTIONS: 'taxonomy/sections/',
     },
     
     DJANGO_MEDIA_BASE_URL: import.meta.env.VITE_API_URL_DJANGO_MEDIA || 'http://localhost:8000/api',

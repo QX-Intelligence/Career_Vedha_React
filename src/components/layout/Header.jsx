@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 import { useNavigate, Link } from 'react-router-dom';
 import { newsService, searchService } from '../../services';
+import { getTranslations } from '../../utils/translations';
 
 const Header = ({ onToggleMenu, isMenuOpen, activeLanguage, onLanguageChange }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const navigate = useNavigate();
+    const t = getTranslations(activeLanguage || 'telugu');
 
     useEffect(() => {
         const timer = setTimeout(async () => {
@@ -58,7 +60,7 @@ const Header = ({ onToggleMenu, isMenuOpen, activeLanguage, onLanguageChange }) 
                     <form className="search-bar" onSubmit={handleSearch} style={{ position: 'relative' }}>
                         <input
                             type="text"
-                            placeholder="Search here"
+                            placeholder={t.searchPlaceholder}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
@@ -67,40 +69,17 @@ const Header = ({ onToggleMenu, isMenuOpen, activeLanguage, onLanguageChange }) 
                         <button type="submit"><i className="fas fa-search"></i></button>
 
                         {showSuggestions && suggestions.length > 0 && (
-                            <div className="search-suggestions-dropdown" style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                right: 0,
-                                background: 'white',
-                                borderRadius: '12px',
-                                marginTop: '8px',
-                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                                border: '1px solid #e2e8f0',
-                                zIndex: 1000,
-                                overflow: 'hidden'
-                            }}>
+                            <div className="search-suggestions-dropdown">
                                 {suggestions.map((item) => (
                                     <Link
                                         key={item.id}
                                         to={`/${item.section}/${item.slug}`}
                                         className="suggestion-item"
                                         onClick={() => setShowSuggestions(false)}
-                                        style={{
-                                            display: 'block',
-                                            padding: '12px 16px',
-                                            borderBottom: '1px solid #f1f5f9',
-                                            fontSize: '0.9rem',
-                                            color: '#1e293b',
-                                            textDecoration: 'none',
-                                            transition: 'background 0.2s',
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.background = '#fefce8'}
-                                        onMouseLeave={(e) => e.target.style.background = 'white'}
                                     >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <i className="fas fa-file-alt" style={{ color: '#f59e0b', fontSize: '0.8rem' }}></i>
-                                            <span style={{ fontWeight: '500' }}>{item.title}</span>
+                                        <div className="suggestion-content">
+                                            <i className="fas fa-file-alt"></i>
+                                            <span>{item.title}</span>
                                         </div>
                                     </Link>
                                 ))}

@@ -6,8 +6,8 @@
 }
 
 .jobs-hero {
-  background: linear-gradient(135deg, var(--gray-900) 0%, #1e293b 100%);
-  padding: 60px 0;
+  background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+  padding: 80px 0;
   color: white;
   text-align: center;
   position: relative;
@@ -23,27 +23,27 @@
   bottom: 0;
   background: radial-gradient(
     circle at 70% 30%,
-    rgba(243, 192, 41, 0.1) 0%,
-    transparent 50%
+    rgba(255, 193, 7, 0.08) 0%,
+    transparent 60%
   );
   pointer-events: none;
 }
 
 .jobs-hero h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  margin-bottom: 16px;
-  background: linear-gradient(to right, #fff, var(--primary-yellow));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 20px;
+  color: var(--primary-yellow);
+  letter-spacing: -0.02em;
+  text-transform: capitalize;
 }
 
 .jobs-hero p {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.7);
-  max-width: 600px;
+  max-width: 650px;
   margin: 0 auto;
+  font-weight: 500;
 }
 
 .jobs-main-content {

@@ -113,10 +113,12 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                         </button>
                       )}
 
-                      <button className="drawer-link" onClick={() => handleAdminNav('/dashboard?tab=notifications')}>
-                        <Bell size={18} />
-                        <span>Notifications</span>
-                      </button>
+                      {userRole !== 'CONTRIBUTOR' && (
+                        <button className="drawer-link" onClick={() => handleAdminNav('/dashboard?tab=notifications')}>
+                          <Bell size={18} />
+                          <span>Notifications</span>
+                        </button>
+                      )}
 
                       <div className="divider" style={{ opacity: 0.3 }} />
 
@@ -127,7 +129,8 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                         </button>
                       )}
 
-                      {checkAccess(userRole, MODULES.JOB_MANAGEMENT) && (
+                      {/* Hide Jobs CMS for Contributors explicitly */}
+                      {userRole !== 'CONTRIBUTOR' && checkAccess(userRole, MODULES.JOB_MANAGEMENT) && (
                         <button className="drawer-link" onClick={() => handleAdminNav('/cms/jobs')}>
                           <Briefcase size={18} />
                           <span>Jobs CMS</span>

@@ -93,16 +93,19 @@ export const newsService = {
             // Resilience: Handle data as array [...] or object { featured: [...] }
             const featuredList = Array.isArray(data) ? data : (data.featured || []);
             const trendingList = Array.isArray(data) ? [] : (data.trending || []);
+            const mustReadList = Array.isArray(data) ? [] : (data.must_read || []);
             const latestData = data.latest || (Array.isArray(data) ? { results: [] } : { results: [] });
 
             return {
                 featured: featuredList,
                 trending: trendingList,
+                must_read: mustReadList,
                 latest: latestData,
                 // Direct mapping for UI widgets
                 hero: (data.hero && data.hero.length > 0) ? data.hero : featuredList.slice(0, 5),
                 top_stories: (data.top_stories && data.top_stories.length > 0) ? data.top_stories : featuredList.slice(5),
-                breaking: (data.breaking && data.breaking.length > 0) ? data.breaking : featuredList.filter(a => (a.feature_type || a.type) === 'BREAKING')
+                breaking: (data.breaking && data.breaking.length > 0) ? data.breaking : featuredList.filter(a => (a.feature_type || a.type) === 'BREAKING'),
+                must_read: (data.must_read && data.must_read.length > 0) ? data.must_read : mustReadList
             };
         } catch (error) {
             console.warn(`[newsService] Home Feed (${lang}) fetch failed totally.`, error.message);
@@ -115,8 +118,8 @@ export const newsService = {
     // 1. Create Article (DRAFT)
     createArticle: async (articleData) => {
         try {
-            // Check if we have file uploads
-            const hasFiles = articleData.banner_file instanceof File;
+            // Check if we have file uploads in any potential field
+            const hasFiles = Object.values(articleData).some(val => val instanceof File);
             
             let payload = articleData;
             let headers = {};
@@ -125,22 +128,26 @@ export const newsService = {
                 // Convert to FormData for file upload
                 const formData = new FormData();
                 Object.keys(articleData).forEach(key => {
-                    if (articleData[key] !== null && articleData[key] !== undefined) {
-                        if (key === 'translations' && Array.isArray(articleData[key])) {
-                            formData.append(key, JSON.stringify(articleData[key]));
-                        } else if (key === 'category_ids' && Array.isArray(articleData[key])) {
-                            articleData[key].forEach(id => formData.append('category_ids', id));
-                        } else if (key === 'tags' && Array.isArray(articleData[key])) {
-                            articleData[key].forEach(tag => formData.append('tags', tag));
-                        } else if (key === 'keywords' && Array.isArray(articleData[key])) {
-                            articleData[key].forEach(kw => formData.append('keywords', kw));
+                    const value = articleData[key];
+                    if (value !== null && value !== undefined) {
+                        if (key === 'translations' && Array.isArray(value)) {
+                            formData.append(key, JSON.stringify(value));
+                        } else if (key === 'category_ids' && Array.isArray(value)) {
+                            value.forEach(id => formData.append('category_ids', id));
+                        } else if ((key === 'tags' || key === 'keywords') && Array.isArray(value)) {
+                            value.forEach(item => formData.append(key, item));
                         } else {
-                            formData.append(key, articleData[key]);
+                            formData.append(key, value);
                         }
                     }
                 });
                 payload = formData;
                 headers = { 'Content-Type': 'multipart/form-data' };
+            } else {
+                // If JSON, filter out null/undefined to satisfy strict backend validators
+                payload = Object.fromEntries(
+                    Object.entries(articleData).filter(([_, v]) => v !== null && v !== undefined)
+                );
             }
             
             const response = await djangoApi.post('cms/articles/', payload, { headers });
@@ -166,7 +173,7 @@ export const newsService = {
     updateArticle: async (articleId, articleData) => {
         try {
             // Check if we have file uploads
-            const hasFiles = articleData.banner_file instanceof File;
+            const hasFiles = Object.values(articleData).some(val => val instanceof File);
             
             let payload = articleData;
             let headers = {};
@@ -175,20 +182,24 @@ export const newsService = {
                 // Convert to FormData for file upload
                 const formData = new FormData();
                 Object.keys(articleData).forEach(key => {
-                    if (articleData[key] !== null && articleData[key] !== undefined) {
-                        if (key === 'category_ids' && Array.isArray(articleData[key])) {
-                            articleData[key].forEach(id => formData.append('category_ids', id));
-                        } else if (key === 'tags' && Array.isArray(articleData[key])) {
-                            articleData[key].forEach(tag => formData.append('tags', tag));
-                        } else if (key === 'keywords' && Array.isArray(articleData[key])) {
-                            articleData[key].forEach(kw => formData.append('keywords', kw));
+                    const value = articleData[key];
+                    if (value !== null && value !== undefined) {
+                        if (key === 'category_ids' && Array.isArray(value)) {
+                            value.forEach(id => formData.append('category_ids', id));
+                        } else if ((key === 'tags' || key === 'keywords') && Array.isArray(value)) {
+                            value.forEach(item => formData.append(key, item));
                         } else {
-                            formData.append(key, articleData[key]);
+                            formData.append(key, value);
                         }
                     }
                 });
                 payload = formData;
                 headers = { 'Content-Type': 'multipart/form-data' };
+            } else {
+                // If JSON, filter out null/undefined
+                payload = Object.fromEntries(
+                    Object.entries(articleData).filter(([_, v]) => v !== null && v !== undefined)
+                );
             }
             
             const response = await djangoApi.patch(`cms/articles/${articleId}/`, payload, { headers });
@@ -507,6 +518,23 @@ export const newsService = {
             console.error('Error fetching article filters:', error);
             return { total_published: 0, top_categories: [] };
         }
+    },
+
+    // Get public articles with cursor-based pagination
+    getPublicArticles: async (params = {}) => {
+        try {
+            // Mapping for backend language codes
+            if (params.lang) {
+                params.lang = params.lang === 'telugu' ? 'te' : (params.lang === 'english' ? 'en' : params.lang);
+            }
+            
+            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.PUBLISHED_ARTICLES, { params });
+            // The published endpoint returns { results, next_cursor, has_next, limit } directly
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching public articles:', error);
+            return { results: [], has_next: false, next_cursor: null };
+        }
     }
 };
 
@@ -553,28 +581,202 @@ export const studyMaterialService = {
             console.error('Error fetching study materials:', error);
             return { data: [] };
         }
+    }
+};
+
+// Question Paper Service (Spring Boot)
+export const questionPaperService = {
+    // Get papers by category
+    getPapersByCategory: async (category, cursor = null, limit = 10) => {
+        try {
+            const params = { category, limit };
+            if (cursor) params.cursor = cursor;
+            
+            const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_PAPERS_BY_CATEGORY, { params });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching papers by category:', error);
+            return [];
+        }
     },
 
-    // Get previous papers
-    getPreviousPapers: async (params = {}) => {
+    // Bulk Create Papers (Multipart)
+    createPapers: async (formData) => {
         try {
-            return await apiClient.get(API_CONFIG.ENDPOINTS.PREVIOUS_PAPERS, { params });
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_PREV_PAPERS, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data;
         } catch (error) {
-            console.error('Error fetching previous papers:', error);
-            return { data: [] };
+            console.error('Error creating papers:', error);
+            throw error;
+        }
+    },
+
+    // Alias for bulk upload
+    bulkUploadPapers: async (formData) => {
+        try {
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_PREV_PAPERS, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error uploading papers:', error);
+            throw error;
+        }
+    },
+
+    // Delete Multiple Papers
+    deletePapers: async (ids) => {
+        try {
+            const response = await apiClient.delete(API_CONFIG.ENDPOINTS.DELETE_PAPERS, { data: ids });
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting papers:', error);
+            throw error;
         }
     }
 };
 
-// Current Affairs Service
+// Current Affairs Service (Spring Boot)
 export const currentAffairsService = {
-    // Get current affairs
-    getCurrentAffairs: async (params = {}) => {
+    // Get all current affairs with cursor pagination
+    getAllAffairs: async (params = {}) => {
         try {
-            return await apiClient.get(API_CONFIG.ENDPOINTS.CURRENT_AFFAIRS, { params });
+            // Ensure language is uppercase as required by backend
+            const queryParams = {};
+            
+            // Only add parameters if they have values
+            if (params.language) {
+                let lang = params.language.toUpperCase();
+                if (lang === 'TELUGU') lang = 'TE';
+                if (lang === 'ENGLISH') lang = 'EN';
+                queryParams.language = lang;
+            }
+            
+            if (params.limit) queryParams.limit = params.limit;
+            if (params.cursorTime) queryParams.cursorTime = params.cursorTime;
+            if (params.cursorId) queryParams.cursorId = params.cursorId;
+
+            const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_ALL_AFFAIRS, { params: queryParams });
+            return response.data;
         } catch (error) {
             console.error('Error fetching current affairs:', error);
-            return { data: [] };
+            return [];
+        }
+    },
+
+    // Get current affairs by region
+    getByRegion: async (region, params = {}) => {
+        try {
+            const queryParams = { region: region.toUpperCase() };
+            
+            // Only add parameters if they have values
+            if (params.language) {
+                let lang = params.language.toUpperCase();
+                if (lang === 'TELUGU') lang = 'TE';
+                if (lang === 'ENGLISH') lang = 'EN';
+                queryParams.language = lang;
+            }
+            
+            if (params.limit) queryParams.limit = params.limit;
+            if (params.cursorTime) queryParams.cursorTime = params.cursorTime;
+            if (params.cursorId) queryParams.cursorId = params.cursorId;
+            
+            const response = await apiClient.get(API_CONFIG.ENDPOINTS.CURRENT_AFFAIRS_BY_REGION, { params: queryParams });
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching affairs for region ${region}:`, error);
+            return [];
+        }
+    },
+
+    // Create Current Affairs (Multipart)
+    // Backend expects lists for bulk creation: List<String> title, List<String> summary, etc.
+    createCurrentAffairs: async (data) => {
+        try {
+            const formData = new FormData();
+            
+            // If data is already FormData, use it directly
+            if (data instanceof FormData) {
+                const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_CURRENT_AFFAIRS, data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                return response.data;
+            }
+            
+            // Otherwise, construct FormData with arrays (backend expects lists)
+            // Support both single item (wrap in array) and bulk creation
+            const items = Array.isArray(data) ? data : [data];
+            
+            items.forEach((item, index) => {
+                formData.append('title', item.title);
+                formData.append('region', item.region);
+                
+                // Optional fields
+                if (item.summary) formData.append('summary', item.summary);
+                if (item.description) formData.append('description', item.description);
+                if (item.language) formData.append('language', item.language);
+                if (item.file) formData.append('file', item.file);
+            });
+            
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_CURRENT_AFFAIRS, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error creating current affairs:', error);
+            throw error;
+        }
+    },
+
+    // Update Current Affair (Multipart)
+    // Backend expects single values: String title, String summary, String description, String region, MultipartFile file
+    // NOTE: Language is NOT accepted in update endpoint
+    updateCurrentAffair: async (id, data) => {
+        try {
+            const formData = new FormData();
+            
+            // If data is already FormData, use it but ensure no language field
+            if (data instanceof FormData) {
+                // Remove language if present (backend doesn't accept it)
+                if (data.has('language')) {
+                    data.delete('language');
+                }
+                const response = await apiClient.put(API_CONFIG.ENDPOINTS.UPDATE_CURRENT_AFFAIR(id), data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                return response.data;
+            }
+            
+            // Construct FormData with single values (not arrays)
+            formData.append('title', data.title);
+            formData.append('region', data.region);
+            
+            // Optional fields
+            if (data.summary) formData.append('summary', data.summary);
+            if (data.description) formData.append('description', data.description);
+            if (data.file) formData.append('file', data.file);
+            // DO NOT send language - backend doesn't accept it
+            
+            const response = await apiClient.put(API_CONFIG.ENDPOINTS.UPDATE_CURRENT_AFFAIR(id), formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data;
+        } catch (error) {
+            console.error(`Error updating current affair ${id}:`, error);
+            throw error;
+        }
+    },
+
+    // Delete Current Affair
+    deleteCurrentAffair: async (id) => {
+        try {
+            const response = await apiClient.delete(API_CONFIG.ENDPOINTS.DELETE_CURRENT_AFFAIR(id));
+            return response.data;
+        } catch (error) {
+            console.error(`Error deleting current affair ${id}:`, error);
+            throw error;
         }
     }
 };
@@ -619,6 +821,20 @@ export const newsletterService = {
     }
 };
 
+// Contact Service
+export const contactService = {
+    // Submit contact form
+    submitContact: async (contactData) => {
+        try {
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CONTACT_SUBMIT, contactData);
+            return response.data;
+        } catch (error) {
+            console.error('Error submitting contact form:', error);
+            throw error;
+        }
+    }
+};
+
 // Search Service
 export const searchService = {
     // Search content
@@ -638,3 +854,163 @@ export const searchService = {
 // Export academicsService
 export { academicsService };
 
+// Taxonomy Service
+export const taxonomyService = {
+    getSections: async () => {
+        try {
+            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_SECTIONS);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching taxonomy sections:', error);
+            return [];
+        }
+    }
+};
+
+// Global Search Service (Aggregates results from multiple sources)
+export const globalSearchService = {
+    searchAll: async (query, types = ['all']) => {
+        if (!query || query.trim().length < 2) {
+            return { results: [], totalResults: 0, resultsByType: {} };
+        }
+
+        const searchQuery = query.trim();
+        const promises = [];
+        const resultMap = {
+            articles: [],
+            jobs: [],
+            papers: [],
+            currentAffairs: []
+        };
+
+        try {
+            // Search Articles (if type includes 'all' or 'articles')
+            if (types.includes('all') || types.includes('article')) {
+                promises.push(
+                    djangoApi.get('cms/articles/', { 
+                        params: { 
+                            search: searchQuery,
+                            limit: 20 
+                        } 
+                    })
+                    .then(res => {
+                        resultMap.articles = (res.data.results || []).map(article => ({
+                            type: 'article',
+                            id: article.id,
+                            title: article.headline || article.title,
+                            summary: article.summary,
+                            url: `/${article.section}/${article.slug}`,
+                            publishedAt: article.published_at,
+                            image: article.banner_media?.url,
+                            section: article.section
+                        }));
+                    })
+                    .catch(err => console.error('Article search error:', err))
+                );
+            }
+
+            // Search Jobs (if endpoint exists)
+            if (types.includes('all') || types.includes('jobs')) {
+                promises.push(
+                    apiClient.get(API_CONFIG.ENDPOINTS.JOBS || '/api/jobs', {
+                        params: { search: searchQuery, limit: 10 }
+                    })
+                    .then(res => {
+                        const jobs = res.data?.results || res.data || [];
+                        resultMap.jobs = jobs.map(job => ({
+                            type: 'job',
+                            id: job.id,
+                            title: job.title,
+                            company: job.company,
+                            location: job.location,
+                            url: `/jobs/${job.id}`,
+                            postedAt: job.posted_at || job.created_at
+                        }));
+                    })
+                    .catch(err => console.log('Jobs search not available'))
+                );
+            }
+
+            // Search Papers
+            if (types.includes('all') || types.includes('papers')) {
+                promises.push(
+                    questionPaperService.getPapersByCategory('QUESTIONPAPER', null, 50)
+                        .then(papers => {
+                            resultMap.papers = papers
+                                .filter(p => 
+                                    p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+                                )
+                                .slice(0, 10)
+                                .map(paper => ({
+                                    type: 'paper',
+                                    id: paper.id,
+                                    title: paper.title,
+                                    description: paper.description,
+                                    url: paper.presignedUrl,
+                                    category: paper.category,
+                                    createdAt: paper.creationDate
+                                }));
+                        })
+                        .catch(err => console.error('Papers search error:', err))
+                );
+            }
+
+            // Search Current Affairs
+            if (types.includes('all') || types.includes('currentAffairs')) {
+                promises.push(
+                    currentAffairsService.getAllAffairs({ limit: 50 })
+                        .then(affairs => {
+                            const results = affairs || [];
+                            resultMap.currentAffairs = results
+                                .filter(ca => 
+                                    ca.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    ca.summary?.toLowerCase().includes(searchQuery.toLowerCase())
+                                )
+                                .slice(0, 10)
+                                .map(ca => ({
+                                    type: 'currentAffair',
+                                    id: ca.id,
+                                    title: ca.title,
+                                    summary: ca.summary,
+                                    url: `/current-affairs/${ca.id}`,
+                                    language: ca.language,
+                                    createdAt: ca.createdAt
+                                }));
+                        })
+                        .catch(err => console.error('Current affairs search error:', err))
+                );
+            }
+
+            await Promise.all(promises);
+
+            // Combine all results
+            const allResults = [
+                ...resultMap.articles,
+                ...resultMap.jobs,
+                ...resultMap.papers,
+                ...resultMap.currentAffairs
+            ];
+
+            return {
+                query: searchQuery,
+                results: allResults,
+                totalResults: allResults.length,
+                resultsByType: {
+                    articles: resultMap.articles.length,
+                    jobs: resultMap.jobs.length,
+                    papers: resultMap.papers.length,
+                    currentAffairs: resultMap.currentAffairs.length
+                }
+            };
+        } catch (error) {
+            console.error('Global search error:', error);
+            return {
+                query: searchQuery,
+                results: [],
+                totalResults: 0,
+                resultsByType: {}
+            };
+        }
+    }
+};

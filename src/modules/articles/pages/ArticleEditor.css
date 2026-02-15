@@ -211,6 +211,23 @@
     line-height: 1.6;
 }
 
+/* Error States */
+.form-section input.error,
+.form-section textarea.error {
+    border-color: #ef4444;
+    background: #fffafa;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.categories-selection-grid.error {
+    border-color: #ef4444;
+    background: #fffafa;
+}
+
+.error-text {
+    color: #ef4444 !important;
+}
+
 .html-editor-info {
     font-size: 0.75rem;
     color: var(--slate-500);

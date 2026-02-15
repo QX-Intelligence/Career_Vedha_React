@@ -1,33 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { newsService } from '../../services';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { filterPublishedArticles } from '../../utils/articleUtils';
+import { useCategoryBlocks } from '../../hooks/useHomeContent';
+import { getTranslations } from '../../utils/translations';
 
-const SectionCategoryBlocks = ({ section, title }) => {
-    const [blocks, setBlocks] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const lang = localStorage.getItem('preferredLanguage') || 'telugu';
-
-    useEffect(() => {
-        const fetchBlocks = async () => {
-            try {
-                const data = await newsService.getCategoryBlocks(section, lang);
-                
-                // Filter scheduled articles from each block
-                const filteredBlocks = (data.blocks || []).map(block => ({
-                    ...block,
-                    results: filterPublishedArticles(block.results || [])
-                })).filter(block => block.results.length > 0); // Remove empty blocks
-                
-                setBlocks(filteredBlocks);
-            } catch (error) {
-                console.error(`Error fetching category blocks for ${section}:`, error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchBlocks();
-    }, [section, lang]);
+const SectionCategoryBlocks = ({ section, title, activeLanguage = 'telugu' }) => {
+    const t = getTranslations(activeLanguage);
+    const lang = activeLanguage;
+    const { data: blocks = [], isLoading: loading } = useCategoryBlocks(section, lang);
 
     if (loading) {
         return (
@@ -48,7 +27,7 @@ const SectionCategoryBlocks = ({ section, title }) => {
                         <div className="block-header">
                             <h3>{block.category.name}</h3>
                             <Link to={`/category/${block.category.slug}`} className="see-more">
-                                See All <i className="fas fa-arrow-right"></i>
+                                {t.seeAll} <i className="fas fa-arrow-right"></i>
                             </Link>
                         </div>
                         <div className="block-articles">

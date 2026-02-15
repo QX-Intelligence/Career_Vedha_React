@@ -5,8 +5,21 @@ import '../../../styles/UserManagement.css';
 import '../../../styles/Dashboard.css';
 import useGlobalSearch from '../../../hooks/useGlobalSearch';
 import { getRoleInitials } from '../../../utils/roleUtils';
-import { connectWebSocket, disconnectWebSocket } from '../../../services/socket';
-import { fetchNotifications, fetchAllNotifications, fetchNotificationsByStatus, markAsSeen, markAllAsSeen, approveRequest, rejectRequest } from '../../../services/notificationService';
+import socketService, { connectWebSocket, disconnectWebSocket } from '../../../services/socket';
+import { useRealTime } from '../../../hooks/useRealTime';
+import { 
+    fetchNotifications, 
+    fetchAllNotifications, 
+    fetchNotificationsByStatus, 
+    markAsSeen, 
+    markAllAsSeen, 
+    approveRequest, 
+    rejectRequest,
+    fetchArticleNotifications,
+    fetchArticleUnseenCount,
+    markArticleSeen as markArticleSeenApi,
+    resetArticleUnseenCount
+} from '../../../services/notificationService';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import API_CONFIG from '../../../config/api.config';
 import CustomSelect from '../../../components/ui/CustomSelect';
@@ -18,121 +31,17 @@ import CMSLayout from '../../../components/layout/CMSLayout';
 import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/accessControl.config.js';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useNotifications } from '../../../hooks/useNotifications';
+// import { useActiveRoles, usePermissions } from '../../../hooks/useAccessControl'; // Moved to DashboardOverview
 
-// MEMOIZED SUB-COMPONENTS - Moved outside to prevent re-creation and potential unmounting
-const NotificationItem = React.memo(({ notification, onApprove, onReject, onMarkSeen, isArchive, isSuppressed = false, lastSeenAllAt }) => {
-    const n = notification;
-    // Resilient 'seen' check (handles multiple backend naming conventions + local suppression + global timestamp suppression)
-    const ts = n.localDateTime || n.timestamp;
-    const isSeenLocally = lastSeenAllAt && ts && new Date(ts) <= new Date(lastSeenAllAt);
-    const isSeen = n.seen || n.isSeen || n.read || n.isRead || n.status === 'READ' || isSuppressed || isSeenLocally;
+// Components
+import DashboardOverview from './DashboardOverview';
+import RoleManagement from './RoleManagement';
+import PermissionManagement from './PermissionManagement';
+import QuizManagement from './QuizManagement';
+import MediaManagement from './MediaManagement';
+import NotificationItem from '../components/NotificationItem';
 
-    // Resilient identity mapping
-    const requesterIdentity = n.userEmail || n.targetEmail || n.requesterEmail || n.email;
-    const displayTitle = n.title || (isArchive ? 'Processed Action' : 'New User Request');
 
-    // Format timestamp
-    const formatTimestamp = (timestamp) => {
-        if (!timestamp) return null;
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        let relativeTime = '';
-        if (diffMins < 1) relativeTime = 'Just now';
-        else if (diffMins < 60) relativeTime = `${diffMins}m ago`;
-        else if (diffHours < 24) relativeTime = `${diffHours}h ago`;
-        else if (diffDays < 7) relativeTime = `${diffDays}d ago`;
-        else relativeTime = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-
-        const fullDateTime = date.toLocaleString(undefined, {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-
-        return { relativeTime, fullDateTime };
-    };
-
-    const timeInfo = formatTimestamp(ts);
-
-    return (
-        <div key={n.id} className={`approval-card ${isArchive ? 'archived-item' : 'unread'}`}>
-            <div className="card-info">
-                <div className="user-avatar-small">
-                    <i className={isArchive ? "fas fa-check-circle" : "fas fa-user-clock"}></i>
-                </div>
-                <div className="request-text">
-                    <div className="notification-title-row">
-                        <strong>{displayTitle}</strong>
-                        {isArchive && n.notificationStatus && (
-                            <span className={`status-badge-mini ${n.notificationStatus.toLowerCase()}`}>
-                                {n.notificationStatus}
-                            </span>
-                        )}
-                        {!isSeen && !isArchive && (
-                            <LuxuryTooltip content="New alert">
-                                <span className="unseen-dot"></span>
-                            </LuxuryTooltip>
-                        )}
-                    </div>
-                    <div className="notification-meta">
-                        {isArchive && n.processedBy && (
-                            <LuxuryTooltip content="Who actioned this request">
-                                <span className="processor-badge">
-                                    <i className="fas fa-user-shield"></i> {n.processedBy}
-                                </span>
-                            </LuxuryTooltip>
-                        )}
-                        {requesterIdentity && (
-                            <LuxuryTooltip content="Identity of the subject">
-                                <span className="requester-badge">
-                                    <i className="fas fa-user"></i> {requesterIdentity}
-                                </span>
-                            </LuxuryTooltip>
-                        )}
-                        {!requesterIdentity && n.message && (
-                            <LuxuryTooltip content="System broadcast">
-                                <span className="requester-badge system">
-                                    <i className="fas fa-robot"></i> System Alert
-                                </span>
-                            </LuxuryTooltip>
-                        )}
-                    </div>
-                    <p>{n.message}</p>
-                </div>
-            </div>
-
-            <div className="card-actions">
-                {timeInfo && (
-                    <LuxuryTooltip content={timeInfo.fullDateTime}>
-                        <div className="timestamp-badge">
-                            <i className="far fa-clock"></i>
-                            <span>{timeInfo.relativeTime}</span>
-                        </div>
-                    </LuxuryTooltip>
-                )}
-                {isArchive ? (
-                    <div className="archive-date-info">
-                        <i className="far fa-calendar-alt"></i>
-                        {n.localDateTime ? new Date(n.localDateTime).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'History'}
-                    </div>
-                ) : (
-                    <>
-                        <button className="approve-btn-fancy" onClick={() => onApprove(n.id)}>Approve</button>
-                        <button className="reject-btn-fancy" onClick={() => onReject(n.id)}>Reject</button>
-                    </>
-                )}
-            </div>
-        </div>
-    );
-});
 
 
 const Dashboard = () => {
@@ -285,7 +194,17 @@ const Dashboard = () => {
     const [totalPendingCount, setTotalPendingCount] = useState(0);
     const [totalArchiveCount, setTotalArchiveCount] = useState(0);
     const [overallUnseenCount, setOverallUnseenCount] = useState(0);
+    const [articleUnseenCount, setArticleUnseenCount] = useState(0);
     const [suppressedNotificationIds, setSuppressedNotificationIds] = useState([]);
+
+    const [articleFeed, setArticleFeed] = useState([]);
+    const [isLoadingArticles, setIsLoadingArticles] = useState(false);
+    const [hasMoreArticles, setHasMoreArticles] = useState(true);
+    const [loadingMoreArticles, setLoadingMoreArticles] = useState(false);
+    const articleCursorRef = useRef(null);
+    const articleListRef = useRef(null);
+    const articleSentinelRef = useRef(null);
+    const isFetchingArticlesRef = useRef(false);
 
     const [hasMorePending, setHasMorePending] = useState(true);
     const [hasMoreArchive, setHasMoreArchive] = useState(true);
@@ -369,83 +288,43 @@ const Dashboard = () => {
     const [rejectReason, setRejectReason] = useState('');
     const [selectedNotificationId, setSelectedNotificationId] = useState(null);
 
-    /* ================= ROLE & PERMISSION ================= */
-    const [roleInput, setRoleInput] = useState('');
-    const [permissionInput, setPermissionInput] = useState('');
-
-    const [roles, setRoles] = useState([]); // ACTIVE roles
-    const [inactiveRoles, setInactiveRoles] = useState([]); // INACTIVE roles
-    const [permissions, setPermissions] = useState([]);
-
-    const [assignRole, setAssignRole] = useState('');
-    const [assignPermission, setAssignPermission] = useState('');
-
-    /* ================= DELETE MODAL ================= */
-    const [deleteModal, setDeleteModal] = useState(false);
-    const [deleteType, setDeleteType] = useState('');
-    const [deleteValue, setDeleteValue] = useState('');
-
-    /* ================= POPOVER ================= */
     const [showPopover, setShowPopover] = useState(false);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const [activeSection, setActiveSectionState] = useState(searchParams.get('tab') || 'overview');
     const [isCmsOpen, setIsCmsOpen] = useState(true);
 
+    useEffect(() => {
+        if (activeSection === 'notifications' && userRole === 'CONTRIBUTOR') {
+            setActiveSectionState('overview');
+            navigate('/dashboard?tab=overview', { replace: true });
+            showSnackbar("Access Denied: You don't have permission to view notifications.", "error");
+        }
+    }, [activeSection, userRole, navigate, showSnackbar]);
+
     const setActiveSection = (section) => {
+        // Redirect to standalone pages for modules that define their own CMSLayout
         if (section === 'users') {
             navigate('/user-management');
             return;
         }
+        if (section === 'media') {
+            navigate('/cms/media');
+            return;
+        }
+        if (section === 'academics') {
+            navigate('/cms/academics');
+            return;
+        }
+        if (section === 'taxonomy') {
+            navigate('/cms/taxonomy');
+            return;
+        }
+
         setActiveSectionState(section);
         setSearchParams({ tab: section });
     };
 
-    /* ================= QUIZ FORMS ================= */
-    const [showQuestionModal, setShowQuestionModal] = useState(false);
-    const [questionList, setQuestionList] = useState([
-        {
-            question: '',
-            option1: '',
-            option2: '',
-            option3: '',
-            option4: '',
-            correctAnswer: ''
-        }
-    ]);
-    const [quizQuestions, setQuizQuestions] = useState([]);
-    const [selectedQuizIds, setSelectedQuizIds] = useState([]);
-    const [quizPage, setQuizPage] = useState(0);
-    const [quizTotalEntries, setQuizTotalEntries] = useState(0); // For display if needed
-    const [quizTotalPages, setQuizTotalPages] = useState(0);
-    const [isEditingQuestion, setIsEditingQuestion] = useState(false);
-    const [editingQuestionId, setEditingQuestionId] = useState(null);
-
-    const fetchQuizQuestions = useCallback(async (page = 0) => {
-        try {
-            // Using API_CONFIG endpoint we just defined/verified
-            // Server-side sort is not supported by current backend, so we sort client-side
-            const res = await api.get(`${API_CONFIG.ENDPOINTS.GET_QUESTIONS}?page=${page}&size=10`);
-            const data = res.data;
-            const content = data.content || [];
-            // Sort by ID Ascending to ensure "Serial Number" like ordering
-            content.sort((a, b) => a.id - b.id);
-            setQuizQuestions(content);
-            setQuizTotalPages(data.totalPages || 0);
-            setQuizPage(data.number || 0);
-            setQuizTotalEntries(data.totalElements || 0);
-            setSelectedQuizIds([]); // Reset selection on page change
-        } catch (err) {
-            console.error("Failed to fetch questions", err);
-            handleApiError(err, "Failed to load questions");
-        }
-    }, []);
-
-    useEffect(() => {
-        if (activeSection === 'quizzes') {
-            fetchQuizQuestions(quizPage);
-        }
-    }, [activeSection, quizPage]);
     /* ================= SEARCH ================= */
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -483,12 +362,19 @@ const Dashboard = () => {
             { id: 'quizzes', title: 'Quiz Manager', keywords: ['exam', 'questions', 'bank', 'quiz', 'quizzes', 'publish', 'batch creator'], section: 'quizzes', ref: quizManagerRef },
             { id: 'quiz-new', title: 'Quiz: New Question', keywords: ['new question', 'create exam', 'add quiz'], section: 'quizzes', ref: newQuestionRef },
             { id: 'quiz-test', title: 'Quiz: Test Student View', keywords: ['test view', 'student view', 'preview exam'], section: 'quizzes', ref: testViewRef },
-            { id: 'notif-main', title: 'Notifications Center', keywords: ['alerts', 'notifications', 'messages', 'seen', 'unseen', 'bell'], section: 'notifications' },
-            { id: 'notif-archive', title: 'Notification Archive', keywords: ['history', 'older', 'past', 'archive', 'records', 'logs'], section: 'notifications', ref: archiveRef },
+            // { id: 'notif-main', title: 'Notifications Center', keywords: ['alerts', 'notifications', 'messages', 'seen', 'unseen', 'bell'], section: 'notifications' },
+            // { id: 'notif-archive', title: 'Notification Archive', keywords: ['history', 'older', 'past', 'archive', 'records', 'logs'], section: 'notifications', ref: archiveRef },
 
             // Profile
             { id: 'profile', title: 'My Profile', keywords: ['profile', 'account', 'edit profile', 'my account', 'avatar'], section: 'profile', ref: profileRef },
         ];
+
+        if (userRole !== 'CONTRIBUTOR') {
+            items.push(
+                { id: 'notif-main', title: 'Notifications Center', keywords: ['alerts', 'notifications', 'messages', 'seen', 'unseen', 'bell'], section: 'notifications' },
+                { id: 'notif-archive', title: 'Notification Archive', keywords: ['history', 'older', 'past', 'archive', 'records', 'logs'], section: 'notifications', ref: archiveRef }
+            );
+        }
 
         // 2. Dynamic Data: Index Actual Roles
         (roles || []).forEach(r => {
@@ -516,30 +402,34 @@ const Dashboard = () => {
         });
 
         // 4. Dynamic Data: Index Notifications Archive
-        (archiveNotifications || []).forEach(n => {
-            if (n.message.toLowerCase().includes(query.toLowerCase())) {
-                items.push({
-                    id: `notif-${n.id}`,
-                    title: `Archive: ${n.message.substring(0, 45)}...`,
-                    keywords: [n.message.toLowerCase(), 'notification'],
-                    section: 'notifications',
-                    ref: archiveRef
-                });
-            }
-        });
+        if (userRole !== 'CONTRIBUTOR') {
+            (archiveNotifications || []).forEach(n => {
+                if (n.message.toLowerCase().includes(query.toLowerCase())) {
+                    items.push({
+                        id: `notif-${n.id}`,
+                        title: `Archive: ${n.message.substring(0, 45)}...`,
+                        keywords: [n.message.toLowerCase(), 'notification'],
+                        section: 'notifications',
+                        ref: archiveRef
+                    });
+                }
+            });
+        }
 
         // 5. Dynamic Data: Index Pending Notifications
-        (pendingNotifications || []).forEach(n => {
-            if (n.message.toLowerCase().includes(query.toLowerCase())) {
-                items.push({
-                    id: `notif-${n.id}`,
-                    title: `New: ${n.message.substring(0, 45)}...`,
-                    keywords: [n.message.toLowerCase(), 'notification'],
-                    section: 'notifications',
-                    ref: approvalsRef
-                });
-            }
-        });
+        if (userRole !== 'CONTRIBUTOR') {
+            (pendingNotifications || []).forEach(n => {
+                if (n.message.toLowerCase().includes(query.toLowerCase())) {
+                    items.push({
+                        id: `notif-${n.id}`,
+                        title: `New: ${n.message.substring(0, 45)}...`,
+                        keywords: [n.message.toLowerCase(), 'notification'],
+                        section: 'notifications',
+                        ref: approvalsRef
+                    });
+                }
+            });
+        }
 
         const filtered = items.filter(item =>
             item.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -631,7 +521,7 @@ const Dashboard = () => {
     }, []);
 
     const fetchUnseenCount = useCallback(async () => {
-        if (!userRole) return;
+        if (!userRole || userRole === 'CONTRIBUTOR') return;
         try {
             // Strictly follow 20-item load design
             const data = await fetchNotifications(userRole, { size: 20 });
@@ -650,13 +540,23 @@ const Dashboard = () => {
             // Sync total pending count with seen count locally if metadata is missing
             const metadataTotal = extractTotalCount(data, rawItems);
             setTotalPendingCount(prev => Math.max(prev, metadataTotal));
+
+            // Fetch Article Unseen Count
+            try {
+                const aCount = await fetchArticleUnseenCount();
+                setArticleUnseenCount(aCount);
+                // Update overall count
+                setOverallUnseenCount(prev => prev + aCount);
+            } catch (aErr) {
+                console.error("Failed to fetch article unseen count", aErr);
+            }
         } catch (err) {
             console.error("Failed to fetch unseen count", err);
         }
     }, [userRole, lastSeenAllAt, suppressedNotificationIds, extractTotalCount]);
 
     const loadPendingFeed = useCallback(async (reset = false) => {
-        if (!userRole || isFetchingPendingRef.current) return;
+        if (!userRole || userRole === 'CONTRIBUTOR' || isFetchingPendingRef.current) return;
         const isFirstLoad = reset || !pendingCursorRef.current;
         if (!isFirstLoad && !hasMorePendingRef.current) return;
 
@@ -714,7 +614,7 @@ const Dashboard = () => {
     }, [userRole, extractTotalCount]);
 
     const loadArchiveFeed = useCallback(async (reset = false) => {
-        if (!userRole || isFetchingArchiveRef.current) return;
+        if (!userRole || userRole === 'CONTRIBUTOR' || isFetchingArchiveRef.current) return;
         const isFirstLoad = reset || !archiveCursorRef.current;
         if (!isFirstLoad && !hasMoreArchiveRef.current) return;
 
@@ -771,47 +671,54 @@ const Dashboard = () => {
         }
     }, [userRole, extractTotalCount]);
 
-    /* ================= AUTH & HOME CONTENT ================= */
-    useEffect(() => {
-        const { role, isAuthenticated } = getUserContext();
-        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'CREATOR', 'PUBLISHER', 'EDITOR', 'CONTRIBUTOR'];
+    const loadArticleFeed = useCallback(async (reset = false) => {
+        if (userRole === 'CONTRIBUTOR' || isFetchingArticlesRef.current) return;
+        const isFirstLoad = reset || !articleCursorRef.current;
+        if (!isFirstLoad && !hasMoreArticles) return;
 
-        if (!isAuthenticated || !allowedRoles.includes(role)) {
-            return navigate('/admin-login');
+        if (reset) {
+            setIsLoadingArticles(true);
+            articleCursorRef.current = null;
+        } else {
+            setLoadingMoreArticles(true);
         }
+        isFetchingArticlesRef.current = true;
 
-        // Fetch home content from both languages to ensure all pins show in overview
-        Promise.all([
-            newsService.getHomeContent('te'),
-            newsService.getHomeContent('en')
-        ]).then(([teData, enData]) => {
-            const mergedHero = [...teData.hero, ...enData.hero];
-            const mergedTop = [...teData.top_stories, ...enData.top_stories];
-            const mergedBreaking = [...teData.breaking, ...enData.breaking];
-            const mergedFeatured = [...teData.featured, ...enData.featured];
-            const mergedTrending = [...(teData.trending || []), ...(enData.trending || [])];
-
-            const dedup = (list) => {
-                const seen = new Set();
-                return list.filter(item => {
-                    const id = item.article_id || item.pk || item.id;
-                    if (seen.has(id)) return false;
-                    seen.add(id);
-                    return true;
-                });
+        try {
+            const params = isFirstLoad ? { size: 20 } : {
+                size: 20,
+                createdAt: articleCursorRef.current.createdAt,
+                cursorId: articleCursorRef.current.id
             };
+            
+            const data = await fetchArticleNotifications(params);
+            const items = Array.isArray(data) ? data : (data?.content || []);
 
-            setHomeData({
-                hero: dedup(mergedHero),
-                top_stories: dedup(mergedTop),
-                breaking: dedup(mergedBreaking),
-                featured: dedup(mergedFeatured),
-                trending: dedup(mergedTrending),
-                latest: teData.latest || { results: [] }
+            if (items.length > 0) {
+                const last = items[items.length - 1];
+                articleCursorRef.current = {
+                    id: last.notificationId || last.id,
+                    createdAt: last.createdAt
+                };
+            }
+
+            setArticleFeed(prev => {
+                if (reset) return items;
+                const newItems = items.filter(n => !prev.some(p => String(p.id) === String(n.id)));
+                return [...prev, ...newItems];
             });
-        }).catch(console.error);
 
-    }, [navigate]);
+            setHasMoreArticles(items.length >= 20);
+        } catch (err) {
+            console.error("Failed to fetch article notifications", err);
+        } finally {
+            setIsLoadingArticles(false);
+            setLoadingMoreArticles(false);
+            isFetchingArticlesRef.current = false;
+        }
+    }, [hasMoreArticles, userRole]);
+
+
 
     useEffect(() => {
         const tab = searchParams.get('tab');
@@ -829,13 +736,22 @@ const Dashboard = () => {
         initialLoadDone.current = userRole;
         loadPendingFeed(true);
         loadArchiveFeed(true);
+        loadArticleFeed(true);
         fetchUnseenCount();
-    }, [userRole, loadPendingFeed, loadArchiveFeed, fetchUnseenCount]);
+        
+        // If landing on notifications page directly
+        if (activeSection === 'notifications') {
+            resetArticleUnseenCount().catch(() => {});
+        }
+    }, [userRole, loadPendingFeed, loadArchiveFeed, loadArticleFeed, fetchUnseenCount, activeSection]);
 
     /* ================= EFFICIENT container-aware SCROLL DETECTION ================= */
     /* ================= EFFICIENT container-aware SCROLL DETECTION ================= */
     useEffect(() => {
-        const observerOptions = { rootMargin: '100px', threshold: 0.1 };
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '100px' // Fetch earlier
+        };
 
         let pObserver = null;
         let aObserver = null;
@@ -864,69 +780,46 @@ const Dashboard = () => {
             aObserver.observe(aSentinel);
         }
 
+        let artObserver = null;
+        const artList = articleListRef.current;
+        const artSentinel = articleSentinelRef.current;
+        if (artList && artSentinel && hasMoreArticles && activeSection === 'notifications') {
+            artObserver = new IntersectionObserver((entries) => {
+                if (entries.some(e => e.isIntersecting) && !isFetchingArticlesRef.current) {
+                    loadArticleFeed(false);
+                }
+            }, { ...observerOptions, root: artList });
+            artObserver.observe(artSentinel);
+        }
+
         return () => {
             if (pObserver) pObserver.disconnect();
             if (aObserver) aObserver.disconnect();
+            if (artObserver) artObserver.disconnect();
         };
-    }, [hasMorePending, hasMoreArchive, activeSection, loadPendingFeed, loadArchiveFeed]);
-
-    /* ================= FETCH ROLES & PERMISSIONS ================= */
-    const loadRolesAndPermissions = async () => {
-        // Only load if user has role control or permissions access
-        if (!userRole || (!checkAccess(MODULES.ROLE_CONTROL) && !checkAccess(MODULES.PERMISSIONS))) {
-            console.log('Skipping loadRolesAndPermissions - no access or userRole not set:', userRole);
-            return;
-        }
-
-        console.log('Loading roles and permissions for role:', userRole);
-
-        // Fetch active roles
-        try {
-            const rolesRes = await api.get('/get-active-roles');
-            console.log('Active roles response:', rolesRes.data);
-            setRoles(Array.isArray(rolesRes.data) ? rolesRes.data : []);
-        } catch (err) {
-            console.error("Failed to load active roles", err);
-            setRoles([]);
-        }
-
-        // Fetch inactive roles (backend typo: incative)
-        try {
-            const inactiveRes = await api.get('/get-incative-roles');
-            console.log('Inactive roles response:', inactiveRes.data);
-            setInactiveRoles(Array.isArray(inactiveRes.data) ? inactiveRes.data : []);
-        } catch (err) {
-            console.error("Failed to load inactive roles", err);
-            setInactiveRoles([]);
-        }
-
-        // Fetch permissions
-        try {
-            const permsRes = await api.get('/permission-names');
-            console.log('Permissions response:', permsRes.data);
-            setPermissions(Array.isArray(permsRes.data) ? permsRes.data : []);
-        } catch (err) {
-            console.error("Failed to load permissions", err);
-            if (err.response?.status === 403) {
-                console.warn('⚠️ ADMIN role does not have backend permission to access /permission-names endpoint');
-            }
-            setPermissions([]);
-        }
-    };
-
-    useEffect(() => {
-        loadRolesAndPermissions();
-    }, [userRole]);
+    }, [
+        hasMorePending, hasMoreArchive, hasMoreArticles, 
+        activeSection, 
+        loadPendingFeed, loadArchiveFeed, loadArticleFeed,
+        pendingFeed.length, archiveFeed.length, articleFeed.length
+    ]);
 
     /* ================= WEBSOCKET ================= */
-    useEffect(() => {
-        if (!userRole) return;
-
-        connectWebSocket(userRole, (n) => {
+    useRealTime(
+        [`/topic/approvals/${userRole}`],
+        (n) => {
             if (n.notificationStatus === 'PENDING') {
                 setPendingFeed(prev => {
                     if (prev.some(x => x.id === n.id)) return prev;
                     setTotalPendingCount(c => c + 1);
+                    setOverallUnseenCount(c => c + 1);
+                    return [n, ...prev];
+                });
+            } else if (n.type === 'ARTICLE_SUBMISSION' || n.type === 'ARTICLE_PUBLISHED') {
+                setArticleFeed(prev => {
+                    if (prev.some(x => x.id === n.id)) return prev;
+                    setArticleUnseenCount(c => c + 1);
+                    setOverallUnseenCount(c => c + 1);
                     return [n, ...prev];
                 });
             } else {
@@ -936,10 +829,9 @@ const Dashboard = () => {
                     return [n, ...prev];
                 });
             }
-        });
-
-        return () => disconnectWebSocket();
-    }, [userRole]);
+        },
+        { enabled: !!userRole && userRole !== 'CONTRIBUTOR' }
+    );
 
     /* ================= APPROVE ================= */
     const handleApprove = async (id) => {
@@ -1029,226 +921,7 @@ const Dashboard = () => {
         }
     };
 
-    /* ================= CREATE ================= */
-    const createRole = async () => {
-        if (!roleInput) return showSnackbar("Please enter a role name", "warning");
-        try {
-            await api.post('/create-role', { roleName: roleInput });
-            setRoleInput('');
-            loadRolesAndPermissions();
-            showSnackbar('Role created successfully', 'success');
-        } catch (e) { handleApiError(e, 'Failed to create role'); }
-    };
-
-    const createPermission = async () => {
-        if (!permissionInput) return showSnackbar("Please enter a permission name", "warning");
-        try {
-            await api.post('/create-permission', { permissionName: permissionInput });
-            setPermissionInput('');
-            loadRolesAndPermissions();
-            showSnackbar('Permission created successfully', 'success');
-        } catch (e) { handleApiError(e, 'Failed to create permission'); }
-    };
-
-    /* ================= ASSIGN / REMOVE ================= */
-    const addPermissionToRole = async () => {
-        if (!assignRole || !assignPermission) return showSnackbar("Please select both role and permission", "warning");
-        try {
-            await api.post('/add-permission',
-                { roleName: assignRole, permissionName: assignPermission }
-            );
-            showSnackbar('Permission added successfully', 'success');
-        } catch (e) { handleApiError(e, 'Failed to add permission'); }
-    };
-
-    const removePermissionFromRole = () => {
-        if (!assignRole || !assignPermission) return showSnackbar("Select both role and permission", "warning");
-        api.post('/remove-permission', { roleName: assignRole, permissionName: assignPermission })
-            .then(res => {
-                showSnackbar(res.data.message || "Permission removed", "success");
-                loadRolesAndPermissions();
-            })
-            .catch(err => handleApiError(err, "Action failed"));
-    };
-
-    /* ================= QUIZ MANAGEMENT ================= */
-    const handleQuestionChange = (index, e) => {
-        const { name, value } = e.target;
-        setQuestionList(prev => {
-            const newList = [...prev];
-            newList[index] = { ...newList[index], [name]: value };
-            return newList;
-        });
-    };
-
-    const addQuestionField = () => {
-        if (isEditingQuestion) return; // Prevent adding more in edit mode
-        setQuestionList(prev => [
-            ...prev,
-            { question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '' }
-        ]);
-        showSnackbar("New question form added", "info");
-    };
-
-    const removeQuestionField = (index) => {
-        if (questionList.length <= 1) return;
-        setQuestionList(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const submitQuestion = async () => {
-        // Basic validation
-        for (let i = 0; i < questionList.length; i++) {
-            const q = questionList[i];
-            if (!q.question || !q.option1 || !q.option2 || !q.option3 || !q.option4 || !q.correctAnswer) {
-                return showSnackbar(`Please fill all fields for question #${i + 1}`, "warning");
-            }
-        }
-
-        try {
-            if (isEditingQuestion && editingQuestionId) {
-                // Edit Mode - single question
-                const q = questionList[0];
-                await api.put(`${API_CONFIG.ENDPOINTS.EDIT_QUESTION}/${editingQuestionId}`, q);
-                showSnackbar("Question updated successfully", "success");
-            } else {
-                // Create Mode - BULK submission with single API call
-                await api.post(API_CONFIG.ENDPOINTS.POST_QUESTION, questionList);
-                showSnackbar(`Successfully published ${questionList.length} question(s)!`, "success");
-            }
-
-            setShowQuestionModal(false);
-            setQuestionList([{ question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '' }]);
-            setIsEditingQuestion(false);
-            setEditingQuestionId(null);
-            // Refresh list if we are on the quiz tab
-            if (activeSection === 'quizzes') fetchQuizQuestions(quizPage);
-        } catch (err) {
-            handleApiError(err, isEditingQuestion ? "Failed to update question" : "Failed to publish questions");
-        }
-    };
-
-    const handleEditQuestion = (q) => {
-        setIsEditingQuestion(true);
-        setEditingQuestionId(q.id);
-        setQuestionList([{
-            question: q.question,
-            option1: q.option1,
-            option2: q.option2,
-            option3: q.option3,
-            option4: q.option4,
-            correctAnswer: q.correctAnswer || ''
-        }]);
-        setShowQuestionModal(true);
-    };
-
-    const handleDeleteQuestion = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this question?")) return;
-        try {
-            await api.delete(`${API_CONFIG.ENDPOINTS.DELETE_QUESTION}/${id}`);
-            showSnackbar("Question deleted successfully", "success");
-            fetchQuizQuestions(quizPage);
-        } catch (err) {
-            handleApiError(err, "Failed to delete question");
-        }
-    };
-
-    const handleToggleSelectAll = (e) => {
-        if (e.target.checked) {
-            setSelectedQuizIds(quizQuestions.map(q => q.id));
-        } else {
-            setSelectedQuizIds([]);
-        }
-    };
-
-    const handleToggleSelectOne = (id) => {
-        setSelectedQuizIds(prev =>
-            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-        );
-    };
-
-    const handleBulkDelete = async () => {
-        if (selectedQuizIds.length === 0) return;
-        if (!window.confirm(`Are you sure you want to delete ${selectedQuizIds.length} questions?`)) return;
-
-        try {
-            // Sequential delete to not overwhelm server/browser
-            // A bulk endpoint would be better, but we work with what we have
-            let successCount = 0;
-            for (const id of selectedQuizIds) {
-                try {
-                    await api.delete(`${API_CONFIG.ENDPOINTS.DELETE_QUESTION}/${id}`);
-                    successCount++;
-                } catch (e) {
-                    console.error(`Failed to delete question ${id}`, e);
-                }
-            }
-            showSnackbar(`Deleted ${successCount} questions successfully`, "success");
-            fetchQuizQuestions(quizPage);
-        } catch (err) {
-            handleApiError(err, "Bulk delete process failed");
-        }
-    };
-
-    const toggleCorrectOption = (index, key) => {
-        setQuestionList(prev => {
-            const newList = [...prev];
-            let current = newList[index].correctAnswer || "";
-            let next;
-            if (current.includes(key)) {
-                next = current.replace(key, "");
-            } else {
-                next = current + key;
-            }
-            next = next.split('').sort().join('');
-            newList[index] = { ...newList[index], correctAnswer: next };
-            return newList;
-        });
-    };
-
-    /* ================= ACTIVATE ================= */
-    const activateRole = async (roleName) => {
-        if (!roleName) return showSnackbar("Please select a role to activate", "warning");
-        try {
-            // Using POST /active-role as per backend controller
-            await api.post('/active-role', { roleName });
-            setRoleInput(''); // Clear input if used
-            loadRolesAndPermissions();
-            showSnackbar('Role activated successfully', 'success');
-        } catch (e) {
-            handleApiError(e, 'Failed to activate role');
-        }
-    };
-
-    /* ================= ACTION HANDLER (Delete/Activate) ================= */
-    const openDeleteModal = (type, value) => {
-        if (!value) return;
-        setDeleteType(type);
-        setDeleteValue(value);
-        setDeleteModal(true);
-    };
-
-    const handleDelete = async () => {
-        try {
-            if (deleteType === 'role') {
-                await api.delete('/inactive-role', {
-                    data: { roleName: deleteValue }
-                });
-                showSnackbar('Role inactivated successfully', 'success');
-            } else if (deleteType === 'activate_role') {
-                await api.post('/active-role', { roleName: deleteValue });
-                showSnackbar('Role reactivated successfully', 'success');
-            } else {
-                await api.delete('/delete-permission', {
-                    data: { permissionName: deleteValue }
-                });
-                showSnackbar('Permission deleted successfully', 'success');
-            }
-            setDeleteModal(false);
-            loadRolesAndPermissions();
-        } catch (e) {
-            handleApiError(e, 'Action failed');
-        }
-    };
+    /* ================= LOGOUT ================= */
 
     /* ================= LOGOUT ================= */
     const handleLogout = async () => {
@@ -1289,493 +962,34 @@ const Dashboard = () => {
 
                     {/* Render Overview Section */}
                     {activeSection === 'overview' && (
-                        <div className="section-fade-in">
-                            <div className="page-header-row">
-                                <div>
-                                    <h1>Overview</h1>
-                                    <p className="subtitle">Welcome back! Here is what's happening today.</p>
-                                </div>
-                                <div className="date-display">
-                                    <i className="far fa-calendar-alt"></i>
-                                    {new Date().toLocaleDateString()}
-                                </div>
-                            </div>
-
-                            {/* Summary Stats Card Row */}
-                            <div className="stats-row">
-                                <div className="stat-card">
-                                    <div className="stat-icon yellow"><i className="fas fa-user-clock"></i></div>
-                                    <div className="stat-data">
-                                        <span className="stat-value">{totalPendingCount}</span>
-                                        <span className="stat-label">Pending Req</span>
-                                    </div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-icon blue"><i className="fas fa-user-shield"></i></div>
-                                    <div className="stat-data">
-                                        <span className="stat-value">{roles.length}</span>
-                                        <span className="stat-label">Total Roles</span>
-                                    </div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-icon green"><i className="fas fa-key"></i></div>
-                                    <div className="stat-data">
-                                        <span className="stat-value">{permissions.length}</span>
-                                        <span className="stat-label">Permissions</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Pending Approvals Section */}
-                            <div className="dashboard-section" ref={approvalsRef}>
-                                <div className="section-title-row">
-                                    <h3><i className="fas fa-clock-rotate-left"></i> Recent Activity</h3>
-                                    <span className="count-pill">{pendingNotifications.slice(0, 5).length} of {totalPendingCount} pending</span>
-                                </div>
-
-                                <div className="approvals-grid">
-                                    {pendingNotifications.length === 0 ? (
-                                        <div className="empty-state-card">
-                                            <i className="fas fa-check-double"></i>
-                                            <p>All caught up! No pending approval requests.</p>
-                                        </div>
-                                    ) : (
-                                        pendingNotifications.slice(0, 5).map(n => (
-                                            <NotificationItem
-                                                key={n.id}
-                                                notification={n}
-                                                onApprove={handleApprove}
-                                                onReject={openRejectModal}
-                                                onMarkSeen={handleMarkAsSeen}
-                                                isArchive={false}
-                                                lastSeenAllAt={lastSeenAllAt}
-                                            />
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Featured Content Quick View */}
-                            <div className="dashboard-section">
-                                <div className="section-title-row">
-                                    <h3><i className="fas fa-thumbtack"></i> Live Featured Content</h3>
-                                    <button className="m-btn-text" onClick={() => setActiveSection('articles')}>Manage All</button>
-                                </div>
-                                <div className="management-grid-refined" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                                    <div className="m-card" style={{ borderLeft: '4px solid #ef4444' }}>
-                                        <div className="m-card-title">Featured Stories ({homeData.featured?.length || 0})</div>
-                                        <div className="m-card-body" style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                                            {homeData.featured?.map(h => (
-                                                <div key={h.id} style={{ fontSize: '0.85rem', padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                                        <span style={{
-                                                            fontSize: '0.65rem',
-                                                            background: '#fee2e2',
-                                                            color: '#b91c1c',
-                                                            padding: '1px 6px',
-                                                            borderRadius: '4px',
-                                                            fontWeight: '700'
-                                                        }}>{h.feature_type || 'FEATURED'}</span>
-                                                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{h.section}</span>
-                                                    </div>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                                        <i className="fas fa-star" style={{ color: '#f59e0b', marginTop: '3px' }}></i>
-                                                        <span style={{ fontWeight: '500' }}>{h.title}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {(!homeData.featured || homeData.featured.length === 0) && <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>No featured stories pinned.</p>}
-                                        </div>
-                                    </div>
-                                    <div className="m-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-                                        <div className="m-card-title">Trending Now ({homeData.trending?.length || 0})</div>
-                                        <div className="m-card-body" style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                                            {homeData.trending?.map(t => (
-                                                <div key={t.id} style={{ fontSize: '0.85rem', padding: '10px 0', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: '8px' }}>
-                                                    <i className="fas fa-fire" style={{ color: '#f59e0b', marginTop: '3px' }}></i>
-                                                    <div>
-                                                        <div style={{ fontWeight: '500' }}>{t.title || t.summary}</div>
-                                                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}><i className="far fa-eye"></i> {t.views_count} views</div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {(!homeData.trending || homeData.trending.length === 0) && <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>No trending news active.</p>}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Role & Permission Management - Restored to Overview for consistency */}
-                            {checkAccess(MODULES.ROLE_CONTROL) && (
-                                <div className="dashboard-section" ref={rolesRef}>
-                                    <div className="section-title-row">
-                                        <h3><i className="fas fa-users-gear"></i> Roles & Permissions</h3>
-                                    </div>
-
-                                    <div className="management-grid-refined">
-                                        {/* Create Card */}
-                                        <div className="m-card">
-                                            <div className="m-card-title">Create New</div>
-                                            <div className="m-card-body">
-                                                <div className="m-input-group">
-                                                    <label>Role Name</label>
-                                                    <div className="input-with-icon">
-                                                        <i className="fas fa-user-shield"></i>
-                                                        <input placeholder="e.g. EDITOR" value={roleInput} onChange={e => setRoleInput(e.target.value)} />
-                                                    </div>
-                                                    <button onClick={createRole} className="m-btn-primary">Create Role</button>
-                                                </div>
-                                                <div className="m-divider">OR</div>
-                                                <div className="m-input-group">
-                                                    <label>Permission Name</label>
-                                                    <div className="input-with-icon">
-                                                        <i className="fas fa-key"></i>
-                                                        <input placeholder="e.g. DELETE_POST" value={permissionInput} onChange={e => setPermissionInput(e.target.value)} />
-                                                    </div>
-                                                    <button onClick={createPermission} className="m-btn-primary">Create Permission</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Assign Card */}
-                                        <div className="m-card">
-                                            <div className="m-card-title">Assign Permissions</div>
-                                            <div className="m-card-body">
-                                                <div className="m-input-group">
-                                                    <CustomSelect
-                                                        label="Select Role"
-                                                        value={assignRole}
-                                                        options={Array.isArray(roles) ? roles : []}
-                                                        onChange={setAssignRole}
-                                                        placeholder="Choose a role..."
-                                                    />
-                                                </div>
-                                                <div className="m-input-group">
-                                                    <CustomSelect
-                                                        label="Select Permission"
-                                                        value={assignPermission}
-                                                        options={Array.isArray(permissions) ? permissions : []}
-                                                        onChange={setAssignPermission}
-                                                        placeholder="Choose a permission..."
-                                                    />
-                                                </div>
-                                                <div className="m-btn-row">
-                                                    <button onClick={addPermissionToRole} className="m-btn-success">
-                                                        <i className="fas fa-plus"></i> Add
-                                                    </button>
-                                                    <button onClick={removePermissionFromRole} className="m-btn-danger-outline">
-                                                        <i className="fas fa-minus"></i> Remove
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Danger Zone Card */}
-                                        <div className="m-card danger-zone">
-                                            <div className="m-card-title">Manage Existing</div>
-                                            <div className="m-card-body">
-                                                <div className="m-input-group">
-                                                    <CustomSelect
-                                                        label="Inactivate Role"
-                                                        value=""
-                                                        options={Array.isArray(roles) ? roles : []}
-                                                        onChange={(val) => openDeleteModal('role', val)}
-                                                        placeholder="Select role to inactivate..."
-                                                        icon="fas fa-ban"
-                                                    />
-                                                </div>
-                                                <div className="m-input-group">
-                                                    <CustomSelect
-                                                        label="Delete Permission"
-                                                        value=""
-                                                        options={Array.isArray(permissions) ? permissions : []}
-                                                        onChange={(val) => openDeleteModal('permission', val)}
-                                                        placeholder="Select permission to delete..."
-                                                        icon="fas fa-trash-alt"
-                                                    />
-                                                </div>
-                                                <p className="danger-hint">Warning: Actions here are permanent or affect system access.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <DashboardOverview 
+                            totalPendingCount={totalPendingCount}
+                            isLoadingPending={isLoadingPending}
+                            pendingNotifications={pendingNotifications}
+                            handleApprove={handleApprove}
+                            openRejectModal={openRejectModal}
+                            handleMarkAsSeen={handleMarkAsSeen}
+                            lastSeenAllAt={lastSeenAllAt}
+                            setActiveSection={setActiveSection}
+                        />
                     )}
 
                     {/* Render Roles Management Section */}
                     {activeSection === 'roles' && checkAccess(MODULES.ROLE_CONTROL) && (
-                        <div className="section-fade-in">
-                            <div className="page-header-row">
-                                <div>
-                                    <h1>Role Control</h1>
-                                    <p className="subtitle">Manage system access levels and role definitions.</p>
-                                </div>
-                            </div>
-
-                            <div className="dashboard-section">
-                                <div className="management-grid-refined">
-                                    <div className="m-card">
-                                        <div className="m-card-title">Create New Role</div>
-                                        <div className="m-card-body">
-                                            <div className="m-input-group">
-                                                <label>Role Name</label>
-                                                <div className="input-with-icon">
-                                                    <i className="fas fa-user-shield"></i>
-                                                    <input placeholder="e.g. EDITOR" value={roleInput} onChange={e => setRoleInput(e.target.value)} />
-                                                </div>
-                                                <button onClick={createRole} className="m-btn-primary">Create Role</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="m-card danger-zone">
-                                        <div className="m-card-title">Inactivate Role</div>
-                                        <div className="m-card-body">
-                                            <div className="m-input-group">
-                                                <CustomSelect
-                                                    label="Inactivate Role"
-                                                    value=""
-                                                    options={Array.isArray(roles) ? roles : []}
-                                                    onChange={(val) => openDeleteModal('role', val)}
-                                                    placeholder="Select role to inactivate..."
-                                                    icon="fas fa-ban"
-                                                />
-                                            </div>
-                                            <p className="danger-hint">Inactivating a role prevents new users from signing up with it.</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="m-card success-zone">
-                                        <div className="m-card-title">Reactivate Role</div>
-                                        <div className="m-card-body">
-                                            <div className="m-input-group">
-                                                <CustomSelect
-                                                    label="Select Role"
-                                                    value=""
-                                                    options={Array.isArray(inactiveRoles) ? inactiveRoles : []}
-                                                    onChange={(val) => openDeleteModal('activate_role', val)}
-                                                    placeholder="Select role to reactivate..."
-                                                    icon="fas fa-redo"
-                                                />
-                                                <p className="hint-text">Reactivating allows users to sign up with this role again.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                         <RoleManagement />
                     )}
 
                     {/* Render Permissions Section */}
                     {activeSection === 'permissions' && checkAccess(MODULES.PERMISSIONS) && (
-                        <div className="section-fade-in" ref={permissionsRef}>
-                            <div className="page-header-row">
-                                <div>
-                                    <h1>Permissions</h1>
-                                    <p className="subtitle">Configure granular action rights and API access.</p>
-                                </div>
-                            </div>
-
-                            <div className="dashboard-section">
-                                <div className="management-grid-refined">
-                                    <div className="m-card">
-                                        <div className="m-card-title">Policy Definition</div>
-                                        <div className="m-card-body">
-                                            <div className="m-input-group">
-                                                <label>New Permission</label>
-                                                <div className="input-with-icon">
-                                                    <i className="fas fa-key"></i>
-                                                    <input placeholder="e.g. DELETE_POST" value={permissionInput} onChange={e => setPermissionInput(e.target.value)} />
-                                                </div>
-                                                <button onClick={createPermission} className="m-btn-primary">Create Permission</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="m-card">
-                                        <div className="m-card-title">Mapping & Assignment</div>
-                                        <div className="m-card-body">
-                                            <div className="m-input-group">
-                                                <CustomSelect
-                                                    label="Role"
-                                                    value={assignRole}
-                                                    options={Array.isArray(roles) ? roles : []}
-                                                    onChange={setAssignRole}
-                                                    placeholder="Choose a role..."
-                                                />
-                                            </div>
-                                            <div className="m-input-group">
-                                                <CustomSelect
-                                                    label="Permission"
-                                                    value={assignPermission}
-                                                    options={Array.isArray(permissions) ? permissions : []}
-                                                    onChange={setAssignPermission}
-                                                    placeholder="Choose a permission..."
-                                                />
-                                            </div>
-                                            <div className="m-btn-row">
-                                                <button onClick={addPermissionToRole} className="m-btn-success">Add</button>
-                                                <button onClick={removePermissionFromRole} className="m-btn-danger-outline">Remove</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <PermissionManagement />
                     )}
-
                     {/* Render Quizzes Section */}
                     {activeSection === 'quizzes' && (
-                        <div className="section-fade-in" ref={quizManagerRef}>
-                            <div className="page-header-row">
-                                <div>
-                                    <h1>Quiz Manager</h1>
-                                    <p className="subtitle">Manage questions, view bank analytics and publish exams.</p>
-                                </div>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button
-                                        className="m-btn-primary"
-                                        style={{ width: 'auto', padding: '0 1.5rem', height: '45px', background: 'var(--slate-600)' }}
-                                        onClick={() => navigate('/exam', { state: { fromAdmin: true } })}
-                                    >
-                                        <i className="fas fa-eye"></i> Student View
-                                    </button>
-                                    <button
-                                        ref={newQuestionRef}
-                                        className="m-btn-primary"
-                                        style={{ width: 'auto', padding: '0 1.5rem', height: '45px' }}
-                                        onClick={() => {
-                                            setIsEditingQuestion(false);
-                                            setEditingQuestionId(null);
-                                            setQuestionList([{ question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '' }]);
-                                            setShowQuestionModal(true);
-                                        }}
-                                    >
-                                        <i className="fas fa-plus"></i> New Question
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="dashboard-section">
-                                {quizQuestions.length === 0 ? (
-                                    <div className="empty-state-card" style={{ background: 'white', border: '1px solid var(--slate-200)' }}>
-                                        <i className="fas fa-vial" style={{ color: 'var(--slate-300)' }}></i>
-                                        <h3>No Questions Found</h3>
-                                        <p>Your question bank is empty. Add your first question to get started.</p>
-                                    </div>
-                                ) : (
-                                    <div className="table-responsive">
-                                        {selectedQuizIds.length > 0 && (
-                                            <div style={{ padding: '0.75rem 1.5rem', background: '#fff1f2', borderBottom: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                <span style={{ color: '#991b1b', fontWeight: 600, fontSize: '0.9rem' }}>
-                                                    {selectedQuizIds.length} selected
-                                                </span>
-                                                <button
-                                                    onClick={handleBulkDelete}
-                                                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
-                                                >
-                                                    <i className="fas fa-trash-alt" style={{ marginRight: '6px' }}></i> Delete Selected
-                                                </button>
-                                            </div>
-                                        )}
-                                        <table className="q-table-refined">
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ width: '40px' }}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={quizQuestions.length > 0 && selectedQuizIds.length === quizQuestions.length}
-                                                            onChange={handleToggleSelectAll}
-                                                        />
-                                                    </th>
-                                                    <th>ID</th>
-                                                    <th>Question</th>
-                                                    <th>Options</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {quizQuestions.map(q => (
-                                                    <tr key={q.id} className={selectedQuizIds.includes(q.id) ? 'row-selected' : ''} style={selectedQuizIds.includes(q.id) ? { background: '#fef2f2' } : {}}>
-                                                        <td>
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedQuizIds.includes(q.id)}
-                                                                onChange={() => handleToggleSelectOne(q.id)}
-                                                            />
-                                                        </td>
-                                                        <td>#{q.id}</td>
-                                                        <td>
-                                                            <LuxuryTooltip content={q.question}>
-                                                                <div className="q-text-cell">{q.question}</div>
-                                                            </LuxuryTooltip>
-                                                        </td>
-                                                        <td>
-                                                            <div className="q-opts-cell">
-                                                                {['A', 'B', 'C', 'D'].map((optKey, idx) => {
-                                                                    const optVal = q[`option${idx + 1}`];
-                                                                    const isCorrect = q.correctAnswer && q.correctAnswer.includes(optKey);
-                                                                    return (
-                                                                        <span
-                                                                            key={optKey}
-                                                                            className="opt-pill"
-                                                                            style={isCorrect ? {
-                                                                                background: '#dcfce7',
-                                                                                color: '#166534',
-                                                                                border: '1px solid #bbf7d0',
-                                                                                fontWeight: '700'
-                                                                            } : {}}
-                                                                        >
-                                                                            {optKey}: {optVal} {isCorrect && <i className="fas fa-check-circle" style={{ marginLeft: '4px' }}></i>}
-                                                                        </span>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div className="action-buttons">
-                                                                <LuxuryTooltip content="Edit">
-                                                                    <button className="btn-icon-edit" onClick={() => handleEditQuestion(q)}>
-                                                                        <i className="fas fa-edit"></i>
-                                                                    </button>
-                                                                </LuxuryTooltip>
-                                                                <LuxuryTooltip content="Delete">
-                                                                    <button className="btn-icon-delete" onClick={() => handleDeleteQuestion(q.id)}>
-                                                                        <i className="fas fa-trash-alt"></i>
-                                                                    </button>
-                                                                </LuxuryTooltip>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-
-                                        <div className="pagination-controls">
-                                            <button
-                                                disabled={quizPage === 0}
-                                                onClick={() => fetchQuizQuestions(quizPage - 1)}
-                                                className="p-btn"
-                                            >
-                                                <i className="fas fa-chevron-left"></i> Prev
-                                            </button>
-                                            <span className="p-info">Page {quizPage + 1} of {quizTotalPages}</span>
-                                            <button
-                                                disabled={quizPage >= quizTotalPages - 1}
-                                                onClick={() => fetchQuizQuestions(quizPage + 1)}
-                                                className="p-btn"
-                                            >
-                                                Next <i className="fas fa-chevron-right"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <QuizManagement />
                     )}
 
                     {/* Render Full Notifications Section */}
-                    {activeSection === 'notifications' && (
+                    {activeSection === 'notifications' && userRole !== 'CONTRIBUTOR' && (
                         <div className="section-fade-in">
                             <div className="page-header-row">
                                 <div>
@@ -1857,6 +1071,74 @@ const Dashboard = () => {
                                     {hasMorePending && (
                                         <div ref={pendingSentinelRef} style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {!loadingMorePending && <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Scroll for more requests</span>}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ARTICLE ALERTS SECTION */}
+                            <div className="dashboard-section" style={{ marginTop: '3rem' }}>
+                                <div className="section-title-row">
+                                    <div className="title-stack">
+                                        <div className="title-with-count">
+                                            <h3><i className="fas fa-file-invoice"></i> Article Alerts</h3>
+                                            {articleUnseenCount > 0 && <span className="count-pill">{articleUnseenCount} new</span>}
+                                        </div>
+                                        <p className="subtitle-mini">Publishing & Review status updates</p>
+                                    </div>
+                                </div>
+
+                                <div className="approvals-grid" ref={articleListRef} style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                    {articleFeed.length === 0 && !isLoadingArticles ? (
+                                        <div className="empty-state-card" style={{ padding: '2rem' }}>
+                                            <i className="fas fa-info-circle" style={{ color: 'var(--blue)' }}></i>
+                                            <p>No article updates yet.</p>
+                                        </div>
+                                    ) : (
+                                        articleFeed.map(n => (
+                                            <NotificationItem
+                                                key={n.notificationId || n.id}
+                                                notification={n}
+                                                onMarkSeen={async () => {
+                                                    try {
+                                                        await markArticleSeenApi(n.notificationId || n.id);
+                                                        setArticleFeed(prev => prev.map(item => 
+                                                            (item.notificationId || item.id) === (n.notificationId || n.id) ? { ...item, seen: true } : item
+                                                        ));
+                                                        setArticleUnseenCount(c => Math.max(0, c - 1));
+                                                        setOverallUnseenCount(c => Math.max(0, c - 1));
+                                                    } catch (err) {
+                                                        console.error("Failed to mark article as seen", err);
+                                                    }
+                                                }}
+                                                isArchive={true} // Use archive style for highlighting
+                                            />
+                                        ))
+                                    )}
+
+                                    {isLoadingArticles && (
+                                        <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Fetching alerts...</p>
+                                        </div>
+                                    )}
+
+                                    {loadingMoreArticles && (
+                                        <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Loading more...</p>
+                                        </div>
+                                    )}
+
+                                    {!hasMoreArticles && articleFeed.length > 0 && (
+                                        <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
+                                            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>No more alerts</p>
+                                        </div>
+                                    )}
+
+                                    {hasMoreArticles && (
+                                        <div ref={articleSentinelRef} style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)', opacity: 0.5 }}></i>
                                         </div>
                                     )}
                                 </div>
@@ -1976,136 +1258,7 @@ const Dashboard = () => {
                 )
             }
 
-            {/* DELETE/ACTIVATE MODAL */}
-            {
-                deleteModal && (
-                    <div className="modal-overlay-refined">
-                        <div className="modal-card">
-                            <div className="modal-header">
-                                <h3>Confirm {deleteType === 'activate_role' ? 'Reactivation' : 'Action'}</h3>
-                                <button className="close-btn" onClick={() => setDeleteModal(false)}><i className="fas fa-times"></i></button>
-                            </div>
-                            <div className="modal-body">
-                                <div className={`warning-icon-big ${deleteType === 'activate_role' ? 'success' : ''}`}>
-                                    <i className={deleteType === 'activate_role' ? "fas fa-check-circle" : "fas fa-exclamation-triangle"}></i>
-                                </div>
-                                <p>Are you sure you want to <strong>
-                                    {deleteType === 'role' ? 'inactivate' :
-                                        deleteType === 'activate_role' ? 'reactivate' : 'delete'}
-                                </strong> the following?</p>
-                                <div className="target-value">{deleteValue}</div>
-                                <p className="warning-text">
-                                    {deleteType === 'activate_role'
-                                        ? "Users will be able to register with this role immediately."
-                                        : `This action may disrupt users currently assigned to this ${deleteType}.`}
-                                </p>
-                            </div>
-                            <div className="modal-footer">
-                                <button className="btn-cancel" onClick={() => setDeleteModal(false)}>Cancel</button>
-                                <button
-                                    className={deleteType === 'activate_role' ? "btn-confirm-approve" : "btn-confirm-delete"}
-                                    onClick={handleDelete}
-                                >
-                                    {deleteType === 'activate_role' ? "Yes, Reactivate" : "Yes, I'm Sure"}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-            {/* ================= PREMIUM QUESTION SLIDE-OVER ================= */}
-            <div className={`slide-over-overlay ${showQuestionModal ? 'active' : ''}`} onClick={() => setShowQuestionModal(false)}>
-                <div className={`slide-over-content ${showQuestionModal ? 'active' : ''}`} onClick={e => e.stopPropagation()}>
-                    <div className="slide-over-header">
-                        <div className="header-info">
-                            <h3><i className="fas fa-layer-group"></i> {isEditingQuestion ? 'Edit Question' : 'Quiz Batch Creator'}</h3>
-                            <p>{isEditingQuestion ? `Editing Question #${editingQuestionId}` : `You are editing ${questionList.length} question(s) in this batch`}</p>
-                        </div>
-                        <button className="close-panel-btn" onClick={() => setShowQuestionModal(false)}>
-                            <i className="fas fa-times"></i>
-                        </button>
-                    </div>
 
-                    <div className="slide-over-body">
-                        {questionList.map((q, index) => (
-                            <div key={index} className="bulk-question-card">
-                                <div className="card-top-bar">
-                                    <span className="q-badge">Question #{isEditingQuestion ? editingQuestionId : index + 1}</span>
-                                    {!isEditingQuestion && questionList.length > 1 && (
-                                        <button className="remove-q-btn" onClick={() => removeQuestionField(index)}>
-                                            <i className="fas fa-trash-alt"></i>
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="form-group-premium">
-                                    <label><i className="fas fa-align-left"></i> Question Stem</label>
-                                    <textarea
-                                        name="question"
-                                        placeholder="Enter question text..."
-                                        value={q.question}
-                                        onChange={(e) => handleQuestionChange(index, e)}
-                                        rows="3"
-                                    />
-                                </div>
-
-                                <div className="options-input-grid-premium">
-                                    {[
-                                        { id: 'option1', label: 'A' },
-                                        { id: 'option2', label: 'B' },
-                                        { id: 'option3', label: 'C' },
-                                        { id: 'option4', label: 'D' }
-                                    ].map((opt) => (
-                                        <div key={opt.id} className="premium-opt-field">
-                                            <div className="opt-tag">{opt.label}</div>
-                                            <input
-                                                name={opt.id}
-                                                value={q[opt.id]}
-                                                onChange={(e) => handleQuestionChange(index, e)}
-                                                placeholder={`Choice ${opt.label}`}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="form-group-premium">
-                                    <label><i className="fas fa-check-double"></i> Correct Answers</label>
-                                    <div className="multi-choice-selector">
-                                        {['A', 'B', 'C', 'D'].map(key => (
-                                            <button
-                                                key={key}
-                                                type="button"
-                                                className={`choice-pill ${q.correctAnswer && q.correctAnswer.includes(key) ? 'active' : ''}`}
-                                                onClick={() => toggleCorrectOption(index, key)}
-                                            >
-                                                {key}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {!isEditingQuestion && (
-                            <button className="add-another-btn-fancy" onClick={addQuestionField}>
-                                <i className="fas fa-plus"></i> Add Another Question
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="slide-over-footer">
-                        <div className="batch-stats">
-                            {!isEditingQuestion && <><strong>{questionList.length}</strong> Questions Ready</>}
-                        </div>
-                        <div className="footer-actions">
-                            <button className="btn-cancel-fancy" onClick={() => setShowQuestionModal(false)}>Discard</button>
-                            <button className="btn-save-fancy" onClick={submitQuestion}>
-                                <i className="fas fa-cloud-upload-alt"></i> {isEditingQuestion ? 'Save Changes' : 'Publish Batch'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </CMSLayout>
     );
 };

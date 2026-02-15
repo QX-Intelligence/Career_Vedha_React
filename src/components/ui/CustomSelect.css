@@ -53,6 +53,12 @@
     font-weight: 600;
 }
 
+.custom-select-trigger.is-invalid {
+    border-color: #ef4444;
+    background: rgba(254, 242, 242, 0.6);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
 .trigger-text {
     flex: 1;
     overflow: hidden;

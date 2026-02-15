@@ -33,29 +33,41 @@ const Exam = () => {
 
     // New State for Custom Exam & Creation
     const [examMode, setExamMode] = useState('standard'); // 'standard' | 'custom'
-    const [customConfig, setCustomConfig] = useState({ type: 'chapter', value: '' }); // type: 'chapter' | 'category'
-    const [categories, setCategories] = useState([]);
+    const [customConfig, setCustomConfig] = useState({ type: 'category', value: '', label: '' }); // type: 'chapter' | 'category'
+    const [hierarchy, setHierarchy] = useState([]);
+    const [selectedLevelId, setSelectedLevelId] = useState('');
+    const [selectedSubjectId, setSelectedSubjectId] = useState('');
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [questionsToCreate, setQuestionsToCreate] = useState([{
         question: '', option1: '', option2: '', option3: '', option4: '',
         correctAnswer: '', chapterId: '', category: ''
     }]);
     const [creationError, setCreationError] = useState(null);
+    const [noQuestions, setNoQuestions] = useState(false);
 
     useEffect(() => {
         setExamStarted(false);
-        // Pre-fetch standard questions for speed, but also categories for option
-        fetchQuestionsPage(0);
-        fetchCategories();
+        fetchAcademicsHierarchy();
     }, []);
 
-    const fetchCategories = async () => {
+    // Trigger initial fetch for standard mode when user clicks 'Start'
+    useEffect(() => {
+        if (examStarted && examMode === 'standard' && questions.length === 0) {
+            fetchQuestionsPage(0);
+        }
+    }, [examStarted, examMode]);
+
+    const fetchAcademicsHierarchy = async () => {
+        setLoading(true);
         try {
-            const res = await apiClient.get(API_CONFIG.ENDPOINTS.GET_EXAM_CATEGORIES);
+            const res = await apiClient.get(API_CONFIG.ENDPOINTS.ACADEMICS_HIERARCHY);
             const data = res.data || res;
-            setCategories(Array.isArray(data) ? data : []);
+            setHierarchy(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.error('Failed to fetch categories:', err);
+            console.error('Failed to fetch hierarchy:', err);
+            showSnackbar('Failed to load academic structure', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -81,51 +93,69 @@ const Exam = () => {
     };
 
     const fetchQuestionsPage = async (page) => {
-        // If in custom mode, we don't fetch pages dynamically (we load all at start)
-        if (examMode === 'custom') return;
+        // Since get-all-questions doesn't exist, we fallback to random fetching if state is empty
+        if (questions.length > 0 && questions[page * questionsPerPage]) {
+            return; // Already have data for this page
+        }
 
         setLoading(true);
         try {
+            // We use the 'custom' fetch logic even for 'standard' if we have no questions, 
+            // but we fetch a larger batch (e.g. 50) to simulate a standard assessment.
+            
+            const categoryToUse = customConfig.value;
+            
+            if (!categoryToUse) {
+                setLoading(false);
+                return;
+            }
+
             const response = await apiClient.get(
-                API_CONFIG.ENDPOINTS.GET_QUESTIONS,
-                { params: { page, size: questionsPerPage } }
+                API_CONFIG.ENDPOINTS.GET_RANDOM_QUESTIONS_BY_CATEGORY,
+                { params: { category: categoryToUse, count: 50 } }
             );
 
-            const data = response.data;
-            const newQuestions = data.content || [];
-            const pageOffset = page * questionsPerPage;
-
-            setQuestions(prev => {
-                const total = data.totalElements || prev.length || newQuestions.length;
-                const next = prev.length >= total ? [...prev] : new Array(total).fill(null);
-                if (prev.length > 0 && next !== prev) {
-                    prev.forEach((q, idx) => { if (q) next[idx] = q; });
-                }
-                newQuestions.forEach((q, i) => {
-                    next[pageOffset + i] = q;
-                });
-                return next;
-            });
-
-            setTotalPages(data.totalPages || 1);
-            setTotalQuestions(data.totalElements || newQuestions.length);
+            const data = response.data || [];
+            
+            setQuestions(data);
+            setTotalQuestions(data.length);
+            setTotalPages(Math.ceil(data.length / questionsPerPage));
+            
             if (!examReady) setExamReady(true);
             setLoading(false);
             retryCountRef.current = 0;
         } catch (error) {
             console.error('Error fetching questions:', error);
-            handleApiError(error, 'Error loading questions.');
+            handleApiError(error, 'Error loading questions. Ensure categories are available.');
             setLoading(false);
         }
     };
 
-    const startCustomExam = async () => {
-        if (customConfig.type === 'chapter') {
-             if (!customConfig.value || isNaN(Number(customConfig.value)) || Number(customConfig.value) <= 0) {
+    // Auto-start validation effect
+    useEffect(() => {
+        if (location.state?.examConfig) {
+            const config = location.state.examConfig;
+            setCustomConfig(config);
+            
+            // Pre-populate selections if provided in state
+            if (location.state.level) setSelectedLevelId(location.state.level.id.toString());
+            if (location.state.subject) setSelectedSubjectId(location.state.subject.id.toString());
+
+            // Small timeout to allow state to settle, though direct call is safer.
+            // We'll call the internal logic directly.
+            startCustomExam(config);
+        }
+    }, [location.state]);
+
+    const startCustomExam = async (directConfig = null) => {
+        const config = directConfig || customConfig;
+        
+        if (config.type === 'chapter') {
+             if (!config.value || isNaN(Number(config.value)) || Number(config.value) <= 0) {
                  showSnackbar("Please enter a valid Chapter ID", 'error');
                  return;
              }
-        } else if (!customConfig.value) {
+        } else if (!config.value) {
             showSnackbar("Please select a Category", 'error');
             return;
         }
@@ -135,11 +165,11 @@ const Exam = () => {
         setQuestions([]); // Clear any preloaded standard questions
 
         try {
-            const params = customConfig.type === 'chapter'
-                ? { chapterId: Number(customConfig.value), count: CUSTOM_QUESTION_COUNT }
-                : { category: customConfig.value, count: CUSTOM_QUESTION_COUNT };
+            const params = config.type === 'chapter'
+                ? { chapterId: Number(config.value), count: CUSTOM_QUESTION_COUNT }
+                : { category: config.value, count: CUSTOM_QUESTION_COUNT };
 
-            const url = customConfig.type === 'chapter'
+            const url = config.type === 'chapter'
                 ? API_CONFIG.ENDPOINTS.GET_RANDOM_QUESTIONS_BY_CHAPTER
                 : API_CONFIG.ENDPOINTS.GET_RANDOM_QUESTIONS_BY_CATEGORY;
 
@@ -147,9 +177,8 @@ const Exam = () => {
             const data = res.data || res;
 
             if (!data || !Array.isArray(data) || data.length === 0) {
-                showSnackbar("No questions found for criteria", 'error');
-                setExamMode('standard'); // Revert
-                fetchQuestionsPage(0); // Reload standard
+                setNoQuestions(true);
+                setLoading(false);
                 return;
             }
 
@@ -260,15 +289,8 @@ const Exam = () => {
         try {
             // 1. Ensure we have ALL questions for the final review
             let finalQuestions = questions;
-            // Check if we have missing questions (length mismatch OR sparse/null entries triggered by skipping pages)
-            if (questions.length < totalQuestions || questions.some(q => !q)) {
-                const responseFull = await apiClient.get(
-                    API_CONFIG.ENDPOINTS.GET_QUESTIONS,
-                    { params: { page: 0, size: totalQuestions } }
-                );
-                finalQuestions = responseFull.data.content || [];
-                setQuestions(finalQuestions);
-            }
+            // Since we now fetch all questions at once (50 for standard, CUSTOM_QUESTION_COUNT for custom),
+            // we don't need to re-fetch from the non-existent GET_QUESTIONS endpoint.
 
             // 2. Submit the exam - USE finalQuestions (not questions state) to avoid closure lag
             const answerList = finalQuestions.map(q => ({
@@ -304,6 +326,16 @@ const Exam = () => {
             }
 
             setScore(parsedScore);
+            
+            // Map correct options for audit portal
+            if (resData?.correctOptions) {
+                const map = {};
+                resData.correctOptions.forEach(item => {
+                    map[item.questionId] = item.correctOption;
+                });
+                setCorrectMap(map);
+            }
+
             showSnackbar('Exam submitted successfully!', 'success');
         } catch (error) {
             handleApiError(error, 'Failed to submit exam.');
@@ -332,15 +364,7 @@ const Exam = () => {
 
     // ---------------- RESULT VIEW: SIMPLIFIED AUDIT PORTAL ----------------
     if (score !== null) {
-        // Calculate client-side score as insurance/audit
-        let auditScore = 0;
-        questions.forEach(q => {
-            const qKey = (q.correctOption || q.correctAnswer || "").toUpperCase().split('').sort().join('');
-            const sKey = (answers[q.id] || "").toUpperCase().split('').sort().join('');
-            if (sKey !== "" && sKey === qKey) auditScore++;
-        });
-
-        const finalDisplayScore = Math.max(Number(score) || 0, auditScore);
+        const finalDisplayScore = Number(score) || 0;
         const skippedCount = totalQuestions - Object.keys(answers).length;
         const attempted = totalQuestions - skippedCount;
         const accuracy = attempted > 0 ? Math.round((finalDisplayScore / attempted) * 100) : 0;
@@ -354,13 +378,7 @@ const Exam = () => {
                     </div>
                     <div className="portal-user">
                         <span>{email}</span>
-                        <button className="exit-btn" onClick={() => {
-                            if (fromAdmin) {
-                                navigate('/dashboard', { replace: true });
-                            } else {
-                                window.location.href = '/';
-                            }
-                        }}>Close Portal</button>
+                        <button className="exit-btn" onClick={() => navigate(-1)}>Close Portal</button>
                     </div>
                 </header>
 
@@ -417,7 +435,7 @@ const Exam = () => {
 
                             <div className="master-solution-list" style={{ marginTop: '2rem' }}>
                                 {questions.map((question, index) => {
-                                    const officialKey = question.correctOption || question.correctAnswer || "";
+                                    const officialKey = correctMap[question.id] || question.correctOption || question.correctAnswer || "";
                                     const correctStr = officialKey.toUpperCase().split('').sort().join('');
                                     const studentStr = (answers[question.id] || "").toUpperCase().split('').sort().join('');
 
@@ -430,7 +448,8 @@ const Exam = () => {
                                             const charCode = char.charCodeAt(0);
                                             if (charCode >= 65 && charCode <= 68) {
                                                 const idx = charCode - 65;
-                                                return `${char}: ${question[`option${idx + 1}`]}`;
+                                                const optText = question[`option${idx + 1}`] || question[`opt${idx + 1}`];
+                                                return `${char}: ${optText || 'N/A'}`;
                                             }
                                             return char;
                                         }).join(' | ');
@@ -470,9 +489,11 @@ const Exam = () => {
                                                     if (isC) cls += " hit";
                                                     else if (isS) cls += " miss";
 
+                                                    const optText = question[opt] || question[`opt${i + 1}`];
+
                                                     return (
                                                         <div key={opt} className={cls}>
-                                                            {letter}. {question[opt]}
+                                                            {letter}. {optText}
                                                         </div>
                                                     );
                                                 })}
@@ -483,12 +504,71 @@ const Exam = () => {
                             </div>
 
                             <div className="exec-actions" style={{ marginTop: '4rem' }}>
-                                <button className="btn-exec-primary" onClick={() => window.location.href = '/'}>
+                                <button className="btn-exec-primary" onClick={() => navigate(-1)}>
                                     Finalize Analytics & Exit Portal
                                 </button>
                             </div>
                         </div>
                     </main>
+                </div>
+            </div>
+        );
+    }
+
+    // ---------------- QUESTIONS ADDING SOON SCREEN ----------------
+    if (noQuestions) {
+        return (
+            <div className="exam-portal-wrapper empty-state-wrapper">
+                <div className="mesh-gradient-bg"></div>
+                
+                <header className="exam-portal-header glass-header">
+                    <div className="portal-brand">
+                        <div className="logo-icon"><i className="fas fa-graduation-cap"></i></div>
+                        <span>Exam Portal</span>
+                    </div>
+                    <div className="portal-user">
+                        <button className="exit-btn" onClick={() => navigate(-1)}>
+                            <i className="fas fa-arrow-left"></i> Go Back
+                        </button>
+                    </div>
+                </header>
+
+                <div className="exam-stage empty-state-creative-stage">
+                    <div className="creative-empty-card">
+                        <div className="visual-scene">
+                            <div className="floating-elements">
+                                <i className="fas fa-book float-1"></i>
+                                <i className="fas fa-pen-fancy float-2"></i>
+                                <i className="fas fa-lightbulb float-3"></i>
+                            </div>
+                            <div className="main-construction-icon">
+                                <div className="icon-circle-outer"></div>
+                                <div className="icon-circle-inner">
+                                    <i className="fas fa-tools construction-tool"></i>
+                                    <i className="fas fa-hourglass-half main-hourglass"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="content-box">
+                            <span className="badge-coming-soon">Content in Progress</span>
+                            <h2>Building Your Question Bank</h2>
+                            <p>
+                                Our educators are currently hand-picking the best practice questions for 
+                                <strong> {customConfig.label || "this topic"}</strong>. 
+                                We'll have it ready for you in no time!
+                            </p>
+                            
+                            <div className="actions-row">
+                                <button className="btn-creative-primary" onClick={() => navigate(-1)}>
+                                    <i className="fas fa-compass"></i> Explore Other Subjects
+                                </button>
+                                <button className="btn-creative-outline" onClick={() => window.location.reload()}>
+                                    <i className="fas fa-sync-alt"></i> Refresh Page
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -589,98 +669,125 @@ const Exam = () => {
                         <div className="stage-card" style={{ maxWidth: '600px', textAlign: 'center' }}>
                             <div style={{
                                 width: '80px', height: '80px', background: 'var(--portal-bg)',
-                                borderRadius: '50%', margin: '0 auto 2rem', display: 'flex',
+                                borderRadius: '50%', margin: '0 auto 1.5rem', display: 'flex',
                                 alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
                                 color: 'var(--portal-dark)'
                             }}>
                                 <i className="fas fa-file-contract"></i>
                             </div>
 
-                            <h2 style={{ fontSize: '2rem', color: 'var(--portal-dark)', marginBottom: '1rem', fontWeight: 800 }}>
-                                {examMode === 'standard' ? 'Standard Assessment' : 'Practice Session'}
+                            <h2 style={{ fontSize: '1.8rem', color: 'var(--portal-dark)', marginBottom: '0.5rem', fontWeight: 800 }}>
+                                Select Your Exam Subject
                             </h2>
+                            <p style={{ color: '#64748b', marginBottom: '2rem' }}>
+                                Choose a category from the list below to begin your assessment.
+                            </p>
                             
-                            {/* EXAM CONFIGURATION UI */}
-                            <div style={{ marginBottom: '2rem', textAlign: 'left', background: '#f8fafc', padding: '1.5rem', borderRadius: '12px' }}>
-                                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', justifyContent: 'center' }}>
-                                    <button 
-                                        className={`btn-nav-secondary ${examMode === 'standard' ? 'active-mode' : ''}`}
-                                        onClick={() => setExamMode('standard')}
-                                        style={{ border: examMode === 'standard' ? '2px solid var(--portal-primary)' : '1px solid #e2e8f0' }}
-                                    >
-                                        Standard
-                                    </button>
-                                    <button 
-                                        className={`btn-nav-secondary ${examMode === 'custom' ? 'active-mode' : ''}`}
-                                        onClick={() => setExamMode('custom')}
-                                        style={{ border: examMode === 'custom' ? '2px solid var(--portal-primary)' : '1px solid #e2e8f0' }}
-                                    >
-                                        Practice (Custom)
-                                    </button>
+                            {/* HIERARCHICAL CONFIGURATION UI */}
+                            <div style={{ marginBottom: '2rem', textAlign: 'left', background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.4rem', color: '#64748b', textTransform: 'uppercase' }}>
+                                            Academic Level
+                                        </label>
+                                        <select 
+                                            value={selectedLevelId}
+                                            onChange={e => {
+                                                setSelectedLevelId(e.target.value);
+                                                setSelectedSubjectId('');
+                                                setCustomConfig({ type: 'category', value: '', label: '' });
+                                            }}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                                        >
+                                            <option value="">Select Level</option>
+                                            {hierarchy.map(level => (
+                                                <option key={level.id} value={level.id}>{level.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.4rem', color: '#64748b', textTransform: 'uppercase' }}>
+                                            Subject
+                                        </label>
+                                        <select 
+                                            value={selectedSubjectId}
+                                            disabled={!selectedLevelId}
+                                            onChange={e => {
+                                                const subId = e.target.value;
+                                                setSelectedSubjectId(subId);
+                                                const sub = hierarchy.find(l => String(l.id) === String(selectedLevelId))?.subjects?.find(s => String(s.id) === String(subId));
+                                                if (sub) {
+                                                    setCustomConfig({ type: 'category', value: sub.name, label: sub.name });
+                                                } else {
+                                                    setCustomConfig({ type: 'category', value: '', label: '' });
+                                                }
+                                            }}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                                        >
+                                            <option value="">Select Subject</option>
+                                            {hierarchy.find(l => String(l.id) === String(selectedLevelId))?.subjects?.map(sub => (
+                                                <option key={sub.id} value={sub.id}>{sub.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
-                                {examMode === 'custom' && (
-                                    <div className="custom-config-panel" style={{ marginTop: '1rem' }}>
-                                        <div style={{ marginBottom: '1rem' }}>
-                                            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: '#64748b' }}>Filter By</label>
-                                            <select 
-                                                value={customConfig.type} 
-                                                onChange={e => setCustomConfig({ ...customConfig, type: e.target.value })}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                            >
-                                                <option value="chapter">Chapter</option>
-                                                <option value="category">Category</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '0.5rem', color: '#64748b' }}>
-                                                {customConfig.type === 'chapter' ? 'Chapter ID' : 'Select Category'}
-                                            </label>
-                                            {customConfig.type === 'chapter' ? (
-                                                <input 
-                                                    type="number"
-                                                    value={customConfig.value}
-                                                    onChange={e => setCustomConfig({ ...customConfig, value: e.target.value })}
-                                                    placeholder="Enter Chapter ID (e.g. 1)"
-                                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                                />
-                                            ) : (
-                                                <select 
-                                                    value={customConfig.value}
-                                                    onChange={e => setCustomConfig({ ...customConfig, value: e.target.value })}
-                                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                                >
-                                                    <option value="">-- Choose Category --</option>
-                                                    {categories.map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
-                                                </select>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                                <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '1.5rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.4rem', color: '#64748b', textTransform: 'uppercase' }}>
+                                        Focused Chapter (Optional Practice)
+                                    </label>
+                                    <select 
+                                        value={customConfig.type === 'chapter' ? customConfig.value : ''}
+                                        disabled={!selectedSubjectId}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val) {
+                                                const chap = hierarchy.find(l => String(l.id) === String(selectedLevelId))
+                                                    ?.subjects?.find(s => String(s.id) === String(selectedSubjectId))
+                                                    ?.chapters?.find(c => String(c.id) === String(val));
+                                                setCustomConfig({ type: 'chapter', value: val, label: chap?.name || val });
+                                            } else {
+                                                const sub = hierarchy.find(l => String(l.id) === String(selectedLevelId))?.subjects?.find(s => String(s.id) === String(selectedSubjectId));
+                                                setCustomConfig({ type: 'category', value: sub?.name || '', label: sub?.name || '' });
+                                            }
+                                        }}
+                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                                    >
+                                        <option value="">Full Subject Exam (Random Chapters)</option>
+                                        {hierarchy.find(l => String(l.id) === String(selectedLevelId))
+                                            ?.subjects?.find(s => String(s.id) === String(selectedSubjectId))
+                                            ?.chapters?.map(chap => (
+                                                <option key={chap.id} value={chap.id}>{chap.name}</option>
+                                            ))}
+                                    </select>
+                                    <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                                        {customConfig.type === 'chapter' ? 'Switching to fixed 10-question practice mode for this chapter.' : 'Standard exam mode with questions from all chapters of the subject.'}
+                                    </p>
+                                </div>
                             </div>
-
-                            <p style={{ color: '#64748b', fontSize: '1.1rem', marginBottom: '3rem', lineHeight: '1.6' }}>
-                                {examMode === 'standard' 
-                                    ? "You are about to start the standard assessment. The timer will begin as soon as you click Start."
-                                    : `Start a practice session with ${CUSTOM_QUESTION_COUNT} random questions from your selected scope.`
-                                }
-                            </p>
 
                             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                                 <button
                                     className="btn-hero-secondary"
-                                    onClick={() => window.location.href = '/'}
+                                    onClick={() => navigate(-1)}
+                                    style={{ padding: '0.8rem 1.5rem' }}
                                 >
-                                    Go Back
+                                    Cancel
                                 </button>
                                 <button
                                     className="btn-hero-primary"
+                                    disabled={!customConfig.value || loading}
                                     onClick={() => {
-                                        if (examMode === 'custom') startCustomExam();
-                                        else setExamStarted(true);
+                                        if (customConfig.type === 'chapter' || examMode === 'custom') {
+                                             startCustomExam();
+                                        } else {
+                                             // We just use the 'standard' flow which now fetches 50 random from selected cat
+                                             setExamStarted(true);
+                                        }
                                     }}
+                                    style={{ padding: '0.8rem 2rem', opacity: customConfig.value ? 1 : 0.6 }}
                                 >
-                                    Start {examMode === 'custom' ? 'Practice' : 'Exam'} <i className="fas fa-arrow-right"></i>
+                                    {loading ? <i className="fas fa-spinner fa-spin"></i> : 'Start Assessment'} <i className="fas fa-arrow-right" style={{ marginLeft: '8px' }}></i>
                                 </button>
                             </div>
                         </div>
@@ -713,13 +820,7 @@ const Exam = () => {
                 </div>
                 <div className="portal-user">
                     <span className="user-email-display">{email}</span>
-                    <button className="exit-btn" onClick={() => {
-                        if (fromAdmin) {
-                            navigate('/dashboard', { replace: true });
-                        } else {
-                            window.location.href = '/';
-                        }
-                    }}>Exit Exam</button>
+                    <button className="exit-btn" onClick={() => navigate(-1)}>Exit Exam</button>
                 </div>
             </header>
 
@@ -803,22 +904,24 @@ const Exam = () => {
                                         <span className="type-hint-badge">{isMulti ? "Multiple Choice" : "Single Choice"}</span>
 
                                         <div className="premium-options">
-                                            {['option1', 'option2', 'option3', 'option4'].map((opt, i) => {
-                                                const letter = String.fromCharCode(65 + i);
-                                                const isSelected = currentAnswer.includes(letter);
-                                                return (
-                                                    <label key={opt} className={`premium-opt-label ${isSelected ? 'selected' : ''}`}>
-                                                        <input
-                                                            type={isMulti ? "checkbox" : "radio"}
-                                                            name={`q-${question.id}`}
-                                                            checked={isSelected}
-                                                            onChange={() => handleOptionChange(question.id, letter, isMulti)}
-                                                        />
-                                                        <div className="opt-letter">{letter}</div>
-                                                        <span>{question[opt]}</span>
-                                                    </label>
-                                                );
-                                            })}
+                                                {['option1', 'option2', 'option3', 'option4'].map((opt, i) => {
+                                                    const letter = String.fromCharCode(65 + i);
+                                                    const isSelected = currentAnswer.includes(letter);
+                                                    const optText = question[opt] || question[`opt${i + 1}`];
+                                                    
+                                                    return (
+                                                        <label key={opt} className={`premium-opt-label ${isSelected ? 'selected' : ''}`}>
+                                                            <input
+                                                                type={isMulti ? "checkbox" : "radio"}
+                                                                name={`q-${question.id}`}
+                                                                checked={isSelected}
+                                                                onChange={() => handleOptionChange(question.id, letter, isMulti)}
+                                                            />
+                                                            <div className="opt-letter">{letter}</div>
+                                                            <span>{optText || 'N/A'}</span>
+                                                        </label>
+                                                    );
+                                                })}
                                         </div>
                                     </div>
                                 );

@@ -1,0 +1,15 @@
+
+> Career Vedha-app@1.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 211 modules transformed.
+[31mx[39m Build failed in 1.43s
+[31merror during build:
+[31mCould not resolve "../../components/ui/CustomSelect" from "src/modules/admin/pages/RoleManagement.jsx"[31m
+file: [36mC:/Users/chait/Desktop/Career Vedha/Career_Vedha_Frontend/src/modules/admin/pages/RoleManagement.jsx[31m
+    at getRollupError (file:///C:/Users/chait/Desktop/Career%20Vedha/Career_Vedha_Frontend/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///C:/Users/chait/Desktop/Career%20Vedha/Career_Vedha_Frontend/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/Users/chait/Desktop/Career%20Vedha/Career_Vedha_Frontend/node_modules/rollup/dist/es/shared/node-entry.js:21710:24)
+    at file:///C:/Users/chait/Desktop/Career%20Vedha/Career_Vedha_Frontend/node_modules/rollup/dist/es/shared/node-entry.js:21670:26[39m

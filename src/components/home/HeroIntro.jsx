@@ -79,6 +79,7 @@ const HeroIntro = () => {
                                 </Link>
                             </div>
                             <div className="hero-img-side">
+                                <div className="hero-image-glow" style={{ background: slide.color }}></div>
                                 <img 
                                     src={slide.image} 
                                     alt={slide.title} 
@@ -87,10 +88,18 @@ const HeroIntro = () => {
                                         e.target.style.display = 'none';
                                     }}
                                 />
-                                {/* Removed duplicate conditional rendering */}
                             </div>
                         </div>
                     ))}
+                    
+                    <div className="hero-background-decorations">
+                        <i className="fas fa-book-open decor-icon decor-1"></i>
+                        <i className="fas fa-graduation-cap decor-icon decor-2"></i>
+                        <i className="fas fa-pen-nib decor-icon decor-3"></i>
+                        <i className="fas fa-university decor-icon decor-4"></i>
+                        <i className="fas fa-brain decor-icon decor-5"></i>
+                        <i className="fas fa-award decor-icon decor-6"></i>
+                    </div>
                     
                     <div className="carousel-dots">
                         {slides.map((_, index) => (

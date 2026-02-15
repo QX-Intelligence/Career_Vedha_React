@@ -1,43 +1,84 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
-import AdminLogin from './modules/auth/pages/AdminLogin';
-import AdminRegister from './modules/auth/pages/AdminRegister';
-import Dashboard from './modules/admin/pages/Dashboard';
-import Exam from './modules/exam/pages/Exam';
-import UserManagement from './modules/admin/pages/UserManagement';
-import ArticleDetail from './modules/articles/pages/ArticleDetail';
+
+// Lazy load major route components
+const ArticlesPage = lazy(() => import('./pages/Articles'));
+const NewsPage = lazy(() => import('./pages/News'));
+const AdminLogin = lazy(() => import('./modules/auth/pages/AdminLogin'));
+const AdminRegister = lazy(() => import('./modules/auth/pages/AdminRegister'));
+const Dashboard = lazy(() => import('./modules/admin/pages/Dashboard'));
+const Exam = lazy(() => import('./modules/exam/pages/Exam'));
+const UserManagement = lazy(() => import('./modules/admin/pages/UserManagement'));
+const ArticleDetail = lazy(() => import('./modules/articles/pages/ArticleDetail'));
+
+// Additional Lazy Loads
+const JobsList = lazy(() => import('./modules/jobs/pages/JobsList'));
+const JobDetail = lazy(() => import('./modules/jobs/pages/JobDetail'));
+const JobsManagement = lazy(() => import('./modules/jobs/pages/JobsManagement'));
+const JobEditor = lazy(() => import('./modules/jobs/pages/JobEditor'));
+const ArticleEditor = lazy(() => import('./modules/articles/pages/ArticleEditor'));
+const TaxonomyManagement = lazy(() => import('./modules/admin/pages/TaxonomyManagement'));
+const MediaManagement = lazy(() => import('./modules/admin/pages/MediaManagement'));
+const AcademicsHome = lazy(() => import('./modules/academics/pages/AcademicsHome'));
+const SubjectDetail = lazy(() => import('./modules/academics/pages/SubjectDetail'));
+const MaterialDetail = lazy(() => import('./modules/academics/pages/MaterialDetail'));
+const AcademicsManagement = lazy(() => import('./modules/admin/pages/AcademicsManagement'));
+const AcademicExamsPage = lazy(() => import('./pages/AcademicExamsPage'));
+const CurrentAffairs = lazy(() => import('./pages/CurrentAffairs'));
+const CurrentAffairsManagement = lazy(() => import('./modules/admin/pages/CurrentAffairsManagement'));
+const PapersManagement = lazy(() => import('./modules/admin/pages/PapersManagement'));
+const ComingSoon = lazy(() => import('./pages/ComingSoon'));
+const PaperViewer = lazy(() => import('./pages/PaperViewer'));
+const QuestionPapersPage = lazy(() => import('./pages/QuestionPapersPage'));
+const StudyMaterialsPage = lazy(() => import('./pages/StudyMaterialsPage'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import api, { setUserContext } from './services/api';
 import './styles/index.css';
+import './styles/contact-papers.css';
+import './styles/paper-viewer.css';
 import { SnackbarProvider } from './context/SnackbarContext';
 import { HelmetProvider } from 'react-helmet-async';
 import TooltipManager from './components/ui/TooltipManager';
 import MobileLayout from './components/layout/MobileLayout';
+import ScrollToHashElement from './components/utils/ScrollToHashElement';
+import ScrollRestoration from './components/utils/ScrollRestoration';
 
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes
-            gcTime: 15 * 60 * 1000, // 15 minutes
+            staleTime: 10 * 60 * 1000, // 10 minutes - data stays fresh longer
+            gcTime: 30 * 60 * 1000, // 30 minutes - keep in memory longer
             retry: 1,
             refetchOnWindowFocus: false,
+            refetchOnMount: false, // Don't refetch on component mount if data is fresh
+            refetchOnReconnect: false, // Don't refetch on reconnect if data is fresh
+        },
+        mutations: {
+            retry: 1,
         },
     },
 });
 
-import JobsList from './modules/jobs/pages/JobsList';
-import JobDetail from './modules/jobs/pages/JobDetail';
-import JobsManagement from './modules/jobs/pages/JobsManagement';
-import JobEditor from './modules/jobs/pages/JobEditor';
-import ArticleEditor from './modules/articles/pages/ArticleEditor';
-import TaxonomyManagement from './modules/admin/pages/TaxonomyManagement';
-import MediaManagement from './modules/admin/pages/MediaManagement';
-import AcademicsHome from './modules/academics/pages/AcademicsHome';
-import SubjectDetail from './modules/academics/pages/SubjectDetail';
-import MaterialDetail from './modules/academics/pages/MaterialDetail';
-import AcademicsManagement from './modules/admin/pages/AcademicsManagement';
+import { MODULES } from './config/accessControl.config';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import Skeleton from './components/ui/Skeleton';
+
+const PageLoader = () => (
+    <div className="premium-splash-screen">
+        <div className="splash-content">
+            <div className="splash-loader">
+                <div className="loader-track">
+                    <div className="loader-fill"></div>
+                </div>
+                <span className="loader-text">Loading Content...</span>
+            </div>
+        </div>
+    </div>
+);
 
 function App() {
     const [isInitializing, setIsInitializing] = useState(true);
@@ -91,42 +132,121 @@ function App() {
                 <SnackbarProvider>
                     <TooltipManager />
                     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                        <ScrollRestoration />
+                        <ScrollToHashElement />
                         <div className="App">
                             <MobileLayout>
-                                <Routes>
-                                    <Route path="/" element={<Home />} />
-                                    <Route path="/admin-login" element={<AdminLogin />} />
-                                    <Route path="/admin-register" element={<AdminRegister />} />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/exam" element={<Exam />} />
-                                    <Route path="/user-management" element={<UserManagement />} />
-                                    <Route path="/article/:section/:slug" element={<ArticleDetail />} />
-                                    
-                                    {/* Public Job Board */}
-                                    <Route path="/jobs" element={<JobsList />} />
-                                    <Route path="/jobs/:slug" element={<JobDetail />} />
+                                <Suspense fallback={<PageLoader />}>
+                                    <Routes>
+                                        <Route path="/" element={<Home />} />
+                                        <Route path="/admin-login" element={<AdminLogin />} />
+                                        <Route path="/admin-register" element={<AdminRegister />} />
+                                        
+                                        <Route path="/dashboard" element={
+                                            <ProtectedRoute>
+                                                <Dashboard />
+                                            </ProtectedRoute>
+                                        } />
+                                        
+                                        <Route path="/exam" element={<Exam />} />
+                                        
+                                        <Route path="/user-management" element={
+                                            <ProtectedRoute requireAdmin>
+                                                <UserManagement />
+                                            </ProtectedRoute>
+                                        } />
+                                        
+                                        <Route path="/article/:section/:slug" element={<ArticleDetail />} />
+                                        <Route path="/news" element={<NewsPage />} />
+                                        <Route path="/articles" element={<ArticlesPage />} />
+                                        <Route path="/search" element={<SearchResults />} />
+                                        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                                        <Route path="/current-affairs" element={<CurrentAffairs />} />
+                                        <Route path="/paper-viewer" element={<PaperViewer />} />
+                                        <Route path="/question-papers" element={<QuestionPapersPage />} />
+                                        <Route path="/study-materials" element={<StudyMaterialsPage />} />
+                                        
+                                        {/* Public Job Board */}
+                                        <Route path="/jobs" element={<JobsList />} />
+                                        <Route path="/jobs/:slug" element={<JobDetail />} />
 
-                                    {/* CMS Jobs Management */}
-                                    <Route path="/cms/jobs" element={<JobsManagement />} />
-                                    <Route path="/cms/jobs/new" element={<JobEditor />} />
-                                    <Route path="/cms/jobs/edit/:id" element={<JobEditor />} />
-                                    <Route path="/cms/articles/new" element={<ArticleEditor />} />
-                                    <Route path="/cms/articles/edit/:section/:id" element={<ArticleEditor />} />
-                                    <Route path="/cms/articles/edit/:id" element={<ArticleEditor />} />
-                                    <Route path="/cms/taxonomy" element={<TaxonomyManagement />} />
-                                    <Route path="/cms/media" element={<MediaManagement />} />
+                                        {/* CMS Jobs Management */}
+                                        <Route path="/cms/jobs" element={
+                                            <ProtectedRoute module={MODULES.JOB_MANAGEMENT}>
+                                                <JobsManagement />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/cms/jobs/new" element={
+                                            <ProtectedRoute module={MODULES.JOB_MANAGEMENT}>
+                                                <JobEditor />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/cms/jobs/edit/:id" element={
+                                            <ProtectedRoute module={MODULES.JOB_MANAGEMENT}>
+                                                <JobEditor />
+                                            </ProtectedRoute>
+                                        } />
+                                        
+                                        {/* CMS Article Management */}
+                                        <Route path="/cms/articles/new" element={
+                                            <ProtectedRoute module={MODULES.ARTICLE_MANAGEMENT}>
+                                                <ArticleEditor />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/cms/articles/edit/:section/:id" element={
+                                            <ProtectedRoute module={MODULES.ARTICLE_MANAGEMENT}>
+                                                <ArticleEditor />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/cms/articles/edit/:id" element={
+                                            <ProtectedRoute module={MODULES.ARTICLE_MANAGEMENT}>
+                                                <ArticleEditor />
+                                            </ProtectedRoute>
+                                        } />
+                                        
+                                        <Route path="/cms/taxonomy" element={
+                                            <ProtectedRoute module={MODULES.TAXONOMY_MANAGEMENT}>
+                                                <TaxonomyManagement />
+                                            </ProtectedRoute>
+                                        } />
+                                        
+                                        <Route path="/cms/media" element={
+                                            <ProtectedRoute module={MODULES.MEDIA_MANAGEMENT}>
+                                                <MediaManagement />
+                                            </ProtectedRoute>
+                                        } />
 
-                                    {/* Academics Module Public Routes */}
-                                    <Route path="/academics" element={<AcademicsHome />} />
-                                    <Route path="/academics/level/:slug" element={<AcademicsHome />} /> {/* Reusing Home for now as it handles board/level filters */}
-                                    <Route path="/academics/subject/:slug" element={<SubjectDetail />} />
-                                    <Route path="/academics/material/:slug" element={<MaterialDetail />} />
+                                        {/* Academics Module Public Routes */}
+                                        <Route path="/academics" element={<AcademicsHome />} />
+                                        <Route path="/academics/level/:slug" element={<AcademicsHome />} />
+                                        <Route path="/academics/subject/:slug" element={<SubjectDetail />} />
+                                        <Route path="/academics/material/:slug" element={<MaterialDetail />} />
 
-                                    {/* Academics Module CMS Routes */}
-                                    <Route path="/cms/academics" element={<AcademicsManagement />} />
+                                        {/* Academics Module CMS Routes */}
+                                        <Route path="/academic-exams" element={<AcademicExamsPage />} />
+                                        <Route path="/cms/academics" element={
+                                            <ProtectedRoute module={MODULES.ACADEMICS_MANAGEMENT}>
+                                                <AcademicsManagement />
+                                            </ProtectedRoute>
+                                        } />
+                                        
+                                        <Route path="/cms/current-affairs" element={
+                                            <ProtectedRoute module={MODULES.CURRENT_AFFAIRS_MANAGEMENT}>
+                                                <CurrentAffairsManagement />
+                                            </ProtectedRoute>
+                                        } />
+                                        
+                                        <Route path="/cms/papers" element={
+                                            <ProtectedRoute module={MODULES.PAPERS_MANAGEMENT}>
+                                                <PapersManagement />
+                                            </ProtectedRoute>
+                                        } />
 
-                                    <Route path="*" element={<Navigate to="/" replace />} />
-                                </Routes>
+                                        <Route path="/e-store" element={<ComingSoon />} />
+
+                                        <Route path="*" element={<Navigate to="/" replace />} />
+                                    </Routes>
+                                </Suspense>
                             </MobileLayout>
                         </div>
                     </Router>

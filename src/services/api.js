@@ -7,6 +7,7 @@ const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_U
 let _accessToken = null;
 let _userRole = null;
 let _userEmail = null;
+let _userId = null;
 let _firstName = null;
 let _lastName = null;
 let _userStatus = null;
@@ -20,10 +21,11 @@ const api = axios.create({
     timeout: 30000, // Increased default to 30s
 });
 
-export const setUserContext = (token, role, email, firstName = null, lastName = null, status = null) => {
+export const setUserContext = (token, role, email, firstName = null, lastName = null, status = null, id = null) => {
     _accessToken = token;
     _userRole = role;
     _userEmail = email;
+    _userId = id || email; // Fallback to email if id is missing
     _firstName = firstName;
     _lastName = lastName;
     _userStatus = status;
@@ -33,6 +35,7 @@ export const setUserContext = (token, role, email, firstName = null, lastName = 
 export const getUserContext = () => ({
     role: _userRole,
     email: _userEmail,
+    id: _userId,
     firstName: _firstName,
     lastName: _lastName,
     status: _userStatus,

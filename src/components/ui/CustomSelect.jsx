@@ -9,7 +9,8 @@ const CustomSelect = ({
     placeholder = "Select an option...",
     label = "",
     icon = "fas fa-chevron-down",
-    disabled = false
+    disabled = false,
+    isInvalid = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -43,7 +44,7 @@ const CustomSelect = ({
         <div className={`custom-select-container ${disabled ? 'disabled' : ''}`} ref={containerRef}>
             {label && <label className="custom-select-label">{label}</label>}
             <div
-                className={`custom-select-trigger ${isOpen ? 'open' : ''} ${value ? 'has-value' : ''}`}
+                className={`custom-select-trigger ${isOpen ? 'open' : ''} ${value ? 'has-value' : ''} ${isInvalid ? 'is-invalid' : ''}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
                 <span className="trigger-text">{displayLabel}</span>

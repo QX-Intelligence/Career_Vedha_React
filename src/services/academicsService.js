@@ -1,4 +1,6 @@
 import djangoApi from './djangoApi';
+import api from './api';
+import API_CONFIG from '../config/api.config';
 
 /**
  * Academics Service
@@ -50,7 +52,7 @@ export const academicsService = {
 
     /**
      * Get chapters for a subject
-     * @param {Object} params - Query parameters (subject, subject__slug)
+     * @param {Object} params - Query parameters (subject, is_active, search)
      */
     getChapters: async (params = {}) => {
         try {
@@ -63,15 +65,15 @@ export const academicsService = {
     },
 
     /**
-     * Get detailed chapter information with materials
-     * @param {string} slug - Chapter slug
+     * Get detailed chapter information with materials (Unified)
+     * @param {number|string} id - Chapter ID or Slug
      */
-    getChapterDetail: async (slug) => {
+    getChapterDetail: async (id) => {
         try {
-            const response = await djangoApi.get(`academics/chapters/${slug}/`);
+            const response = await djangoApi.get(`academics/chapters/${id}/`);
             return response.data;
         } catch (error) {
-            console.error(`Error fetching chapter detail for ${slug}:`, error);
+            console.error(`Error fetching chapter detail for ${id}:`, error);
             throw error;
         }
     },
@@ -86,6 +88,30 @@ export const academicsService = {
             return response.data;
         } catch (error) {
             console.error('Error fetching materials:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get materials by chapter ID
+     * @param {number} chapterId - Chapter ID
+     * @returns {Promise} Material data with translations and media
+     */
+    getMaterialsByChapter: async (chapterId, subjectId, lang = 'te') => {
+        try {
+            // WORKAROUND 2: The materials list endpoint is broken (level filter).
+            // Using subject-blocks which provides all chapters + materials for a subject.
+            const response = await djangoApi.get('academics/subject-blocks/', {
+                params: { subject_id: subjectId, lang }
+            });
+            
+            // Find the specific chapter block
+            const subjectData = response.data;
+            const chapterBlock = subjectData.find(block => block.chapter.id === parseInt(chapterId));
+            
+            return chapterBlock || { chapter: { id: chapterId }, materials: [] };
+        } catch (error) {
+            console.error(`Error fetching materials for chapter ${chapterId}:`, error);
             throw error;
         }
     },
@@ -125,10 +151,10 @@ export const academicsService = {
      * @param {string} subjectSlug - Subject slug
      * @param {string} lang - Language (te/en)
      */
-    getSubjectBlocks: async (subjectSlug, lang = 'te') => {
+    getSubjectBlocks: async (subjectId, lang = 'te') => {
         try {
             const response = await djangoApi.get('academics/subject-blocks/', {
-                params: { subject_slug: subjectSlug, lang }
+                params: { subject_id: subjectId, lang }
             });
             return response.data;
         } catch (error) {
@@ -281,7 +307,19 @@ export const academicsService = {
     // Chapter Management
     createChapter: async (data) => {
         try {
-            const response = await djangoApi.post('academics/cms/chapters/', data);
+            const formData = new FormData();
+            Object.keys(data).forEach(key => {
+                if (key === 'attachments' && Array.isArray(data[key])) {
+                    data[key].forEach(file => formData.append('attachments', file));
+                } else if (key === 'media_ids' && Array.isArray(data[key])) {
+                    data[key].forEach(id => formData.append('media_ids', id));
+                } else if (data[key] !== null && data[key] !== undefined) {
+                    formData.append(key, data[key]);
+                }
+            });
+            const response = await djangoApi.post('academics/cms/chapters/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             return response.data;
         } catch (error) {
             console.error('Error creating chapter:', error);
@@ -291,7 +329,19 @@ export const academicsService = {
 
     updateChapter: async (id, data) => {
         try {
-            const response = await djangoApi.patch(`academics/cms/chapters/${id}/`, data);
+            const formData = new FormData();
+            Object.keys(data).forEach(key => {
+                if (key === 'attachments' && Array.isArray(data[key])) {
+                    data[key].forEach(file => formData.append('attachments', file));
+                } else if (key === 'media_ids' && Array.isArray(data[key])) {
+                    data[key].forEach(id => formData.append('media_ids', id));
+                } else if (data[key] !== null && data[key] !== undefined) {
+                    formData.append(key, data[key]);
+                }
+            });
+            const response = await djangoApi.patch(`academics/cms/chapters/${id}/`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             return response.data;
         } catch (error) {
             console.error('Error updating chapter:', error);
@@ -382,6 +432,34 @@ export const academicsService = {
             return response.data;
         } catch (error) {
             console.error('Error fetching admin materials:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get the full academics hierarchy (Levels -> Subjects -> Chapters)
+     * Note: This hits the Java backend (8080)
+     */
+    getAcademicsHierarchy: async () => {
+        try {
+            const response = await api.get(API_CONFIG.ENDPOINTS.ACADEMICS_HIERARCHY);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching academics hierarchy:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get the academics hierarchy from Django CMS
+     * Useful for CMS management and unified rendering
+     */
+    getDjangoHierarchy: async () => {
+        try {
+            const response = await djangoApi.get('academics/hierarchy/');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching Django academics hierarchy:', error);
             throw error;
         }
     }

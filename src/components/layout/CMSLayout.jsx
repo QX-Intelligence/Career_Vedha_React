@@ -1,6 +1,7 @@
 import React from 'react';
 import CMSSidebar from './CMSSidebar';
 import CMSNavbar from './CMSNavbar';
+import '../../styles/Dashboard.css';
 
 const CMSLayout = ({ 
     children,

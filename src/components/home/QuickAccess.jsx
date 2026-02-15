@@ -1,25 +1,31 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
+import { getTranslations } from '../../utils/translations';
 
-const QuickAccess = () => {
+const QuickAccess = memo(({ activeLanguage = 'telugu' }) => {
+    const t = getTranslations(activeLanguage);
+    
     const accessCards = [
         {
             icon: 'fas fa-book',
-            title: 'Study Materials & Syllabus',
-            description: 'Comprehensive study materials for all subjects',
-            link: '/academics'
+            title: t.studyMaterials,
+            description: t.studyMaterialsDesc,
+            link: '/academic-exams',
+            buttonText: t.exploreNow
         },
         {
             icon: 'fas fa-newspaper',
-            title: 'Current Affairs',
-            description: 'Stay updated with latest current affairs updates',
-            link: '/current-affairs'
+            title: t.currentAffairs,
+            description: t.currentAffairsDesc,
+            link: '/current-affairs',
+            buttonText: t.startLearning
         },
         {
-            icon: 'fas fa-graduation-cap',
-            title: '10th Class Study Material (AP)',
-            description: 'Comprehensive study materials for comprehensive & academic exams.',
-            link: '/academics?level=10th-class-ap'
+            icon: 'fas fa-user-tie',
+            title: t.latestJobs,
+            description: t.latestJobsDesc,
+            link: '/jobs',
+            buttonText: t.exploreNow
         }
     ];
 
@@ -35,7 +41,7 @@ const QuickAccess = () => {
                             <h3>{card.title}</h3>
                             <p>{card.description}</p>
                             <Link to={card.link} className="card-link-refined">
-                                {index === 1 ? 'Start Learning' : index === 2 ? 'Access Now' : 'Explore Now'} <i className="fas fa-arrow-right"></i>
+                                {card.buttonText} <i className="fas fa-arrow-right"></i>
                             </Link>
                         </div>
                     ))}
@@ -43,6 +49,6 @@ const QuickAccess = () => {
             </div>
         </section>
     );
-};
+});
 
 export default QuickAccess;

@@ -114,14 +114,6 @@ const JobsList = () => {
                                     </span>
                                 </div>
                                 
-                                {isAdmin && (
-                                    <button 
-                                        className="btn-admin-post"
-                                        onClick={() => window.open('/cms/jobs/new', '_self')}
-                                    >
-                                        <i className="fas fa-plus"></i> Post a Job
-                                    </button>
-                                )}
                             </div>
 
                             {loading && !loadingMore ? (

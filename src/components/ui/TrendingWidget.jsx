@@ -1,26 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { newsService } from '../../services';
+import React from 'react';
+import { useTrendingArticles } from '../../hooks/useHomeContent';
 import { Link } from 'react-router-dom';
 
 const TrendingWidget = () => {
-    const [trending, setTrending] = useState([]);
-    const [loading, setLoading] = useState(true);
     const lang = localStorage.getItem('preferredLanguage') || 'telugu';
-
-    useEffect(() => {
-        const fetchTrending = async () => {
-            try {
-                console.log('DEBUG: TrendingWidget fetching articles for lang:', lang);
-                const data = await newsService.getTrendingArticles({ limit: 5, lang });
-                setTrending(data.results || []);
-            } catch (error) {
-                console.error('Error fetching trending articles:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTrending();
-    }, [lang]);
+    const { data: trending = [], isLoading: loading } = useTrendingArticles(5, lang);
 
     if (loading) {
         return (
@@ -48,9 +32,6 @@ const TrendingWidget = () => {
                                 <span className="trending-rank">0{index + 1}</span>
                                 <div className="trending-content">
                                     <span className="trending-title">{article.title || article.summary}</span>
-                                    <div className="trending-meta">
-                                        <i className="far fa-eye"></i> {article.views_count} views
-                                    </div>
                                 </div>
                             </div>
                         </Link>

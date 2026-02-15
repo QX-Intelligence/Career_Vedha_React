@@ -1,13 +1,21 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import CMSLayout from '../../../components/layout/CMSLayout';
 import LuxuryTooltip from '../../../components/ui/LuxuryTooltip';
-import mediaService from '../../../services/mediaService';
+// import mediaService from '../../../services/mediaService'; // Replaced by hooks
+import { 
+    useMediaList, 
+    useUploadMedia, 
+    useDeleteMedia, 
+    useReplaceMedia, 
+    useMediaPresigned 
+} from '../../../hooks/useMedia';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { getUserContext } from '../../../services/api';
 import useGlobalSearch from '../../../hooks/useGlobalSearch';
 import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/accessControl.config.js';
+import Skeleton, { SkeletonCard } from '../../../components/ui/Skeleton';
 import '../../../styles/MediaManagement.css';
 import '../../../styles/Dashboard.css';
 
@@ -96,106 +104,58 @@ const MediaManagement = () => {
     };
 
     /* ================= DATA FETCHING ================= */
+    // Custom Hooks
     const { 
         data: mediaResponse, 
         isLoading, 
         isFetching,
         error: fetchError
-    } = useQuery({
-        queryKey: ['media', purpose, section, searchTerm, cursor],
-        queryFn: () => mediaService.list({ 
-            purpose: purpose || undefined, 
-            section: section || undefined, 
-            q: searchTerm || undefined,
-            cursor: cursor || undefined,
-            limit: 20 
-        }),
-        staleTime: 60 * 1000,
-        placeholderData: (previousData) => previousData,
+    } = useMediaList({ 
+        purpose: purpose || undefined, 
+        section: section || undefined, 
+        q: searchTerm || undefined,
+        cursor: cursor || undefined,
+        limit: 20 
     });
 
-    // Use a ref to prevent the reset effect from running on initial mount
-    const isFirstMount = React.useRef(true);
+    // Reset list when filters change
+    useEffect(() => {
+        setAllMedia([]);
+        setCursor(null);
+    }, [purpose, section, searchTerm]);
 
-    // Update media list when new data arrives
+    // Sync Data to State
     useEffect(() => {
         if (mediaResponse?.results) {
-            if (!cursor) {
-                setAllMedia(mediaResponse.results);
-            } else {
-                setAllMedia(prev => {
-                    const existingIds = new Set(prev.map(i => i.id));
-                    const newItems = mediaResponse.results.filter(i => !existingIds.has(i.id));
-                    return [...prev, ...newItems];
-                });
-            }
-            setTotalCount(mediaResponse.count || 0);
+            setAllMedia(prev => {
+                if (!cursor) return mediaResponse.results;
+                const existingIds = new Set(prev.map(i => i.id));
+                const uniqueNew = mediaResponse.results.filter(i => !existingIds.has(i.id));
+                return [...prev, ...uniqueNew];
+            });
             setHasNext(mediaResponse.has_next);
         }
     }, [mediaResponse, cursor]);
 
-    // Reset pagination ONLY when filters actually change
-    useEffect(() => {
-        setCursor(null);
-        setHasNext(true);
-    }, [purpose, section, searchTerm]);
+    const uploadMutation = useUploadMedia();
+    const deleteMutation = useDeleteMedia();
+    const replaceMutation = useReplaceMedia();
+    const presignedMutation = useMediaPresigned(); // New hook for getting URL
 
-    // Robust Data Derivation
-    const currentResults = useMemo(() => {
-        if (!cursor && mediaResponse?.results?.length > 0) {
-            return mediaResponse.results;
-        }
-        return allMedia;
-    }, [allMedia, mediaResponse?.results, cursor]);
+    /* ================= MUTATIONS HANDLERS ================= */
+    // Wrapping mutations to handle UI side effects (snackbars, modal closing)
+    // We can attaching these side effects when calling .mutate() in the handlers below,
+    // OR we can use the mutate's onSuccess options in the component.
+    // The previous implementation defined onSuccess here. 
+    // Since custom hooks handle validation, we will handle UI feedback in the handlers or 
+    // we can pass callbacks to the custom hooks if we modified them, but useMutation returns the mutation object 
+    // which we can attach callbacks to when calling mutate, or we can use useEffects (less preferred).
+    // Better way: The handlers (handleUpload, etc.) will call mutate and provide the callbacks.
+    // BUT wait, existing code defined mutations with onSuccess/onError in the body.
+    // The custom hooks I created return the mutation object but defined onSuccess for invalidation.
+    // React Query allows multiple onSuccess callbacks (one in hook, one in mutate call).
+    // So I can just attach the UI logic in the component's mutate calls.
 
-    const filteredMedia = currentResults; 
-
-    /* ================= MUTATIONS ================= */
-    const uploadMutation = useMutation({
-        mutationFn: (formData) => mediaService.upload(formData),
-        onSuccess: () => {
-            showSnackbar('Media uploaded successfully!', 'success');
-            queryClient.invalidateQueries(['media']);
-            setShowUploadModal(false);
-            resetUploadForm();
-        },
-        onError: (err) => {
-            console.error('Upload Error:', err);
-            showSnackbar(err.response?.data?.error || 'Failed to upload media', 'error');
-        },
-        onSettled: () => setUploading(false)
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: (id) => mediaService.delete(id),
-        onSuccess: () => {
-            showSnackbar('Media deleted successfully!', 'success');
-            queryClient.invalidateQueries(['media']);
-        },
-        onError: (err) => {
-            showSnackbar(err.response?.data?.error || 'Failed to delete media', 'error');
-        }
-    });
-
-    const replaceMutation = useMutation({
-        mutationFn: ({ id, formData }) => mediaService.replace(id, formData),
-        onSuccess: (data, variables) => {
-            const isFullReplacement = variables.formData.has('file');
-            const message = isFullReplacement 
-                ? `Media replaced successfully! New ID: ${data.media_id}`
-                : 'Media details updated successfully!';
-            
-            showSnackbar(message, 'success');
-            queryClient.invalidateQueries(['media']);
-            setShowReplaceModal(false);
-            resetReplaceForm();
-        },
-        onError: (err) => {
-            console.error('Update Error:', err);
-            showSnackbar(err.response?.data?.error || 'Failed to update media', 'error');
-        },
-        onSettled: () => setReplacing(false)
-    });
 
     /* ================= HANDLERS ================= */
     const handleFileSelect = (e) => {
@@ -234,7 +194,19 @@ const MediaManagement = () => {
         formData.append('title', uploadTitle || uploadFile.name);
         formData.append('alt_text', uploadAltText);
 
-        uploadMutation.mutate(formData);
+        uploadMutation.mutate(formData, {
+            onSuccess: () => {
+                showSnackbar('Media uploaded successfully!', 'success');
+                setShowUploadModal(false);
+                resetUploadForm();
+                setUploading(false);
+            },
+            onError: (err) => {
+                console.error('Upload Error:', err);
+                showSnackbar(err.response?.data?.error || 'Failed to upload media', 'error');
+                setUploading(false);
+            }
+        });
     };
 
     const loadMoreMedia = () => {
@@ -245,18 +217,21 @@ const MediaManagement = () => {
 
     const handleDelete = (id) => {
         if (window.confirm('Are you sure you want to delete this media?')) {
-            deleteMutation.mutate(id);
+            deleteMutation.mutate(id, {
+                onSuccess: () => showSnackbar('Media deleted successfully!', 'success'),
+                onError: (err) => showSnackbar(err.response?.data?.error || 'Failed to delete media', 'error')
+            });
         }
     };
 
     const handleCopyUrl = async (id) => {
-        try {
-            const data = await mediaService.getPresigned(id);
-            navigator.clipboard.writeText(data.presigned_url);
-            showSnackbar('Presigned URL copied to clipboard!', 'success');
-        } catch (err) {
-            showSnackbar('Failed to get URL', 'error');
-        }
+        presignedMutation.mutate(id, {
+            onSuccess: (data) => {
+                navigator.clipboard.writeText(data.presigned_url);
+                showSnackbar('Presigned URL copied to clipboard!', 'success');
+            },
+            onError: () => showSnackbar('Failed to get URL', 'error')
+        });
     };
 
     const handleView = async (item) => {
@@ -265,18 +240,20 @@ const MediaManagement = () => {
         setPreviewModalOpen(true);
         setPreviewUrl(null);
 
-        try {
-            const data = await mediaService.getPresigned(item.id);
-            if (data.presigned_url) {
-                setPreviewUrl(data.presigned_url);
-            } else {
-                showSnackbar('Could not resolve URL', 'error');
+        presignedMutation.mutate(item.id, {
+            onSuccess: (data) => {
+                if (data.presigned_url) {
+                    setPreviewUrl(data.presigned_url);
+                } else {
+                    showSnackbar('Could not resolve URL', 'error');
+                }
+                setPreviewLoading(false);
+            },
+            onError: () => {
+                showSnackbar('Failed to open media', 'error');
+                setPreviewLoading(false);
             }
-        } catch (err) {
-            showSnackbar('Failed to open media', 'error');
-        } finally {
-            setPreviewLoading(false);
-        }
+        });
     };
 
     const resetUploadForm = () => {
@@ -344,6 +321,23 @@ const MediaManagement = () => {
         replaceMutation.mutate({ 
             id: replaceItem.id, 
             formData 
+        }, {
+            onSuccess: (data, variables) => {
+                const isFullReplacement = variables.formData.has('file');
+                const message = isFullReplacement 
+                    ? `Media replaced successfully! New ID: ${data.media_id}`
+                    : 'Media details updated successfully!';
+                
+                showSnackbar(message, 'success');
+                setShowReplaceModal(false);
+                resetReplaceForm();
+                setReplacing(false);
+            },
+            onError: (err) => {
+                console.error('Update Error:', err);
+                showSnackbar(err.response?.data?.error || 'Failed to update media', 'error');
+                setReplacing(false);
+            }
         });
     };
 
@@ -355,16 +349,18 @@ const MediaManagement = () => {
         setReplaceCurrentLoading(true);
         setShowReplaceModal(true);
 
-        try {
-            const data = await mediaService.getPresigned(item.id);
-            if (data.presigned_url) {
-                setReplaceCurrentPreviewUrl(data.presigned_url);
+        presignedMutation.mutate(item.id, {
+            onSuccess: (data) => {
+                if (data.presigned_url) {
+                    setReplaceCurrentPreviewUrl(data.presigned_url);
+                }
+                setReplaceCurrentLoading(false);
+            },
+            onError: (err) => {
+                console.error("Failed to fetch current media preview:", err);
+                setReplaceCurrentLoading(false);
             }
-        } catch (err) {
-            console.error("Failed to fetch current media preview:", err);
-        } finally {
-            setReplaceCurrentLoading(false);
-        }
+        });
     };
 
     const handleLogout = async () => {
@@ -402,6 +398,8 @@ const MediaManagement = () => {
         isCmsOpen,
         setIsCmsOpen
     };
+
+    const filteredMedia = allMedia;
 
     const navbarProps = {
         title: "Media Library",
@@ -465,10 +463,11 @@ const MediaManagement = () => {
             </div>
 
 
-            {(isLoading || (isFetching && currentResults.length === 0)) && currentResults.length === 0 ? (
-                <div className="um-loading">
-                    <div className="um-spinner"></div>
-                    <p>Loading media...</p>
+            {(isLoading || (isFetching && filteredMedia.length === 0)) && filteredMedia.length === 0 ? (
+                <div className="mm-grid">
+                    {[...Array(8)].map((_, i) => (
+                        <SkeletonCard key={i} height="240px" />
+                    ))}
                 </div>
             ) : (
                 <>

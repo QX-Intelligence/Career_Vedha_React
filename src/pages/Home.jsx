@@ -1,77 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { newsService } from '../services';
+import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { Link } from 'react-router-dom';
+import { useHomeContent } from '../hooks/useHomeContent';
+import { getTranslations } from '../utils/translations';
 import TopBar from '../components/layout/TopBar';
 import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
-// import SecondaryNav from '../components/layout/SecondaryNav';
 import Footer from '../components/layout/Footer';
-import BreakingNews from '../components/home/BreakingNews'; // Keep for safety or remove if unused, but I'll keeping imports for now to avoid breaking other things if I reference them. actually I removed BreakingNews from JSX.
 import QuickAccess from '../components/home/QuickAccess';
 import FeaturedStory from '../components/home/FeaturedStory';
-import SecondaryStories from '../components/home/SecondaryStories';
 import Sidebar from '../components/home/Sidebar';
-import ExploreMore from '../components/home/ExploreMore';
 import LatestArticles from '../components/home/LatestArticles';
 import SectionCategoryBlocks from '../components/home/SectionCategoryBlocks';
-import PreviousPapers from '../components/home/PreviousPapers';
-import MultiWidgets from '../components/home/MultiWidgets';
-import Shorts from '../components/home/Shorts';
-import QuickLinks from '../components/home/QuickLinks';
-import MustRead from '../components/home/MustRead';
 import HeroIntro from '../components/home/HeroIntro';
-import AcademicsHighlights from '../components/home/AcademicsHighlights';
-import { filterPublishedArticles } from '../utils/articleUtils';
+import MustRead from '../components/home/MustRead';
+import Skeleton from '../components/ui/Skeleton';
+
+// Lazy load below-the-fold components
+const ExploreMore = lazy(() => import('../components/home/ExploreMore'));
+const PreviousPapers = lazy(() => import('../components/home/PreviousPapers'));
+const MultiWidgets = lazy(() => import('../components/home/MultiWidgets'));
+const Shorts = lazy(() => import('../components/home/Shorts'));
+
+// Loading Placeholder for Lazy Components
+const SectionSkeleton = () => (
+    <div className="container" style={{ padding: '2rem 0' }}>
+        <Skeleton variant="title" width="30%" style={{ marginBottom: '1.5rem' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <Skeleton variant="card" count={3} />
+        </div>
+    </div>
+);
 
 const Home = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeLanguage, setActiveLanguage] = useState(() => {
         return localStorage.getItem('preferredLanguage') || 'telugu';
     });
-    const [homeData, setHomeData] = useState({
+    const { data: homeData = {
         hero: [],
         breaking: [],
         top_stories: [],
         latest: { results: [], has_next: false }
-    });
-    const [loading, setLoading] = useState(true);
+    }, isLoading: loading } = useHomeContent(activeLanguage, 6);
 
-    const fetchHomeData = async (lang = 'te') => {
-        setLoading(true);
-        try {
-            const data = await newsService.getHomeContent(lang);
-            console.log('[Home] Raw Data:', data);
-            
-            // Filter out scheduled articles (published_at > now)
-            const filteredData = {
-                hero: filterPublishedArticles(data.hero || []),
-                breaking: filterPublishedArticles(data.breaking || []),
-                top_stories: filterPublishedArticles(data.top_stories || []),
-                featured: filterPublishedArticles(data.featured || []),
-                trending: filterPublishedArticles(data.trending || []),
-                latest: {
-                    ...data.latest,
-                    results: filterPublishedArticles(data.latest?.results || [])
-                }
-            };
-            console.log('[Home] Filtered Data:', filteredData);
-            
-            setHomeData(filteredData);
-        } catch (error) {
-            console.error('Error fetching home data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const t = useMemo(() => getTranslations(activeLanguage), [activeLanguage]);
 
-    useEffect(() => {
-        const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
-        fetchHomeData(langCode);
-    }, [activeLanguage]);
-
-    const handleLanguageChange = (lang) => {
+    const handleLanguageChange = useCallback((lang) => {
         setActiveLanguage(lang);
         localStorage.setItem('preferredLanguage', lang);
-    };
+    }, []);
 
     return (
         <div className="home-page">
@@ -85,16 +62,20 @@ const Home = () => {
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
             
-            <MustRead />
+            <MustRead 
+                activeLanguage={activeLanguage} 
+                articles={homeData.must_read || []}
+                loading={loading}
+            />
             <div className="responsive-hero-section">
                 <HeroIntro />
             </div>
-            <QuickAccess />
+            <QuickAccess activeLanguage={activeLanguage} />
 
             <div className="latest-updates-header container">
                 <div className="section-marker"></div>
-                <h2>Latest Updates</h2>
-                <a href="/archive" className="see-all-btn">See All <i className="fas fa-chevron-right"></i></a>
+                <h2>{t.latestUpdates}</h2>
+                <Link to="/articles" className="see-all-btn">{t.seeAll} <i className="fas fa-chevron-right"></i></Link>
             </div>
 
             <main className="main-content">
@@ -118,24 +99,37 @@ const Home = () => {
                             </div>
                         </div>
                         <div className="sidebar-container desktop-only">
-                            <Sidebar />
+                            <Sidebar activeLanguage={activeLanguage} />
                         </div>
                     </div>
                 </div>
             </main>
 
-            <AcademicsHighlights />
 
-            <SectionCategoryBlocks section="academics" title="Latest from Academics" />
-            <SectionCategoryBlocks section="jobs" title="Career Opportunities" />
 
-            <ExploreMore />
-            <PreviousPapers />
-            <MultiWidgets />
-            <Shorts />
+            <SectionCategoryBlocks section="academics" title={t.latestFromAcademics} activeLanguage={activeLanguage} />
+            <SectionCategoryBlocks section="jobs" title={t.careerOpportunities} activeLanguage={activeLanguage} />
+
+            {/* <Suspense fallback={<SectionSkeleton />}>
+                <ExploreMore activeLanguage={activeLanguage} />
+            </Suspense> */}
+            
+            <Suspense fallback={<SectionSkeleton />}>
+                <PreviousPapers activeLanguage={activeLanguage} />
+            </Suspense>
+            
+            {/* <Suspense fallback={<SectionSkeleton />}>
+                <MultiWidgets activeLanguage={activeLanguage} />
+            </Suspense> */}
+            
+            {/* <Suspense fallback={<SectionSkeleton />}>
+                <Shorts activeLanguage={activeLanguage} />
+            </Suspense> */}
+            
             <Footer />
         </div>
     );
 };
 
 export default Home;
+

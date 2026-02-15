@@ -87,13 +87,15 @@ const CMSSidebar = ({
                     </button>
                 )}
 
-                <button
-                    className={`menu-item ${activeSection === 'notifications' ? 'active' : ''}`}
-                    onClick={() => handleMenuClick('notifications')}
-                >
-                    <i className="fas fa-bell"></i>
-                    <span>Notifications</span>
-                </button>
+                {userRole !== 'CONTRIBUTOR' && (
+                    <button
+                        className={`menu-item ${activeSection === 'notifications' ? 'active' : ''}`}
+                        onClick={() => handleMenuClick('notifications')}
+                    >
+                        <i className="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </button>
+                )}
 
                 <div className="sidebar-divider" style={{ height: '1px', background: 'rgba(226, 232, 240, 0.5)', margin: '15px 24px' }}></div>
 
@@ -131,7 +133,8 @@ const CMSSidebar = ({
                             </button>
                         )}
 
-                        {checkAccess(MODULES.JOB_MANAGEMENT) && (
+                        {/* Hide Jobs for Contributors explicitly */}
+                        {userRole !== 'CONTRIBUTOR' && checkAccess(MODULES.JOB_MANAGEMENT) && (
                             <button
                                 className={`menu-item ${activeSection === 'jobs' ? 'active' : ''}`}
                                 onClick={() => navigate('/cms/jobs')}
@@ -142,14 +145,16 @@ const CMSSidebar = ({
                             </button>
                         )}
                         
-                        <button
-                            className={`menu-item ${activeSection === 'taxonomy' ? 'active' : ''}`}
-                            onClick={() => navigate('/cms/taxonomy')}
-                            style={{ paddingLeft: '40px' }}
-                        >
-                            <i className="fas fa-tags"></i>
-                            <span>Taxonomy</span>
-                        </button>
+                        {checkAccess(MODULES.TAXONOMY_MANAGEMENT) && (
+                            <button
+                                className={`menu-item ${activeSection === 'taxonomy' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/taxonomy')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-tags"></i>
+                                <span>Taxonomy</span>
+                            </button>
+                        )}
 
                         {checkAccess(MODULES.MEDIA_MANAGEMENT) && (
                             <button
@@ -162,7 +167,7 @@ const CMSSidebar = ({
                             </button>
                         )}
                         
-                        {checkAccess(MODULES.ACADEMICS_MANAGEMENT) && (
+                         {checkAccess(MODULES.ACADEMICS_MANAGEMENT) && (
                             <button
                                 className={`menu-item ${activeSection === 'academics' ? 'active' : ''}`}
                                 onClick={() => navigate('/cms/academics')}
@@ -170,6 +175,28 @@ const CMSSidebar = ({
                             >
                                 <i className="fas fa-graduation-cap"></i>
                                 <span>Academics</span>
+                            </button>
+                        )}
+                        
+                        {checkAccess(MODULES.CURRENT_AFFAIRS_MANAGEMENT) && (
+                            <button
+                                className={`menu-item ${activeSection === 'current-affairs-management' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/current-affairs')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-newspaper"></i>
+                                <span>Current Affairs</span>
+                            </button>
+                        )}
+                        
+                        {checkAccess(MODULES.PAPERS_MANAGEMENT) && (
+                            <button
+                                className={`menu-item ${activeSection === 'papers-management' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/papers')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-file-pdf"></i>
+                                <span>Previous Papers</span>
                             </button>
                         )}
                     </>

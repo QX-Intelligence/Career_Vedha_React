@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { mockFeaturedStory } from '../../utils/mockData';
-// import { newsService } from '../../services';
+import Skeleton from '../ui/Skeleton';
 
-const FeaturedStory = ({ story, loading, activeLanguage }) => {
+const FeaturedStory = memo(({ story, loading, activeLanguage }) => {
     // Helper to format date
     const formatDate = (dateString) => {
         if (!dateString) return 'Recent';
@@ -21,7 +20,16 @@ const FeaturedStory = ({ story, loading, activeLanguage }) => {
     };
 
     if (loading) {
-        return <div className="featured-story loading">Loading...</div>;
+        return (
+            <div className="featured-story loading-skeleton">
+                <Skeleton variant="card" height="450px" />
+                <div className="story-content" style={{ marginTop: '1rem' }}>
+                    <Skeleton variant="text" width="20%" style={{ marginBottom: '0.5rem' }} />
+                    <Skeleton variant="title" width="80%" style={{ marginBottom: '1rem' }} />
+                    <Skeleton variant="text" count={2} />
+                </div>
+            </div>
+        );
     }
 
     if (!story) return null;
@@ -49,6 +57,6 @@ const FeaturedStory = ({ story, loading, activeLanguage }) => {
             </div>
         </article>
     );
-};
+});
 
 export default FeaturedStory;

@@ -1,0 +1,106 @@
+
+/* v2 Iframe-based Watermarked Viewer */
+.watermarked-pdf-viewer-v2 {
+    position: relative;
+    width: 100%;
+    background-color: #f1f5f9;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.pdf-iframe-container {
+    width: 100%;
+    height: 800px;
+    position: relative;
+    z-index: 1;
+}
+
+.pdf-iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Sticky Watermark Overlay */
+.pdf-watermark-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* CRITICAL: Allows interaction with the iframe underneath */
+    z-index: 10;
+    overflow: hidden;
+    opacity: 0.15; /* Subtler watermark */
+}
+
+.watermark-pattern {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 200%;
+    height: 200%;
+    transform: rotate(-25deg) translate(-10%, -10%);
+}
+
+.watermark-item {
+    padding: 4rem;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #475569;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+}
+
+.pdf-actions-footer {
+    padding: 1rem 1.5rem;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pdf-info-hint {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.pdf-download-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #facc15;
+    color: #1e293b;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.pdf-download-link:hover {
+    background-color: #eab308;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Legacy styles (keeping for now to avoid breaking anything else if reused) */
+.watermarked-pdf-viewer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #525659;
+    padding: 20px 0;
+    overflow-y: auto;
+    max-height: 800px;
+    border-radius: 12px;
+}
+.pdf-page-container {
+    position: relative;
+    margin-bottom: 20px;
+}

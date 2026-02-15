@@ -82,16 +82,17 @@ const AdminLogin = () => {
                 otp: otpString
             });
 
-            const { accessToken, role, email: userEmail, firstName, lastName, status } = response.data;
+            const { accessToken, role, email: userEmail, firstName, lastName, status, id } = response.data;
 
             // Security Check
-            if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
-                showSnackbar('Access Denied. Admins only.', 'error');
+            const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'PUBLISHER', 'EDITOR', 'CONTRIBUTOR'];
+            if (!allowedRoles.includes(role)) {
+                showSnackbar('Access Denied. Unauthorized role.', 'error');
                 setLoading(false);
                 return;
             }
 
-            setUserContext(accessToken, role, userEmail, firstName, lastName, status);
+            setUserContext(accessToken, role, userEmail, firstName, lastName, status, id);
             showSnackbar('Login successful!', 'success');
 
             setTimeout(() => {

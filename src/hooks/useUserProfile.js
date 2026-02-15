@@ -25,19 +25,21 @@ export const useUserProfile = () => {
     // Synchronize auth context when data is fetched or updated
     useEffect(() => {
         if (query.data) {
-            const { firstName, lastName, status, email: profileEmail } = query.data;
+            const { firstName, lastName, status, email: profileEmail, id, userId } = query.data;
+            const currentId = id || userId;
             const token = getAccessToken();
             // Update context if any core field is missing or different
             if (
                 context.email !== profileEmail ||
+                context.id !== currentId ||
                 context.firstName !== firstName ||
                 context.lastName !== lastName ||
                 context.status !== status
             ) {
-                setUserContext(token, context.role, profileEmail, firstName, lastName, status);
+                setUserContext(token, context.role, profileEmail, firstName, lastName, status, currentId);
             }
         }
-    }, [query.data, context.role, context.email, context.firstName, context.lastName, context.status]);
+    }, [query.data, context.role, context.email, context.id, context.firstName, context.lastName, context.status]);
 
     return query;
 };

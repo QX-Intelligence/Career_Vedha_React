@@ -11,7 +11,8 @@ import { getRoleInitials } from '../../../utils/roleUtils';
 import API_CONFIG from '../../../config/api.config';
 import CMSLayout from '../../../components/layout/CMSLayout';
 import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/accessControl.config.js';
-import { sendPostNotification } from '../../../services/notificationService';
+import { useArticle, useCreateArticle, useUpdateArticle, usePublishArticle, useAssignCategories } from '../../../hooks/useArticles';
+import { useAdminCategories, useCategoriesBySection, useDeleteCategory, useToggleCategoryStatus, useFetchCategoryChildren, useSections } from '../../../hooks/useTaxonomy';
 import './ArticleEditor.css';
 import '../../../styles/Dashboard.css';
 
@@ -23,12 +24,8 @@ const ArticleEditor = () => {
 
     // UI State
     const [activeTab, setActiveTab] = useState('english'); // 'english' or 'telugu'
-    const [loading, setLoading] = useState(isEditMode);
-    const [saving, setSaving] = useState(false);
-    const [sections, setSections] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [isCmsOpen, setIsCmsOpen] = useState(true);
-
+    
     const [formData, setFormData] = useState({
         section: '',
         slug: '',
@@ -51,6 +48,29 @@ const ArticleEditor = () => {
         expires_at: '',
         status: 'DRAFT'
     });
+    
+    // React Query hooks (must come after formData since they depend on it)
+    const { data: articleData, isLoading: loadingArticle } = useArticle(id, { enabled: isEditMode });
+    const { data: adminCategoriesData } = useAdminCategories();
+    const { data: sectionCategories } = useCategoriesBySection(formData.section);
+    const createArticleMutation = useCreateArticle();
+    const updateArticleMutation = useUpdateArticle();
+    const publishArticleMutation = usePublishArticle();
+    const assignCategoriesMutation = useAssignCategories();
+    const { data: dynamicSections } = useSections();
+    
+    // Mutation loading state
+    const isSaving = createArticleMutation.isPending || 
+                     updateArticleMutation.isPending || 
+                     publishArticleMutation.isPending || 
+                     assignCategoriesMutation.isPending;
+
+    
+    // Derived state
+    const sections = dynamicSections || [];
+
+    
+    const categories = sectionCategories || [];
 
     // Media Upload State
     const [bannerFile, setBannerFile] = useState(null);
@@ -73,120 +93,109 @@ const ArticleEditor = () => {
     /* ================= AUTH CHECK ================= */
     useEffect(() => {
         const { role, isAuthenticated } = getUserContext();
-        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'PUBLISHER', 'EDITOR'];
+        const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'PUBLISHER', 'EDITOR', 'CONTRIBUTOR'];
 
         if (!isAuthenticated || !allowedRoles.includes(role)) {
             return navigate('/admin-login');
         }
 
-        // Fetch categories/sections
-        fetchMetadata();
     }, [navigate]);
 
-    const fetchMetadata = async () => {
-        try {
-            // Fetch categories to derive available sections
-            // Fetch categories to derive available sections
-            // Removed limit as per user request
-            const response = await newsService.getAdminCategories();
-            console.log('Categories Response:', response); // Debugging
+    // Populate form when article data is loaded
+    useEffect(() => {
+        if (articleData && isEditMode) {
+            const article = articleData;
+            const translations = article.translations || [];
+            const telTrans = translations.find(t => t.language === 'te' || t.language_code === 'te');
+            const engTrans = translations.find(t => t.language === 'en' || t.language_code === 'en');
 
-            const allCategories = response.results || [];
-            
-            // Extract unique sections
-            const uniqueSections = [...new Set(allCategories.map(cat => cat.section))];
-            
-            // Format for dropdown
-            const dynamicSections = uniqueSections.map(sec => ({
-                id: sec,
-                name: sec.charAt(0).toUpperCase() + sec.slice(1).replace(/_/g, ' ')
-            }));
+            setFormData({
+                ...article,
+                section: article.section || sectionParam || '',
+                // English mapping
+                eng_title: article.eng_title || engTrans?.title || (article.language === 'en' ? article.title : ''),
+                eng_content: article.eng_content || engTrans?.content || (article.language === 'en' ? article.content : ''),
+                eng_summary: article.eng_summary || engTrans?.summary || (article.language === 'en' ? article.summary : ''),
+                
+                // Telugu mapping
+                tel_title: article.tel_title || telTrans?.title || (article.language === 'te' ? article.title : ''),
+                tel_content: article.tel_content || telTrans?.content || (article.language === 'te' ? article.content : ''),
+                tel_summary: article.tel_summary || telTrans?.summary || (article.language === 'te' ? article.summary : ''),
+                
+                category_ids: article.article_categories ? article.article_categories.map(c => c.category_id) : (article.categories ? article.categories.map(c => c.id) : [])
+            });
 
-            // No fallbacks - strictly API based
-            setSections(dynamicSections);
-        } catch (error) {
-            console.error('Error fetching metadata (sections):', error);
-            setSections([]);
+            // Prefill Media Previews
+            const mediaLinks = article.media_links || [];
+            const bannerMedia = mediaLinks.find(m => m.usage === 'BANNER');
+            const mainMedia = mediaLinks.find(m => m.usage === 'MAIN');
+
+            if (bannerMedia && bannerMedia.media_details) {
+                setBannerMediaId(bannerMedia.media_details.id);
+                setBannerPreview(bannerMedia.media_details.url);
+            }
+
+            if (mainMedia && mainMedia.media_details) {
+                setMainMediaId(mainMedia.media_details.id);
+                setMainPreview(mainMedia.media_details.url);
+            }
         }
+    }, [articleData, isEditMode, sectionParam]);
+
+    const [errors, setErrors] = useState({});
+    
+    const validateForm = () => {
+        const newErrors = {};
+        const requiredFields = {
+            section: 'Section',
+            slug: 'Slug',
+            eng_title: 'English Title',
+            eng_content: 'English Content',
+            eng_summary: 'English Summary',
+            tel_title: 'Telugu Title',
+            tel_content: 'Telugu Content',
+            tel_summary: 'Telugu Summary',
+            expires_at: 'Article Expiry Date'
+        };
+
+        for (const [key, label] of Object.entries(requiredFields)) {
+            if (!formData[key] || (typeof formData[key] === 'string' && !formData[key].trim())) {
+                newErrors[key] = true;
+                showSnackbar(`${label} is required`, 'error');
+                
+                // Switch tab if error is in a specific language
+                if (key.startsWith('eng_')) setActiveTab('english');
+                if (key.startsWith('tel_')) setActiveTab('telugu');
+                
+                setErrors(newErrors);
+                return false;
+            }
+        }
+
+        if (!formData.category_ids || formData.category_ids.length === 0) {
+            newErrors.categories = true;
+            showSnackbar('At least one category is required', 'error');
+            setErrors(newErrors);
+            return false;
+        }
+
+        if (!bannerFile && !bannerMediaId) {
+            newErrors.banner = true;
+            showSnackbar('Banner media is required', 'error');
+            setErrors(newErrors);
+            return false;
+        }
+
+        if (!mainFile && !mainMediaId) {
+            newErrors.main = true;
+            showSnackbar('Main media is required', 'error');
+            setErrors(newErrors);
+            return false;
+        }
+
+        setErrors({});
+        return true;
     };
-
-    // Fetch categories when section changes
-    useEffect(() => {
-        if (formData.section) {
-            const fetchCats = async () => {
-                try {
-                    const data = await newsService.getTaxonomyBySection(formData.section);
-                    setCategories(data || []);
-                } catch (err) {
-                    console.error('Failed to load categories');
-                }
-            };
-            fetchCats();
-        }
-    }, [formData.section]);
-
-    useEffect(() => {
-        if (isEditMode) {
-            const fetchArticle = async () => {
-                try {
-                    let article;
-                    // Check if 'id' is a primary key (numeric) or slug
-                    const isNumericId = /^\d+$/.test(id);
-                    
-                    if (isNumericId) {
-                        article = await newsService.getAdminArticleDetail(id);
-                    } else {
-                        // Fallback for slug-based access - Note: this may still return single language 
-                        // unless we add a CMS slug-based endpoint
-                        article = await newsService.getArticleDetail(sectionParam, id, 'en');
-                    }
-                    
-                    // Robust translation mapping from any response format
-                    const translations = article.translations || [];
-                    const telTrans = translations.find(t => t.language === 'te' || t.language_code === 'te');
-                    const engTrans = translations.find(t => t.language === 'en' || t.language_code === 'en');
-
-                    setFormData({
-                        ...article,
-                        section: article.section || sectionParam || '',
-                        // English mapping
-                        eng_title: article.eng_title || engTrans?.title || (article.language === 'en' ? article.title : ''),
-                        eng_content: article.eng_content || engTrans?.content || (article.language === 'en' ? article.content : ''),
-                        eng_summary: article.eng_summary || engTrans?.summary || (article.language === 'en' ? article.summary : ''),
-                        
-                        // Telugu mapping
-                        tel_title: article.tel_title || telTrans?.title || (article.language === 'te' ? article.title : ''),
-                        tel_content: article.tel_content || telTrans?.content || (article.language === 'te' ? article.content : ''),
-                        tel_summary: article.tel_summary || telTrans?.summary || (article.language === 'te' ? article.summary : ''),
-                        
-                        category_ids: article.article_categories ? article.article_categories.map(c => c.category_id) : (article.categories ? article.categories.map(c => c.id) : [])
-                    });
-
-                    // Prefill Media Previews
-                    const mediaLinks = article.media_links || [];
-                    const bannerMedia = mediaLinks.find(m => m.usage === 'BANNER');
-                    const mainMedia = mediaLinks.find(m => m.usage === 'MAIN');
-
-                    if (bannerMedia && bannerMedia.media_details) {
-                        setBannerMediaId(bannerMedia.media_details.id);
-                        setBannerPreview(bannerMedia.media_details.url);
-                    }
-
-                    if (mainMedia && mainMedia.media_details) {
-                        setMainMediaId(mainMedia.media_details.id);
-                        setMainPreview(mainMedia.media_details.url);
-                    }
-                } catch (error) {
-                    console.error('Error fetching article:', error);
-                    showSnackbar('Failed to load article data', 'error');
-                    navigate('/dashboard?tab=articles');
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchArticle();
-        }
-    }, [id, sectionParam, isEditMode, navigate, showSnackbar]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -284,18 +293,16 @@ const ArticleEditor = () => {
             e.stopPropagation();
         }
         
-        if (saving) return; // Prevent double submission
+        if (publishArticleMutation.isPending || createArticleMutation.isPending) return;
         
-        setSaving(true);
+        if (!validateForm()) return;
+
         try {
             let targetId = id;
             
-            // For NEW articles: Create with PUBLISHED status and scheduled_at in one request
+            // For NEW articles: Create with PUBLISHED status
             if (!isEditMode) {
-                // Transform frontend format to backend format
                 const translations = [];
-                
-                // Add Telugu translation if exists
                 if (formData.tel_title || formData.tel_content) {
                     translations.push({
                         language: 'te',
@@ -304,8 +311,6 @@ const ArticleEditor = () => {
                         summary: formData.tel_summary || ''
                     });
                 }
-                
-                // Add English translation if exists
                 if (formData.eng_title || formData.eng_content) {
                     translations.push({
                         language: 'en',
@@ -330,118 +335,100 @@ const ArticleEditor = () => {
                     og_image_url: formData.og_image_url || '',
                     noindex: formData.noindex || false,
                     expires_at: formData.expires_at || null,
-                    status: scheduleDate ? 'SCHEDULED' : 'PUBLISHED',
-                    banner_file: bannerFile,
-                    banner_media_id: bannerMediaId,
-                    main_file: mainFile,
-                    main_media_id: mainMediaId
+                    status: scheduleDate ? 'SCHEDULED' : 'PUBLISHED'
                 };
+
+                // Add media ONLY if they exist to satisfy backend validators
+                if (bannerFile) payload.banner_file = bannerFile;
+                if (bannerMediaId) payload.banner_media_id = bannerMediaId;
+                if (mainFile) payload.main_file = mainFile;
+                if (mainMediaId) payload.main_media_id = mainMediaId;
                 
-                // Add scheduled_at if scheduling
                 if (scheduleDate) {
                     payload.scheduled_at = new Date(scheduleDate).toISOString();
                 }
                 
-                const newArticle = await newsService.createArticle(payload);
+                const newArticle = await createArticleMutation.mutateAsync(payload);
                 targetId = newArticle.id;
             } else {
-                // For EXISTING articles: Update first, then call direct-publish
+                // For EXISTING articles: Update first, then publish
                 const payload = {
                     ...formData,
                     tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : formData.tags,
                     keywords: typeof formData.keywords === 'string' ? formData.keywords.split(',').map(k => k.trim()).filter(k => k) : formData.keywords
                 };
-                await newsService.updateArticle(id, payload);
+                await updateArticleMutation.mutateAsync({ id, data: payload });
                 
                 const publishPayload = scheduleDate ? { scheduled_at: new Date(scheduleDate).toISOString() } : {};
-                await newsService.directPublish(targetId, publishPayload);
+                await publishArticleMutation.mutateAsync({ id: targetId, payload: publishPayload });
             }
 
             showSnackbar(`Article ${scheduleDate ? 'scheduled' : 'published'} successfully`, 'success');
-            
-            // Trigger Notification for Published Articles
-            try {
-                const articleTitle = formData.eng_title || formData.tel_title || 'New Article';
-                const message = `Article Published: ${articleTitle}`;
-                await sendPostNotification(targetId, 'ADMIN', message);
-                await sendPostNotification(targetId, 'SUPER_ADMIN', message);
-            } catch (notifError) {
-                console.error('Notification failed:', notifError);
-            }
             
             navigate('/dashboard?tab=articles');
         } catch (error) {
             console.error('Publish error:', error);
             showSnackbar(error.response?.data?.error || 'Failed to publish article', 'error');
         } finally {
-            setSaving(false);
             setShowPublishModal(false);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setSaving(true);
+        
+        if (createArticleMutation.isPending || updateArticleMutation.isPending) return;
+        
+        if (!validateForm()) return;
+
         try {
             let targetId = id;
             
-            // Prepare payload with media
             const payload = { 
                 ...formData,
                 tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : formData.tags,
                 keywords: typeof formData.keywords === 'string' ? formData.keywords.split(',').map(k => k.trim()).filter(k => k) : formData.keywords
             };
+
+            // Remove existing string URLs to prevent PATCH errors
+            delete payload.banner_file;
+            delete payload.main_file;
+            delete payload.banner_media_id;
+            delete payload.main_media_id;
             
-            // Add media fields if present
-            if (bannerFile) {
-                payload.banner_file = bannerFile;
-            }
-            if (bannerMediaId) {
-                payload.banner_media_id = bannerMediaId;
-            }
-            if (mainFile) {
-                payload.main_file = mainFile;
-            }
-            if (mainMediaId) {
-                payload.main_media_id = mainMediaId;
-            }
+            // Re-add ONLY if we have fresh content
+            if (bannerFile) payload.banner_file = bannerFile;
+            if (bannerMediaId) payload.banner_media_id = bannerMediaId;
+            if (mainFile) payload.main_file = mainFile;
+            if (mainMediaId) payload.main_media_id = mainMediaId;
             
             if (isEditMode) {
-                await newsService.updateArticle(id, payload);
+                await updateArticleMutation.mutateAsync({ id, data: payload });
             } else {
-                const newArticle = await newsService.createArticle(payload);
+                const newArticle = await createArticleMutation.mutateAsync(payload);
                 targetId = newArticle.id;
             }
 
-            // Always try to sync categories if we have an ID
+            // Sync categories
             if (targetId && formData.category_ids) {
-                await newsService.assignCategories(targetId, formData.category_ids);
+                await assignCategoriesMutation.mutateAsync({ 
+                    articleId: targetId, 
+                    categoryIds: formData.category_ids 
+                });
             }
 
             showSnackbar(isEditMode ? 'Article updated successfully' : 'Article created as Draft', 'success');
-            
-            // Trigger Notification for New Articles (not edits)
-            if (!isEditMode) {
-                try {
-                    const articleTitle = formData.eng_title || formData.tel_title || 'New Article';
-                    const message = `New Article Created: ${articleTitle}`;
-                    await sendPostNotification(targetId, 'ADMIN', message);
-                    await sendPostNotification(targetId, 'SUPER_ADMIN', message);
-                } catch (notifError) {
-                    console.error('Notification failed:', notifError);
-                }
-            }
             
             navigate('/dashboard?tab=articles');
         } catch (error) {
             console.error('Save error:', error);
             showSnackbar(error.response?.data?.error || 'Failed to save article', 'error');
-        } finally {
-            setSaving(false);
         }
     };
 
-    if (loading) return (
+    const isLoading = loadingArticle && isEditMode;
+    
+    if (isLoading) return (
         <div className="cms-loading-overlay">
             <i className="fas fa-spinner fa-spin"></i>
             <p>Loading article editor...</p>
@@ -484,15 +471,15 @@ const ArticleEditor = () => {
                                 type="button" 
                                 className="btn-primary btn-publish" 
                                 onClick={() => setShowPublishModal(true)}
-                                disabled={saving}
+                                disabled={isSaving}
                                 style={{ background: 'var(--success-500)', borderColor: 'var(--success-600)' }}
                             >
                                 <i className="fas fa-rocket"></i> Publish / Schedule
                             </button>
                         )}
                         
-                        <button type="submit" className="btn-primary" disabled={saving}>
-                            {saving ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
+                        <button type="submit" className="btn-primary" disabled={isSaving}>
+                            {isSaving ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
                             {isEditMode ? 'Update Draft' : 'Save Draft'}
                         </button>
                     </div>
@@ -537,7 +524,7 @@ const ArticleEditor = () => {
                                             type="button" 
                                             onClick={handleDirectPublish}
                                             className="btn-primary" 
-                                            disabled={saving}
+                                            disabled={isSaving}
                                             style={{ 
                                                 background: 'var(--primary-yellow)', 
                                                 color: 'var(--slate-900)',
@@ -548,7 +535,7 @@ const ArticleEditor = () => {
                                                 boxShadow: '0 4px 12px rgba(250, 204, 21, 0.4)'
                                             }}
                                         >
-                                            {saving ? <i className="fas fa-spinner fa-spin"></i> : (scheduleDate ? <i className="fas fa-clock"></i> : <i className="fas fa-rocket"></i>)}
+                                            {isSaving ? <i className="fas fa-spinner fa-spin"></i> : (scheduleDate ? <i className="fas fa-clock"></i> : <i className="fas fa-rocket"></i>)}
                                             {scheduleDate ? 'Schedule' : 'Publish Now'}
                                         </button>
                                     </div>
@@ -574,32 +561,78 @@ const ArticleEditor = () => {
                             {activeTab === 'english' ? (
                                 <div className="form-section">
                                     <div className="form-section">
-                                        <label>Title (English)</label>
-                                        <input name="eng_title" value={formData.eng_title || ''} onChange={handleInputChange} placeholder="Enter a compelling headline in English..." required />
+                                        <label>Title (English) <span style={{ color: 'red' }}>*</span></label>
+                                        <input 
+                                            name="eng_title" 
+                                            value={formData.eng_title || ''} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Enter a compelling headline in English..." 
+                                            required 
+                                            className={errors.eng_title ? 'error' : ''}
+                                        />
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                        <label>Summary / Excerpt (English)</label>
-                                        <textarea name="eng_summary" value={formData.eng_summary || ''} onChange={handleInputChange} placeholder="Short teaser in English..." rows="3"></textarea>
+                                        <label>Summary / Excerpt (English) <span style={{ color: 'red' }}>*</span></label>
+                                        <textarea 
+                                            name="eng_summary" 
+                                            value={formData.eng_summary || ''} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Short teaser in English..." 
+                                            rows="3" 
+                                            required
+                                            className={errors.eng_summary ? 'error' : ''}
+                                        ></textarea>
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                        <label>Main Body (English HTML)</label>
-                                        <textarea name="eng_content" value={formData.eng_content || ''} onChange={handleInputChange} placeholder="HTML content supported..." rows="20" required></textarea>
+                                        <label>Main Body (English HTML) <span style={{ color: 'red' }}>*</span></label>
+                                        <textarea 
+                                            name="eng_content" 
+                                            value={formData.eng_content || ''} 
+                                            onChange={handleInputChange} 
+                                            placeholder="HTML content supported..." 
+                                            rows="20" 
+                                            required
+                                            className={errors.eng_content ? 'error' : ''}
+                                        ></textarea>
                                         <span className="html-editor-info"><i className="fas fa-code"></i> Raw HTML Editor - Use tags for formatting (p, br, h3, ul, li)</span>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="form-section">
                                     <div className="form-section">
-                                        <label>Title (Telugu)</label>
-                                        <input name="tel_title" value={formData.tel_title || ''} onChange={handleInputChange} placeholder="తెలుగులో హెడ్ లైన్ ఇవ్వండి..." />
+                                        <label>Title (Telugu) <span style={{ color: 'red' }}>*</span></label>
+                                        <input 
+                                            name="tel_title" 
+                                            value={formData.tel_title || ''} 
+                                            onChange={handleInputChange} 
+                                            placeholder="తెలుగులో హెడ్ లైన్ ఇవ్వండి..." 
+                                            required 
+                                            className={errors.tel_title ? 'error' : ''}
+                                        />
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                        <label>Summary / Excerpt (Telugu)</label>
-                                        <textarea name="tel_summary" value={formData.tel_summary || ''} onChange={handleInputChange} placeholder="తెలుగులో సారాంశం..." rows="3"></textarea>
+                                        <label>Summary / Excerpt (Telugu) <span style={{ color: 'red' }}>*</span></label>
+                                        <textarea 
+                                            name="tel_summary" 
+                                            value={formData.tel_summary || ''} 
+                                            onChange={handleInputChange} 
+                                            placeholder="తెలుగులో సారాంశం..." 
+                                            rows="3" 
+                                            required
+                                            className={errors.tel_summary ? 'error' : ''}
+                                        ></textarea>
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                        <label>Main Body (Telugu HTML)</label>
-                                        <textarea name="tel_content" value={formData.tel_content || ''} onChange={handleInputChange} placeholder="తెలుగు కంటెంట్..." rows="20"></textarea>
+                                        <label>Main Body (Telugu HTML) <span style={{ color: 'red' }}>*</span></label>
+                                        <textarea 
+                                            name="tel_content" 
+                                            value={formData.tel_content || ''} 
+                                            onChange={handleInputChange} 
+                                            placeholder="తెలుగు కంటెంట్..." 
+                                            rows="20" 
+                                            required
+                                            className={errors.tel_content ? 'error' : ''}
+                                        ></textarea>
                                         <span className="html-editor-info"><i className="fas fa-code"></i> Raw HTML Editor for Telugu translation</span>
                                     </div>
                                 </div>
@@ -614,19 +647,21 @@ const ArticleEditor = () => {
                                     <input name="tags" value={formData.tags || ''} onChange={handleInputChange} placeholder="news, updates, primary" />
                                 </div>
                                 <div className="form-section">
-                                    <label>Sections</label>
+                                    <label>Sections <span style={{ color: 'red' }}>*</span></label>
                                     <CustomSelect 
                                         value={formData.section || ''} 
                                         onChange={(val) => setFormData(prev => ({...prev, section: val}))}
                                         options={sections.map(s => s.id)}
                                         placeholder="Select Destination"
+                                        required
+                                        isInvalid={errors.section}
                                     />
                                 </div>
                             </div>
 
                             <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                <label>Categories (Select Multiple)</label>
-                                <div className="categories-selection-grid">
+                                <label>Categories (Select Multiple) <span style={{ color: 'red' }}>*</span></label>
+                                <div className={`categories-selection-grid ${errors.categories ? 'error' : ''}`}>
                                     {categories.length === 0 ? (
                                         <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Select a section to see categories</p>
                                     ) : (
@@ -644,8 +679,8 @@ const ArticleEditor = () => {
                     <div className="editor-side-panel">
                         {/* MAIN MEDIA SECTION */}
                         <div className="glass-card">
-                            <div className="side-card-title">
-                                <i className="fas fa-play-circle"></i> Main Media
+                            <div className={`side-card-title ${errors.main ? 'error-text' : ''}`}>
+                                <i className="fas fa-play-circle"></i> Main Media <span style={{ color: 'red', fontSize: '1rem' }}>*</span>
                             </div>
                             
                             {mainPreview && (
@@ -698,8 +733,8 @@ const ArticleEditor = () => {
 
                         {/* BANNER MEDIA SECTION */}
                         <div className="glass-card" style={{ marginTop: '1.5rem' }}>
-                            <div className="side-card-title">
-                                <i className="fas fa-image"></i> Banner Media
+                            <div className={`side-card-title ${errors.banner ? 'error-text' : ''}`}>
+                                <i className="fas fa-image"></i> Banner Media <span style={{ color: 'red', fontSize: '1rem' }}>*</span>
                             </div>
                             
                             {bannerPreview && (
@@ -754,43 +789,70 @@ const ArticleEditor = () => {
 
                             <div className="side-card-title">Article Configuration</div>
                             <div className="form-section">
-                                <label>URL Slug</label>
-                                <input name="slug" value={formData.slug || ''} onChange={handleInputChange} placeholder="e.g. ap-inter-results-2024" required disabled={isEditMode} />
+                                <label>URL Slug <span style={{ color: 'red' }}>*</span></label>
+                                <input 
+                                    name="slug" 
+                                    value={formData.slug || ''} 
+                                    onChange={handleInputChange} 
+                                    placeholder="e.g. ap-inter-results-2024" 
+                                    required 
+                                    disabled={isEditMode} 
+                                    className={errors.slug ? 'error' : ''}
+                                />
                             </div>
                             
                             <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                <label>Expiry Date (Optional)</label>
-                                <input type="date" name="expires_at" value={formData.expires_at || ''} onChange={handleInputChange} />
+                                <label>Article Expiry Date <span style={{ color: 'red' }}>*</span></label>
+                                <input 
+                                    type="date" 
+                                    name="expires_at" 
+                                    value={formData.expires_at || ''} 
+                                    onChange={handleInputChange} 
+                                    required 
+                                    className={errors.expires_at ? 'error' : ''}
+                                />
                             </div>
 
-                            <div className="status-toggle-container" style={{ marginTop: '1.5rem' }}>
+                            {/* <div className="status-toggle-container" style={{ marginTop: '1.5rem' }}>
                                 <span>No-Index (SEO Hide)</span>
                                 <label className="switch">
                                     <input type="checkbox" name="noindex" checked={formData.noindex || false} onChange={handleInputChange} />
                                     <span className="slider round"></span>
                                 </label>
-                            </div>
+                            </div> */}
                         </div>
 
-                        <div className="glass-card">
+                        {/* <div className="glass-card">
                             <div className="side-card-title">SEO Optimization</div>
                             <div className="form-section">
-                                <label>Keywords</label>
-                                <textarea name="keywords" value={formData.keywords || ''} onChange={handleInputChange} rows="2" placeholder="keyword1, keyword2..."></textarea>
+                                <label>Keywords <span style={{ color: 'red' }}>*</span></label>
+                                <textarea name="keywords" value={formData.keywords || ''} onChange={handleInputChange} rows="2" placeholder="keyword1, keyword2..." required></textarea>
                             </div>
                             <div className="form-section" style={{ marginTop: '1rem' }}>
-                                <label>Meta Description</label>
-                                <textarea name="meta_description" value={formData.meta_description || ''} onChange={handleInputChange} rows="3" placeholder="SEO Description..."></textarea>
+                                <label>Meta Title <span style={{ color: 'red' }}>*</span></label>
+                                <input name="meta_title" value={formData.meta_title || ''} onChange={handleInputChange} placeholder="SEO Heading..." required />
                             </div>
-                        </div>
+                            <div className="form-section" style={{ marginTop: '1rem' }}>
+                                <label>Meta Description <span style={{ color: 'red' }}>*</span></label>
+                                <textarea name="meta_description" value={formData.meta_description || ''} onChange={handleInputChange} rows="3" placeholder="SEO Description..." required></textarea>
+                            </div>
+                        </div> */}
 
-                        <div className="glass-card">
+                        {/* <div className="glass-card">
                             <div className="side-card-title">Social Visibility</div>
                             <div className="form-section">
-                                <label>OG Image URL</label>
-                                <input name="og_image_url" value={formData.og_image_url || ''} onChange={handleInputChange} placeholder="https://..." />
+                                <label>OG Title <span style={{ color: 'red' }}>*</span></label>
+                                <input name="og_title" value={formData.og_title || ''} onChange={handleInputChange} placeholder="Social Title..." required />
                             </div>
-                        </div>
+                            <div className="form-section" style={{ marginTop: '1rem' }}>
+                                <label>OG Description <span style={{ color: 'red' }}>*</span></label>
+                                <textarea name="og_description" value={formData.og_description || ''} onChange={handleInputChange} rows="2" placeholder="Social Description..." required></textarea>
+                            </div>
+                            <div className="form-section" style={{ marginTop: '1rem' }}>
+                                <label>OG Image URL <span style={{ color: 'red' }}>*</span></label>
+                                <input name="og_image_url" value={formData.og_image_url || ''} onChange={handleInputChange} placeholder="https://..." required />
+                            </div>
+                        </div> */}
                     </div>
                 </div>
             </form>

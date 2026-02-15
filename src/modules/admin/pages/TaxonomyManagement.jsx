@@ -2,7 +2,17 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LuxuryTooltip from '../../../components/ui/LuxuryTooltip';
 import api, { getUserContext, subscribeToAuthChanges } from '../../../services/api';
-import { newsService } from '../../../services';
+// import { newsService } from '../../../services'; // Replaced by hooks
+import { 
+    useTaxonomyList, 
+    useTaxonomyTree, 
+    useCreateCategory, 
+    useUpdateCategory, 
+    useDeleteCategory, 
+    useToggleCategoryStatus,
+    useFetchCategoryChildren,
+    useSections 
+} from '../../../hooks/useTaxonomy';
 import { fetchNotifications, markAsSeen, markAllAsSeen, approveRequest, rejectRequest } from '../../../services/notificationService';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { getRoleInitials } from '../../../utils/roleUtils';
@@ -33,27 +43,6 @@ const TaxonomyManagement = () => {
     const [expandedRows, setExpandedRows] = useState({}); // { id: isExpanded }
     const [childData, setChildData] = useState({}); // { parentId: [children] }
 
-    const toggleExpand = async (category) => {
-        const isExpanded = expandedRows[category.id];
-        
-        if (!isExpanded && !childData[category.id]) {
-            setLoading(true);
-            try {
-                const children = await newsService.getCategoryChildren(activeSection, category.id);
-                setChildData(prev => ({ ...prev, [category.id]: children }));
-            } catch (error) {
-                showSnackbar('Failed to load children', 'error');
-            } finally {
-                setLoading(false);
-            }
-        }
-        
-        setExpandedRows(prev => ({
-            ...prev,
-            [category.id]: !isExpanded
-        }));
-    };
-    
     // Pagination state
     const [nextCursor, setNextCursor] = useState(null);
     const [hasNext, setHasNext] = useState(false);
@@ -70,12 +59,9 @@ const TaxonomyManagement = () => {
         is_active: true
     });
 
-    const sections = [
-        { id: 'academics', name: 'Academics' },
-        { id: 'jobs', name: 'Jobs' },
-        { id: 'tech', name: 'Tech' },
-        { id: 'business', name: 'Business' }
-    ];
+    const { data: dynamicSections, isLoading: sectionsLoading } = useSections();
+    const sections = dynamicSections || [];
+
 
     /* ================= AUTH CHECK ================= */
     useEffect(() => {
@@ -87,53 +73,98 @@ const TaxonomyManagement = () => {
         }
     }, [navigate]);
 
+    // State for cursor query
+    const [currentCursor, setCurrentCursor] = useState(null);
+
+    /* ================= DATA FETCHING ================= */
+    const {
+        data: taxonomyListResponse,
+        isLoading: listLoading,
+        error: listError
+    } = useTaxonomyList(
+        viewMode === 'list' ? {
+            section: activeSection,
+            cursor: currentCursor || undefined,
+            parent_id: parentFilter || undefined,
+            active: statusFilter || undefined
+        } : { enabled: false }
+    );
+
+    // Tree View Data
+    const {
+        data: treeDataResponse,
+        isLoading: treeLoading
+    } = useTaxonomyTree(activeSection); // Allows caching for tree view
+
+    // Children Fetcher
+    const fetchChildrenFn = useFetchCategoryChildren();
+
+    // Mutations
+    const createMutation = useCreateCategory();
+    const updateMutation = useUpdateCategory();
+    const deleteMutation = useDeleteCategory();
+    const toggleStatusMutation = useToggleCategoryStatus();
+
+    // Sync Data to State
+    const [localTaxonomies, setLocalTaxonomies] = useState([]);
+    
+    // Derived state for loading
+    const isLoading = (viewMode === 'list' ? listLoading : treeLoading) || sectionsLoading;
+
+
+    // Update cursor when filtering changes
     useEffect(() => {
-        if (userRole) {
-            if (viewMode === 'list') {
-                fetchTaxonomy(activeSection, null, parentFilter, statusFilter);
-            } else {
-                fetchTree(activeSection);
-            }
-        }
-    }, [activeSection, userRole, parentFilter, statusFilter, viewMode]);
+        setCurrentCursor(null);
+        setTaxonomies([]); // Reset list on filter change
+    }, [activeSection, parentFilter, statusFilter, viewMode]);
 
-    const fetchTree = async (section) => {
-        setLoading(true);
-        try {
-            const data = await newsService.getTaxonomyTree(section);
-            setTreeData(data);
-        } catch (error) {
-            showSnackbar('Failed to load hierarchy tree', 'error');
-        } finally {
-            setLoading(false);
+    // Handle initial active section from dynamic data
+    useEffect(() => {
+        if (sections.length > 0 && !sections.find(s => s.id === activeSection)) {
+            setActiveSection(sections[0].id);
+        }
+    }, [sections, activeSection]);
+
+
+    // Effect to Update Local State from Query
+    useEffect(() => {
+        if (viewMode === 'list' && taxonomyListResponse?.results) {
+            setTaxonomies(prev => {
+                // If we are at the beginning (no cursor in query or just reset)
+                // But wait, `taxonomyListResponse` reflects the *latest* fetched page.
+                // If I am appending, I need to keep previous.
+                // If I am resetting, I need to clear.
+                // How to distinguish?
+                // `currentCursor` tells us if we requested a next page.
+                 if (!currentCursor) {
+                    return taxonomyListResponse.results;
+                 }
+                 // Avoid duplicates if React Query refetches existing data
+                 const newItems = taxonomyListResponse.results;
+                 const existingIds = new Set(prev.map(i => i.id));
+                 const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
+                 return [...prev, ...uniqueNewItems];
+            });
+            
+            setNextCursor(taxonomyListResponse.next_cursor);
+            setHasNext(taxonomyListResponse.has_next);
+        }
+    }, [taxonomyListResponse, currentCursor, viewMode]);
+
+    // Update Tree Data
+    useEffect(() => {
+        if (viewMode === 'tree' && treeDataResponse) {
+            setTreeData(treeDataResponse);
+        }
+    }, [treeDataResponse, viewMode]);
+
+    const handleLoadMore = () => {
+        if (hasNext && nextCursor) {
+            setCurrentCursor(nextCursor);
         }
     };
-
-    const fetchTaxonomy = async (section, cursor = null, parentId = '', active = '') => {
-        setLoading(true);
-        try {
-            const params = { section };
-            if (cursor) params.cursor = cursor;
-            if (parentId) params.parent_id = parentId;
-            if (active) params.active = active;
-
-            const response = await newsService.getAdminCategories(params);
-            
-            if (cursor) {
-                setTaxonomies(prev => [...prev, ...(response.results || [])]);
-            } else {
-                setTaxonomies(response.results || []);
-            }
-            
-            setNextCursor(response.next_cursor);
-            setHasNext(response.has_next);
-        } catch (error) {
-            showSnackbar('Failed to load taxonomy', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    
+    // Missing Handlers Re-implementation
     const handleOpenModal = (category = null) => {
         if (category) {
             setIsEditing(true);
@@ -172,75 +203,72 @@ const TaxonomyManagement = () => {
         });
     };
 
-    const handleSaveCategory = async (e) => {
-        e.preventDefault();
-        setActionLoading(true);
-        try {
-            const payload = { ...currentCategory };
-            if (payload.parent_id === '') delete payload.parent_id;
 
-            if (isEditing) {
-                await newsService.updateCategory(payload.id, payload);
-                showSnackbar('Category updated successfully', 'success');
-            } else {
-                await newsService.createCategory(payload);
-                showSnackbar('Category created successfully', 'success');
-            }
-            handleCloseModal();
-            if (viewMode === 'list') {
-                fetchTaxonomy(activeSection, null, parentFilter, statusFilter);
-            } else {
-                fetchTree(activeSection);
-            }
-        } catch (error) {
-            const errorMsg = error.response?.data?.error || 'Failed to save category';
-            showSnackbar(errorMsg, 'error');
-        } finally {
-            setActionLoading(false);
-        }
+
+
+     /* ================= HANDLERS ================= */
+    const handleToggleStatus = (category) => {
+        toggleStatusMutation.mutate(category, {
+             onSuccess: () => {
+                 showSnackbar(category.is_active ? 'Category disabled' : 'Category enabled', 'success');
+             },
+             onError: () => showSnackbar('Failed to update status', 'error')
+        });
     };
 
-    const handleDeleteCategory = async (id) => {
+    const handleDeleteCategory = (id) => {
         if (!window.confirm('Are you sure you want to delete this category? This cannot be undone if there are no children.')) return;
         
-        setActionLoading(true);
-        try {
-            await newsService.deleteCategory(id);
-            showSnackbar('Category deleted successfully', 'success');
-            if (viewMode === 'list') {
-                fetchTaxonomy(activeSection, null, parentFilter, statusFilter);
-            } else {
-                fetchTree(activeSection);
-            }
-        } catch (error) {
-            const errorMsg = error.response?.data?.error || 'Failed to delete category (it might have children)';
-            showSnackbar(errorMsg, 'error');
-        } finally {
-            setActionLoading(false);
-        }
+        deleteMutation.mutate(id, {
+             onSuccess: () => showSnackbar('Category deleted successfully', 'success'),
+             onError: (err) => showSnackbar(err.response?.data?.error || 'Failed to delete category', 'error')
+        });
     };
 
-    const handleToggleStatus = async (category) => {
-        setActionLoading(true);
-        try {
-            if (category.is_active) {
-                await newsService.disableCategory(category.id);
-                showSnackbar('Category disabled', 'info');
-            } else {
-                await newsService.enableCategory(category.id);
-                showSnackbar('Category enabled', 'success');
-            }
-            
-            if (viewMode === 'list') {
-                fetchTaxonomy(activeSection, null, parentFilter, statusFilter);
-            } else {
-                fetchTree(activeSection);
-            }
-        } catch (error) {
-            showSnackbar('Failed to update status', 'error');
-        } finally {
-            setActionLoading(false);
+    const handleSaveCategory = (e) => {
+        e.preventDefault();
+        const payload = { ...currentCategory };
+        if (payload.parent_id === '') delete payload.parent_id;
+
+        if (isEditing) {
+            updateMutation.mutate({ id: payload.id, data: payload }, {
+                onSuccess: () => {
+                    showSnackbar('Category updated successfully', 'success');
+                    handleCloseModal();
+                },
+                onError: (err) => showSnackbar(err.response?.data?.error || 'Failed to update category', 'error')
+            });
+        } else {
+            createMutation.mutate(payload, {
+                onSuccess: () => {
+                    showSnackbar('Category created successfully', 'success');
+                    handleCloseModal();
+                },
+                onError: (err) => showSnackbar(err.response?.data?.error || 'Failed to create category', 'error')
+            });
         }
+    };
+    
+    // This function replaces the manual fetch for expansion
+    const toggleExpand = async (category) => {
+        const isExpanded = expandedRows[category.id];
+        
+        if (!isExpanded && !childData[category.id]) {
+            setLoading(true); // Local loading state for visual feedback on row
+            try {
+                const children = await fetchChildrenFn(activeSection, category.id);
+                setChildData(prev => ({ ...prev, [category.id]: children }));
+            } catch (error) {
+                showSnackbar('Failed to load children', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        setExpandedRows(prev => ({
+            ...prev,
+            [category.id]: !isExpanded
+        }));
     };
 
     const handleLogout = async () => {
@@ -522,10 +550,10 @@ const TaxonomyManagement = () => {
                             <div className="am-pagination-trigger" style={{ textAlign: 'center', padding: '20px' }}>
                                 <button 
                                     className="am-btn-secondary" 
-                                    onClick={() => fetchTaxonomy(activeSection, nextCursor)}
-                                    disabled={loading}
+                                    onClick={handleLoadMore}
+                                    disabled={isLoading || listLoading}
                                 >
-                                    {loading ? 'Loading...' : 'Load More'}
+                                    {isLoading || listLoading ? 'Loading...' : 'Load More'}
                                 </button>
                             </div>
                         )}

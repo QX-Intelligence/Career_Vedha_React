@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { academicsService } from '../../../services/academicsService';
+import { useQueryClient } from '@tanstack/react-query';
+// import { academicsService } from '../../../services/academicsService'; // Removed direct service usage
+import { 
+    useLevels, useCreateLevel, useUpdateLevel,
+    useSubjects, useCreateSubject, useUpdateSubject,
+    useChapters, useCreateChapter, useUpdateChapter,
+    useMaterials, useCreateMaterial, useUpdateMaterial,
+    useCategories, useAcademicsHierarchy, useAcademicsDjangoHierarchy
+} from '../../../hooks/useAcademics';
 import CMSLayout from '../../../components/layout/CMSLayout';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { getUserContext } from '../../../services/api';
 import { checkAccess as checkAccessGlobal, MODULES } from '../../../config/accessControl.config.js';
+import Skeleton, { SkeletonTable } from '../../../components/ui/Skeleton';
 import './AcademicsManagement.css';
 
 import MediaLibraryModal from '../../media/components/MediaLibraryModal';
@@ -38,13 +46,14 @@ const FormField = ({ label, children, error }) => (
 
 
 const AcademicsManagement = () => {
-    const [activeTab, setActiveTab] = useState('levels');
+    const [activeTab, setActiveTab] = useState('hierarchy');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
     
     // Media Library State
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+    const [mediaPickTarget, setMediaPickTarget] = useState(null); // 'icon', 'banner', 'document', 'content'
 
     // Media Preview State
     const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -95,139 +104,136 @@ const AcademicsManagement = () => {
         onProfileClick: () => navigate('/dashboard?tab=profile')
     };
 
-    // Queries
-    const { data: levels, isLoading: levelsLoading } = useQuery({
-        queryKey: ['admin-levels'],
-        queryFn: () => academicsService.getAdminLevels(),
-    });
+    // Custom Hooks
+    const { data: levels, isLoading: levelsLoading } = useLevels();
+    const { data: subjects, isLoading: subjectsLoading } = useSubjects();
+    const { data: categories, isLoading: categoriesLoading } = useCategories();
+    const { data: chapters, isLoading: chaptersLoading } = useChapters();
+    const { data: materials, isLoading: materialsLoading } = useMaterials();
+    const { data: hierarchy, isLoading: hierarchyLoading, refetch: refetchHierarchy } = useAcademicsDjangoHierarchy();
 
-    const { data: subjects, isLoading: subjectsLoading } = useQuery({
-        queryKey: ['admin-subjects'],
-        queryFn: () => academicsService.getAdminSubjects(),
-    });
-
-    const { data: categories } = useQuery({
-        queryKey: ['admin-categories'],
-        queryFn: () => academicsService.getAdminCategories(),
-    });
-
-
-    const { data: chapters, isLoading: chaptersLoading } = useQuery({
-        queryKey: ['admin-chapters'],
-        queryFn: () => academicsService.getAdminChapters(),
-    });
-
-    const { data: materials, isLoading: materialsLoading } = useQuery({
-        queryKey: ['admin-materials'],
-        queryFn: () => academicsService.getAdminMaterials(),
-    });
 
     // Mutations
-    const createLevelMutation = useMutation({
-        mutationFn: academicsService.createLevel,
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-levels']);
-            showSnackbar('Level created successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to create level', 'error')
-    });
+    const createLevelMutation = useCreateLevel();
+    const updateLevelMutation = useUpdateLevel();
 
-    const updateLevelMutation = useMutation({
-        mutationFn: ({ id, data }) => academicsService.updateLevel(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-levels']);
-            showSnackbar('Level updated successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to update level', 'error')
-    });
+    const createSubjectMutation = useCreateSubject();
+    const updateSubjectMutation = useUpdateSubject();
 
-    // Subject Mutations
-    const createSubjectMutation = useMutation({
-        mutationFn: academicsService.createSubject,
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-subjects']);
-            showSnackbar('Subject created successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to create subject', 'error')
-    });
+    const createChapterMutation = useCreateChapter();
+    const updateChapterMutation = useUpdateChapter();
 
-    const updateSubjectMutation = useMutation({
-        mutationFn: ({ id, data }) => academicsService.updateSubject(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-subjects']);
-            showSnackbar('Subject updated successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to update subject', 'error')
-    });
+    const createMaterialMutation = useCreateMaterial();
+    const updateMaterialMutation = useUpdateMaterial();
 
-    // Chapter Mutations
-    const createChapterMutation = useMutation({
-        mutationFn: academicsService.createChapter,
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-chapters']);
-            showSnackbar('Chapter created successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to create chapter', 'error')
-    });
+    // Wrapping mutation notifications
+    const handleMutationSuccess = (msg) => {
+        showSnackbar(msg, 'success');
+        closeModal();
+    };
+    const handleMutationError = (err, msg) => {
+         showSnackbar(err?.message || msg, 'error');
+    };
 
-    const updateChapterMutation = useMutation({
-        mutationFn: ({ id, data }) => academicsService.updateChapter(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-chapters']);
-            showSnackbar('Chapter updated successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to update chapter', 'error')
-    });
-
-    // Material Mutations
-    const createMaterialMutation = useMutation({
-        mutationFn: academicsService.createMaterial,
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-materials']);
-            showSnackbar('Material created successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to create material', 'error')
-    });
-
-    const updateMaterialMutation = useMutation({
-        mutationFn: ({ id, data }) => academicsService.updateMaterial(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['admin-materials']);
-            showSnackbar('Material updated successfully', 'success');
-            closeModal();
-        },
-        onError: (err) => showSnackbar(err.message || 'Failed to update material', 'error')
-    });
+    // Override mutation calls with snackbar logic in handleSubmit instead of here to keep hooks clean, 
+    // OR we can rely on Global Error handling if setup, but here we want specific success messages.
+    // The hooks in useAcademics don't have onSuccess callbacks for snackbars passed in.
+    // Let's attach them in handleSubmit or modify the hooks to accept callbacks.
+    // Ideally, UI concerns like snackbars should be in the component.
+    // Simplified loading state for all mutations
+    const isSaving = createLevelMutation.isPending || 
+                     updateLevelMutation.isPending || 
+                     createSubjectMutation.isPending || 
+                     updateSubjectMutation.isPending || 
+                     createChapterMutation.isPending || 
+                     updateChapterMutation.isPending || 
+                     createMaterialMutation.isPending || 
+                     updateMaterialMutation.isPending;
 
     const handleSubmit = async (e) => {
+        if (isSaving) return;
         e.preventDefault();
         try {
+            // Prepare data for submission - Use FormData for all to support files
+            const submitData = { ...formData };
+            
+            // For Materials and Chapters, we need to extract media types
+            if (activeTab === 'materials' || activeTab === 'chapters') {
+                const libraryIds = (formData.media_links || [])
+                    .filter(link => link.source === 'library')
+                    .map(link => link.media_id);
+                
+                const localAttachments = (formData.media_links || [])
+                    .filter(link => link.source === 'local')
+                    .map(link => link.file);
+
+                if (libraryIds.length > 0) submitData.media_ids = libraryIds;
+                if (localAttachments.length > 0) submitData.attachments = localAttachments;
+
+                // Flatten translations for materials
+                if (activeTab === 'materials' && formData.translations) {
+                    const eng = formData.translations.find(t => t.language === 'en') || {};
+                    const tel = formData.translations.find(t => t.language === 'te') || {};
+                    
+                    submitData.eng_title = eng.title || '';
+                    submitData.eng_summary = eng.summary || '';
+                    submitData.eng_content = eng.content || '';
+                    
+                    submitData.tel_title = tel.title || '';
+                    submitData.tel_summary = tel.summary || '';
+                    submitData.tel_content = tel.content || '';
+                }
+                
+                // Remove UI-only fields
+                delete submitData.media_links;
+                delete submitData.translations;
+                delete submitData._activeLang;
+                delete submitData.icon_url;
+                delete submitData.banner_url;
+                delete submitData.document_name;
+            }
+
             if (activeTab === 'levels') {
-                if (modalMode === 'create') await createLevelMutation.mutateAsync(formData);
-                else await updateLevelMutation.mutateAsync({ id: editingItem.id, data: formData });
+                if (modalMode === 'create') {
+                    await createLevelMutation.mutateAsync(submitData);
+                    handleMutationSuccess('Level created successfully');
+                } else {
+                    await updateLevelMutation.mutateAsync({ id: editingItem.id, data: submitData });
+                    handleMutationSuccess('Level updated successfully');
+                }
             } else if (activeTab === 'subjects') {
-                 if (modalMode === 'create') await createSubjectMutation.mutateAsync(formData);
-                 else await updateSubjectMutation.mutateAsync({ id: editingItem.id, data: formData });
+                 if (modalMode === 'create') {
+                    await createSubjectMutation.mutateAsync(submitData);
+                    handleMutationSuccess('Subject created successfully');
+                 } else {
+                    await updateSubjectMutation.mutateAsync({ id: editingItem.id, data: submitData });
+                    handleMutationSuccess('Subject updated successfully');
+                 }
             } else if (activeTab === 'chapters') {
-                 if (modalMode === 'create') await createChapterMutation.mutateAsync(formData);
-                 else await updateChapterMutation.mutateAsync({ id: editingItem.id, data: formData });
+                 if (modalMode === 'create') {
+                    await createChapterMutation.mutateAsync(submitData);
+                    handleMutationSuccess('Chapter created successfully');
+                 } else {
+                    await updateChapterMutation.mutateAsync({ id: editingItem.id, data: submitData });
+                    handleMutationSuccess('Chapter updated successfully');
+                 }
             } else if (activeTab === 'materials') {
-                 if (modalMode === 'create') await createMaterialMutation.mutateAsync(formData);
-                 else await updateMaterialMutation.mutateAsync({ id: editingItem.id, data: formData });
+                 if (modalMode === 'create') {
+                    await createMaterialMutation.mutateAsync(submitData);
+                    handleMutationSuccess('Material created successfully');
+                 } else {
+                    await updateMaterialMutation.mutateAsync({ id: editingItem.id, data: submitData });
+                    handleMutationSuccess('Material updated successfully');
+                 }
             }
         } catch (error) {
             console.error(error);
+            handleMutationError(error, 'Operation failed');
         }
     };
 
     const tabs = [
+        { id: 'hierarchy', label: 'Hierarchy', icon: '🌳' },
         { id: 'levels', label: 'Levels', icon: '🎓' },
         { id: 'subjects', label: 'Subjects', icon: '📚' },
         { id: 'chapters', label: 'Chapters', icon: '📖' },
@@ -252,17 +258,49 @@ const AcademicsManagement = () => {
     };
 
     const handleMediaSelect = (id, url, mediaObj) => {
+        if (mediaPickTarget === 'icon') {
+            setFormData({ ...formData, icon_media_id: id, icon_url: url });
+        } else if (mediaPickTarget === 'banner') {
+            setFormData({ ...formData, banner_media_id: id, banner_url: url });
+        } else if (mediaPickTarget === 'document') {
+            setFormData({ ...formData, document_media_id: id, document_name: mediaObj?.title || 'Selected document' });
+        } else {
+            const newLinks = [...(formData.media_links || [])];
+            newLinks.push({
+                source: 'library',
+                media_id: id,
+                media_url: url,
+                thumbnail_url: url,
+                usage: 'content',
+                title: mediaObj?.title || '',
+                media_type: mediaObj?.media_type || 'unknown'
+            });
+            setFormData({ ...formData, media_links: newLinks });
+        }
+        setIsMediaModalOpen(false);
+        setMediaPickTarget(null);
+    };
+
+    const handleLocalFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
         const newLinks = [...(formData.media_links || [])];
-        newLinks.push({
-            media_id: id,
-            media_url: url,
-            thumbnail_url: url, // Assuming image for now, backend handles actual details
-            usage: 'content',
-            title: mediaObj?.title || '',
-            media_type: mediaObj?.media_type || 'unknown'
+        files.forEach(file => {
+            const isImage = file.type.startsWith('image/');
+            newLinks.push({
+                source: 'local',
+                file: file,
+                media_url: URL.createObjectURL(file),
+                thumbnail_url: isImage ? URL.createObjectURL(file) : null,
+                usage: 'content',
+                title: file.name,
+                media_type: file.type.split('/')[0] || 'unknown'
+            });
         });
         setFormData({ ...formData, media_links: newLinks });
-        setIsMediaModalOpen(false);
+        // Reset input
+        e.target.value = '';
     };
 
     return (
@@ -282,6 +320,69 @@ const AcademicsManagement = () => {
                 </div>
 
                 <div className="mgmt-content">
+                    {activeTab === 'hierarchy' && (
+                        <div className="mgmt-section">
+                            <div className="section-header">
+                                <h3>Academics Hierarchy</h3>
+                                <button className="add-btn" onClick={() => refetchHierarchy()} disabled={hierarchyLoading}>
+                                    <i className={`fas ${hierarchyLoading ? 'fa-spinner fa-spin' : 'fa-sync-alt'}`} style={{marginRight: '8px'}}></i>
+                                    {hierarchyLoading ? 'Refreshing...' : 'Refresh'}
+                                </button>
+                            </div>
+                            
+                            {hierarchyLoading ? (
+                                <Skeleton count={3} height={100} style={{marginBottom: '20px', borderRadius: '15px'}} />
+                            ) : (
+                                <div className="hierarchy-tree">
+                                    {hierarchy?.length > 0 ? hierarchy.map(level => (
+                                        <div key={level.id} className="hierarchy-level-box">
+                                            <div className="level-header-row">
+                                                <div className="level-main-info">
+                                                    <span className="level-icon">🎓</span>
+                                                    <div className="level-text">
+                                                        <h4>{level.name}</h4>
+                                                        <span className="board-pills">{level.board}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="level-actions">
+                                                    <button className="icon-btn edit" onClick={() => handleEdit(level)}><i className="fas fa-edit"></i></button>
+                                                </div>
+                                            </div>
+
+                                            <div className="level-subjects-container">
+                                                {level.subjects?.length > 0 ? level.subjects.map(subject => (
+                                                    <div key={subject.id} className="hierarchy-subject-card">
+                                                        <div className="subject-header">
+                                                            <h5>{subject.name}</h5>
+                                                            <button className="icon-btn edit small" onClick={() => handleEdit(subject)}><i className="fas fa-edit"></i></button>
+                                                        </div>
+                                                        <div className="subject-chapters-list">
+                                                            {subject.chapters?.length > 0 ? subject.chapters.map(chapter => (
+                                                                <div key={chapter.id} className="hierarchy-chapter-pill" onClick={() => handleEdit(chapter)}>
+                                                                    <i className="fas fa-book-open"></i>
+                                                                    <span>{chapter.name}</span>
+                                                                </div>
+                                                            )) : <span className="empty-text">No Chapters</span>}
+                                                        </div>
+                                                    </div>
+                                                )) : (
+                                                    <div className="empty-info" style={{padding: '1rem', textAlign: 'center', width: '100%', color: '#94a3b8'}}>
+                                                        <p>No subjects assigned to this level yet.</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <div className="placeholder-info">
+                                            <i className="fas fa-sitemap"></i>
+                                            <p>No academics hierarchy data found.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {activeTab === 'levels' && (
                         <div className="mgmt-section">
                             <div className="section-header">
@@ -289,36 +390,40 @@ const AcademicsManagement = () => {
                                 <button className="add-btn" onClick={handleAdd}>+ Add Level</button>
                             </div>
                             <div className="mgmt-table-container">
-                                <table className="mgmt-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Name</th>
-                                            <th>Board</th>
-                                            <th>Rank</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {(Array.isArray(levels) ? levels : levels?.results || []).map(level => (
-                                            <tr key={level.id}>
-                                                <td>{level.id}</td>
-                                                <td className="font-semibold">{level.name}</td>
-                                                <td><span className="badge">{level.board}</span></td>
-                                                <td>{level.rank}</td>
-                                                <td>
-                                                    <span className={`status-dot ${level.is_active ? 'active' : 'inactive'}`}></span>
-                                                    {level.is_active ? 'Active' : 'Disabled'}
-                                                </td>
-                                                <td className="actions-cell">
-                                                    <button className="icon-btn edit" onClick={() => handleEdit(level)}><i className="fas fa-edit"></i></button>
-                                                    <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
-                                                </td>
+                                {levelsLoading ? (
+                                    <SkeletonTable rows={5} columns={6} />
+                                ) : (
+                                    <table className="mgmt-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Board</th>
+                                                <th>Rank</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {(Array.isArray(levels) ? levels : levels?.results || []).map(level => (
+                                                <tr key={level.id}>
+                                                    <td>{level.id}</td>
+                                                    <td className="font-semibold">{level.name}</td>
+                                                    <td><span className="badge">{level.board}</span></td>
+                                                    <td>{level.rank}</td>
+                                                    <td>
+                                                        <span className={`status-dot ${level.is_active ? 'active' : 'inactive'}`}></span>
+                                                        {level.is_active ? 'Active' : 'Disabled'}
+                                                    </td>
+                                                    <td className="actions-cell">
+                                                        <button className="icon-btn edit" onClick={() => handleEdit(level)}><i className="fas fa-edit"></i></button>
+                                                        <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
                     )}
@@ -330,33 +435,39 @@ const AcademicsManagement = () => {
                                 <button className="add-btn" onClick={handleAdd}>+ Add Subject</button>
                             </div>
                             <div className="mgmt-table-container">
-                                <table className="mgmt-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Level</th>
-                                            <th>Name</th>
-                                            <th>Slug</th>
-                                            <th>Rank</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {(Array.isArray(subjects) ? subjects : subjects?.results || []).map(subject => (
-                                            <tr key={subject.id}>
-                                                <td>{subject.id}</td>
-                                                <td>{subject.level_name}</td>
-                                                <td className="font-semibold">{subject.name}</td>
-                                                <td>{subject.slug}</td>
-                                                <td>{subject.rank}</td>
-                                                <td className="actions-cell">
-                                                    <button className="icon-btn edit" onClick={() => handleEdit(subject)}><i className="fas fa-edit"></i></button>
-                                                    <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
-                                                </td>
+                                {subjectsLoading ? (
+                                    <SkeletonTable rows={5} columns={6} />
+                                ) : (
+                                    <table className="mgmt-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Level</th>
+                                                <th>Name</th>
+                                                {/* <th>Slug</th> */}
+                                                <th>Rank</th>
+                                                <th>Actions</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {(Array.isArray(subjects) ? subjects : subjects?.results || []).map(subject => (
+                                                <tr key={subject.id}>
+                                                    <td>{subject.id}</td>
+                                                    <td>
+                                                        <span className="badge">{subject.level_name || (levels?.find(l => l.id === subject.level)?.name)}</span>
+                                                    </td>
+                                                    <td className="font-semibold">{subject.name}</td>
+                                                    <td><code>{subject.slug}</code></td>
+                                                    <td>{subject.rank}</td>
+                                                    <td className="actions-cell">
+                                                        <button className="icon-btn edit" onClick={() => handleEdit(subject)}><i className="fas fa-edit"></i></button>
+                                                        <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
                     )}
@@ -368,33 +479,37 @@ const AcademicsManagement = () => {
                                 <button className="add-btn" onClick={handleAdd}>+ Add Chapter</button>
                             </div>
                             <div className="mgmt-table-container">
-                                <table className="mgmt-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Subject</th>
-                                            <th>Name</th>
-                                            <th>Slug</th>
-                                            <th>Rank</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {(Array.isArray(chapters) ? chapters : chapters?.results || []).map(chapter => (
-                                            <tr key={chapter.id}>
-                                                <td>{chapter.id}</td>
-                                                <td>{chapter.subject_name || '-'}</td>
-                                                <td className="font-semibold">{chapter.name}</td>
-                                                <td>{chapter.slug}</td>
-                                                <td>{chapter.rank}</td>
-                                                <td className="actions-cell">
-                                                    <button className="icon-btn edit" onClick={() => handleEdit(chapter)}><i className="fas fa-edit"></i></button>
-                                                    <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
-                                                </td>
+                                {chaptersLoading ? (
+                                    <SkeletonTable rows={5} columns={5} />
+                                ) : (
+                                    <table className="mgmt-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Subject</th>
+                                                <th>Name</th>
+                                                <th>Rank</th>
+                                                <th>Actions</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {(Array.isArray(chapters) ? chapters : chapters?.results || []).map(chapter => (
+                                                <tr key={chapter.id}>
+                                                    <td>{chapter.id}</td>
+                                                    <td>
+                                                        <span className="badge">{chapter.subject_name || (subjects?.find(s => s.id === chapter.subject)?.name)}</span>
+                                                    </td>
+                                                    <td className="font-semibold">{chapter.name}</td>
+                                                    <td>{chapter.rank}</td>
+                                                    <td className="actions-cell">
+                                                        <button className="icon-btn edit" onClick={() => handleEdit(chapter)}><i className="fas fa-edit"></i></button>
+                                                        <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
                     )}
@@ -406,42 +521,51 @@ const AcademicsManagement = () => {
                                 <button className="add-btn" onClick={handleAdd}>+ Add Material</button>
                             </div>
                             <div className="mgmt-table-container">
-                                <table className="mgmt-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Title</th>
-                                            <th>Type</th>
-                                            <th>Chapter</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {(Array.isArray(materials) ? materials : materials?.results || []).map(material => (
-                                            <tr key={material.id}>
-                                                <td>{material.id}</td>
-                                                <td className="font-semibold">
-                                                    {material.translations?.find(t => t.language === 'en')?.title || 
-                                                     material.translations?.[0]?.title || 
-                                                     'Untitled'}
-                                                </td>
-                                                <td><span className="badge">{material.category_name}</span></td>
-                                                <td>{material.chapter_name || '-'}</td>
-                                                <td>{getStatusBadge(material.status)}</td>
-                                                <td className="actions-cell">
-                                                    <button className="icon-btn edit" title="View Details" onClick={() => handleView(material)}>
-                                                        <i className="fas fa-eye"></i>
-                                                    </button>
-                                                    <button className="icon-btn edit" title="Edit" onClick={() => handleEdit(material)}>
-                                                        <i className="fas fa-edit"></i>
-                                                    </button>
-                                                    <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
-                                                </td>
+                                {materialsLoading ? (
+                                    <SkeletonTable rows={5} columns={6} />
+                                ) : (
+                                    <table className="mgmt-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Title</th>
+                                                <th>Type</th>
+                                                <th>Chapter</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {(Array.isArray(materials) ? materials : materials?.results || []).map(material => {
+                                                const catName = material.category_name || categories?.find(c => c.id === material.category)?.name;
+                                                const chName = material.chapter_name || chapters?.find(ch => ch.id === material.chapter)?.name;
+                                                
+                                                return (
+                                                    <tr key={material.id}>
+                                                        <td>{material.id}</td>
+                                                        <td className="font-semibold">
+                                                            {material.translations?.find(t => t.language === 'en')?.title || 
+                                                             material.translations?.[0]?.title || 
+                                                             'Untitled'}
+                                                        </td>
+                                                        <td><span className="badge">{catName || 'General'}</span></td>
+                                                        <td>{chName || '-'}</td>
+                                                        <td>{getStatusBadge(material.status)}</td>
+                                                        <td className="actions-cell">
+                                                            <button className="icon-btn edit" title="View Details" onClick={() => handleView(material)}>
+                                                                <i className="fas fa-eye"></i>
+                                                            </button>
+                                                            <button className="icon-btn edit" title="Edit" onClick={() => handleEdit(material)}>
+                                                                <i className="fas fa-edit"></i>
+                                                            </button>
+                                                            <button className="icon-btn delete"><i className="fas fa-trash"></i></button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
                     )}
@@ -491,13 +615,14 @@ const AcademicsManagement = () => {
                                                 </div>
                                             ) : type === 'pdf' ? (
                                                 <div className="mm-branded-skeleton">
-                                                     <div className="mm-skeleton-icon" style={{color: '#ef4444', background: '#fee2e2'}}><i className="fas fa-file-pdf"></i></div>
+                                                     <div className="mm-skeleton-icon" style={{color: 'var(--danger)', background: 'rgba(239, 68, 68, 0.1)'}}><i className="fas fa-file-pdf"></i></div>
                                                 </div>
                                             ) : type === 'doc' ? (
                                                  <div className="mm-branded-skeleton">
-                                                     <div className="mm-skeleton-icon" style={{color: '#3b82f6', background: '#dbeafe'}}><i className="fas fa-file-alt"></i></div>
+                                                     <div className="mm-skeleton-icon" style={{color: 'var(--primary-yellow-hover)', background: 'var(--primary-yellow-light)'}}><i className="fas fa-file-alt"></i></div>
                                                 </div>
                                             ) : type === 'image' ? (
+
                                                  <img 
                                                     src={link.media_url} 
                                                     alt="preview" 
@@ -640,6 +765,21 @@ const AcademicsManagement = () => {
                                     onChange={e => setFormData({ ...formData, rank: parseInt(e.target.value) })}
                                 />
                             </FormField>
+                            <FormField label="Subject Icon (Optional)">
+                                <div className="media-pick-row" style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                                    <input
+                                        type="file"
+                                        className="form-input"
+                                        accept="image/*"
+                                        onChange={e => setFormData({ ...formData, icon_file: e.target.files[0] })}
+                                        style={{flex: 1}}
+                                    />
+                                    <button type="button" className="btn-secondary small" onClick={() => { setMediaPickTarget('icon'); setIsMediaModalOpen(true); }} style={{padding: '10px', height: '46px'}}>
+                                        <i className="fas fa-images"></i> Library
+                                    </button>
+                                </div>
+                                {formData.icon_url && <img src={formData.icon_url} alt="Current Icon" className="form-preview-thumb" />}
+                            </FormField>
                         </>
                     )}
 
@@ -684,6 +824,123 @@ const AcademicsManagement = () => {
                                     onChange={e => setFormData({ ...formData, rank: parseInt(e.target.value) })}
                                 />
                             </FormField>
+                            <FormField label="Chapter Banner (Optional)">
+                                <div className="media-pick-row" style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                                    <input
+                                        type="file"
+                                        className="form-input"
+                                        accept="image/*"
+                                        onChange={e => setFormData({ ...formData, banner_file: e.target.files[0] })}
+                                        style={{flex: 1}}
+                                    />
+                                    <button type="button" className="btn-secondary small" onClick={() => { setMediaPickTarget('banner'); setIsMediaModalOpen(true); }} style={{padding: '10px', height: '46px'}}>
+                                        <i className="fas fa-images"></i> Library
+                                    </button>
+                                </div>
+                                {formData.banner_url && <img src={formData.banner_url} alt="Current Banner" className="form-preview-thumb" />}
+                            </FormField>
+                            
+                            {modalMode === 'create' && (
+                                <>
+                                    <div className="form-divider">Initial Introduction (One-Shot)</div>
+                                    <FormField label="English Title">
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={formData.eng_title || ''}
+                                            onChange={e => setFormData({ ...formData, eng_title: e.target.value })}
+                                            placeholder="Intro to Chapter..."
+                                        />
+                                    </FormField>
+                                    <FormField label="English Summary">
+                                        <textarea
+                                            className="form-textarea"
+                                            rows="2"
+                                            value={formData.eng_summary || ''}
+                                            onChange={e => setFormData({ ...formData, eng_summary: e.target.value })}
+                                            placeholder="Brief overview..."
+                                        ></textarea>
+                                    </FormField>
+                                    <FormField label="English Content (HTML)">
+                                        <textarea
+                                            className="form-textarea"
+                                            rows="4"
+                                            value={formData.eng_content || ''}
+                                            onChange={e => setFormData({ ...formData, eng_content: e.target.value })}
+                                            placeholder="<h1>Welcome</h1>..."
+                                        ></textarea>
+                                    </FormField>
+
+                                    <div className="form-divider">Telugu Introduction (One-Shot)</div>
+                                    <FormField label="Telugu Title">
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={formData.tel_title || ''}
+                                            onChange={e => setFormData({ ...formData, tel_title: e.target.value })}
+                                            placeholder="అధ్యాయం పరిచయం..."
+                                        />
+                                    </FormField>
+                                    <FormField label="Telugu Summary">
+                                        <textarea
+                                            className="form-textarea"
+                                            rows="2"
+                                            value={formData.tel_summary || ''}
+                                            onChange={e => setFormData({ ...formData, tel_summary: e.target.value })}
+                                            placeholder="క్లుప్త వివరణ..."
+                                        ></textarea>
+                                    </FormField>
+                                    <FormField label="Telugu Content (HTML)">
+                                        <textarea
+                                            className="form-textarea"
+                                            rows="4"
+                                            value={formData.tel_content || ''}
+                                            onChange={e => setFormData({ ...formData, tel_content: e.target.value })}
+                                            placeholder="<h1>స్వాగతం</h1>..."
+                                        ></textarea>
+                                    </FormField>
+
+                                    <div className="form-divider">Intro Assets (One-Shot)</div>
+                                    <FormField label="Chapter Document (PDF/Doc)">
+                                        <div className="media-pick-row" style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                                            <input
+                                                type="file"
+                                                className="form-input"
+                                                onChange={e => setFormData({ ...formData, document_file: e.target.files[0] })}
+                                                style={{flex: 1}}
+                                            />
+                                            <button type="button" className="btn-secondary small" onClick={() => { setMediaPickTarget('document'); setIsMediaModalOpen(true); }} style={{padding: '10px', height: '46px'}}>
+                                                <i className="fas fa-file-alt"></i> Library
+                                            </button>
+                                        </div>
+                                        {formData.document_name && <p className="form-meta-text"><i className="fas fa-check-circle"></i> {formData.document_name}</p>}
+                                    </FormField>
+
+                                    <FormField label="Additional Media (Library/System)">
+                                        <div className="media-list" style={{background: '#f8fafc', padding: '15px', borderRadius: '15px', border: '1px dashed #cbd5e1'}}>
+                                            {formData.media_links?.map((link, idx) => (
+                                                <div key={idx} className="media-item-row">
+                                                    <div className="media-info">
+                                                        <span style={{fontWeight: 600}}>{link.title}</span>
+                                                        <span className={`badge source-badge ${link.source}`}>{link.source}</span>
+                                                    </div>
+                                                    <button type="button" className="icon-btn delete" onClick={() => {
+                                                        const nl = [...formData.media_links];
+                                                        nl.splice(idx, 1);
+                                                        setFormData({...formData, media_links: nl});
+                                                    }}><i className="fas fa-times"></i></button>
+                                                </div>
+                                            ))}
+                                            <div className="media-actions-row" style={{display: 'flex', gap: '8px'}}>
+                                                <button type="button" className="btn-secondary small" onClick={() => { setMediaPickTarget('content'); setIsMediaModalOpen(true); }} style={{flex: 1}}>+ Library</button>
+                                                <label className="btn-secondary small" style={{flex: 1, cursor: 'pointer', textAlign: 'center'}}>
+                                                    + System <input type="file" multiple style={{display: 'none'}} onChange={handleLocalFileSelect} />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </FormField>
+                                </>
+                            )}
                         </>
                     )}
                     
@@ -765,10 +1022,24 @@ const AcademicsManagement = () => {
                                                 const newTrans = [...(formData.translations || [])];
                                                 const idx = newTrans.findIndex(t => t.language === lang);
                                                 if (idx >= 0) newTrans[idx] = { ...newTrans[idx], title: e.target.value };
-                                                else newTrans.push({ language: lang, title: e.target.value, content: '' });
+                                                else newTrans.push({ language: lang, title: e.target.value, summary: '', content: '' });
                                                 setFormData({ ...formData, translations: newTrans });
                                             }}
                                         />
+                                    </FormField>
+                                    <FormField label="Summary">
+                                        <textarea
+                                            className="form-textarea"
+                                            rows="2"
+                                            value={formData.translations?.find(t => t.language === lang)?.summary || ''}
+                                            onChange={e => {
+                                                const newTrans = [...(formData.translations || [])];
+                                                const idx = newTrans.findIndex(t => t.language === lang);
+                                                if (idx >= 0) newTrans[idx] = { ...newTrans[idx], summary: e.target.value };
+                                                else newTrans.push({ language: lang, title: '', summary: e.target.value, content: '' });
+                                                setFormData({ ...formData, translations: newTrans });
+                                            }}
+                                        ></textarea>
                                     </FormField>
                                     <FormField label="Content (HTML)">
                                         <textarea
@@ -779,7 +1050,7 @@ const AcademicsManagement = () => {
                                                 const newTrans = [...(formData.translations || [])];
                                                 const idx = newTrans.findIndex(t => t.language === lang);
                                                 if (idx >= 0) newTrans[idx] = { ...newTrans[idx], content: e.target.value };
-                                                else newTrans.push({ language: lang, title: '', content: e.target.value });
+                                                else newTrans.push({ language: lang, title: '', summary: '', content: e.target.value });
                                                 setFormData({ ...formData, translations: newTrans });
                                             }}
                                         ></textarea>
@@ -787,23 +1058,62 @@ const AcademicsManagement = () => {
                                 </div>
                             ))}
                             
-                            <div className="form-divider">Media Links</div>
+                            <div className="form-divider">Banner & Document</div>
+                            <div className="form-row">
+                                <FormField label="Banner (Optional)">
+                                    <div className="media-pick-row" style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+                                        <input type="file" className="form-input" accept="image/*" onChange={e => setFormData({ ...formData, banner_file: e.target.files[0] })} style={{flex: 1}} />
+                                        <button type="button" className="btn-secondary small" onClick={() => { setMediaPickTarget('banner'); setIsMediaModalOpen(true); }} style={{padding: '8px'}}><i className="fas fa-images"></i></button>
+                                    </div>
+                                    {formData.banner_url && <img src={formData.banner_url} alt="Banner" className="form-preview-thumb" style={{marginTop: '8px'}} />}
+                                </FormField>
+                                <FormField label="Main Document (Optional)">
+                                    <div className="media-pick-row" style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+                                        <input type="file" className="form-input" onChange={e => setFormData({ ...formData, document_file: e.target.files[0] })} style={{flex: 1}} />
+                                        <button type="button" className="btn-secondary small" onClick={() => { setMediaPickTarget('document'); setIsMediaModalOpen(true); }} style={{padding: '8px'}}><i className="fas fa-file-alt"></i></button>
+                                    </div>
+                                    {formData.document_name && <p className="form-meta-text"><i className="fas fa-check-circle"></i> {formData.document_name}</p>}
+                                </FormField>
+                            </div>
+
+                            <div className="form-divider">Additional Media Attachments</div>
                             <div className="media-list">
                                 {formData.media_links?.map((link, idx) => (
                                     <div key={idx} className="media-item-row">
-                                        <img src={link.thumbnail_url} alt="thumb" className="media-thumb-small" />
+                                        {link.thumbnail_url ? (
+                                            <img src={link.thumbnail_url} alt="thumb" className="media-thumb-small" />
+                                        ) : (
+                                            <div className="media-thumb-small mm-branded-skeleton" style={{width: '48px', height: '48px', minWidth: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--slate-100)'}}>
+                                                <i className={`fas ${link.media_type === 'application' || link.media_type === 'pdf' ? 'fa-file-pdf' : 'fa-file'}`} style={{fontSize: '1rem', color: 'var(--slate-400)'}}></i>
+                                            </div>
+                                        )}
                                         <div className="media-info">
-                                            <a href={link.media_url} target="_blank" rel="noopener noreferrer" className="media-link" style={{color: '#3182ce', fontWeight: '500'}}>
-                                                 {link.title || link.media_url?.substring(0, 30)}... <i className="fas fa-external-link-alt"></i>
-                                            </a>
-                                            <span className="badge">{link.usage}</span>
+                                            <div className="media-title-row" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                                <span className="media-link" style={{color: 'var(--slate-900)', fontWeight: '600', fontSize: '0.9rem'}}>
+                                                    {link.title || 'Untitled Asset'}
+                                                </span>
+                                                <span className={`badge source-badge ${link.source}`} style={{
+                                                    fontSize: '0.65rem',
+                                                    padding: '2px 6px',
+                                                    background: link.source === 'library' ? 'var(--primary-yellow-light)' : 'var(--slate-100)',
+                                                    color: link.source === 'library' ? 'var(--primary-yellow-hover)' : 'var(--slate-600)',
+                                                    border: 'none'
+                                                }}>
+                                                    {link.source === 'library' ? 'Library' : 'System'}
+                                                </span>
+                                            </div>
+                                            <span className="badge" style={{fontSize: '0.7rem'}}>{link.usage}</span>
                                         </div>
+
                                         <button 
                                             type="button" 
                                             className="icon-btn delete"
                                             onClick={() => {
                                                 const newLinks = [...formData.media_links];
                                                 newLinks.splice(idx, 1);
+                                                if (link.source === 'local' && link.media_url) {
+                                                    URL.revokeObjectURL(link.media_url);
+                                                }
                                                 setFormData({ ...formData, media_links: newLinks });
                                             }}
                                         >
@@ -811,17 +1121,32 @@ const AcademicsManagement = () => {
                                         </button>
                                     </div>
                                 ))}
-                                <button type="button" className="btn-secondary small" onClick={() => setIsMediaModalOpen(true)}>
-                                    + Add Media
-                                </button>
+                                <div className="media-actions-row" style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
+                                    <button type="button" className="btn-secondary small" onClick={() => { setMediaPickTarget('content'); setIsMediaModalOpen(true); }} style={{flex: 1, padding: '8px'}}>
+                                        <i className="fas fa-images"></i> Library
+                                    </button>
+                                    <label className="btn-secondary small upload-label" style={{flex: 1, padding: '8px', cursor: 'pointer', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
+                                        <i className="fas fa-upload"></i> System
+                                        <input 
+                                            type="file" 
+                                            multiple 
+                                            style={{display: 'none'}} 
+                                            onChange={handleLocalFileSelect}
+                                        />
+                                    </label>
+                                </div>
                             </div>
                         </>
                     )}
 
                     <div className="modal-footer">
-                        <button type="button" className="btn-secondary" onClick={closeModal}>Cancel</button>
-                        <button type="submit" className="btn-primary">
-                            {modalMode === 'create' ? 'Create' : 'Update'}
+                        <button type="button" className="btn-secondary" onClick={closeModal} disabled={isSaving}>Cancel</button>
+                        <button type="submit" className="btn-primary" disabled={isSaving}>
+                            {isSaving ? (
+                                <><i className="fas fa-spinner fa-spin" style={{marginRight: '8px'}}></i> Processing...</>
+                            ) : (
+                                modalMode === 'create' ? 'Create' : 'Update'
+                            )}
                         </button>
                     </div>
                 </form>

@@ -1,0 +1,51 @@
+/* AcademicsSidebar.css */
+.academics-sidebar {
+    position: sticky;
+    top: 90px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid #f1f5f9;
+    box-shadow: none !important; /* Flat design as requested */
+}
+
+.academics-sidebar .filter-header h3 {
+    color: #1e293b;
+    font-weight: 800;
+}
+
+.academics-sidebar .filter-section h4 {
+    color: #64748b;
+}
+
+.sidebar-info-card {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border-radius: 16px;
+    display: flex;
+    gap: 12px;
+    border: 1px solid #f1f5f9;
+}
+
+.sidebar-info-card i {
+    color: var(--primary-yellow);
+    font-size: 1.1rem;
+    margin-top: 2px;
+}
+
+.sidebar-info-card p {
+    font-size: 0.85rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Ensure checkbox matches theme */
+.academics-sidebar .custom-checkbox:hover input ~ .checkmark {
+    border-color: var(--primary-yellow);
+}
+
+.academics-sidebar .custom-checkbox input:checked ~ .checkmark {
+    background-color: var(--primary-yellow);
+    border-color: var(--primary-yellow);
+}
