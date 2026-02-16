@@ -51,22 +51,6 @@ const Footer = () => {
 
                         <div className="footer-column contact-column">
                             <h4>Get in Touch</h4>
-                            <ul className="contact-details-premium">
-                                <li>
-                                    <i className="fas fa-envelope"></i>
-                                    <div className="contact-text">
-                                        <span>Email Support</span>
-                                        <a href="mailto:info@careervedha.com">info@careervedha.com</a>
-                                    </div>
-                                </li>
-                                <li>
-                                    <i className="fas fa-phone-alt"></i>
-                                    <div className="contact-text">
-                                        <span>Call Us</span>
-                                        <a href="tel:+911234567890">+91 1234567890</a>
-                                    </div>
-                                </li>
-                            </ul>
                             <button 
                                 className="premium-contact-trigger"
                                 onClick={() => setShowContactForm(true)}

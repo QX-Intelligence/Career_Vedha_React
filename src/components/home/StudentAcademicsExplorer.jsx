@@ -13,7 +13,7 @@ const StudentAcademicsExplorer = ({ showHeader = true, className = '', style = {
 
     // Track last loaded language to trigger re-fetch on change
     const [activeLanguage, setActiveLanguage] = useState(() => {
-        return propLanguage || localStorage.getItem('preferredLanguage') || 'telugu';
+        return propLanguage || localStorage.getItem('preferredLanguage') || 'english';
     });
     const lastLoadedLangRef = React.useRef(activeLanguage);
 

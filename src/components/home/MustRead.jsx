@@ -2,31 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTranslations } from '../../utils/translations';
-import { currentAffairsService } from '../../services';
+import { newsService } from '../../services';
 
-const MustRead = ({ activeLanguage = 'telugu' }) => {
+const MustRead = ({ activeLanguage = 'telugu', articles: propArticles }) => {
     const t = getTranslations(activeLanguage);
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    // Fetch MUST_READ articles using the TOP feature list as requested
     useEffect(() => {
         const fetchArticles = async () => {
             try {
-                const lang = activeLanguage === 'telugu' ? 'TE' : 'EN';
-                const data = await currentAffairsService.getAllAffairs({ language: lang, limit: 5 });
-                if (Array.isArray(data) && data.length > 0) {
-                    setArticles(data);
+                // Determine language code (backend expects 'te' or 'en')
+                const lang = activeLanguage === 'telugu' ? 'te' : 'en';
+                
+                // Fetch from the features API with TOP type as requested
+                // This gives us the pinned articles with article_title and article_slug
+                const response = await newsService.getPinnedArticles({ 
+                    feature_type: 'TOP', 
+                    lang: lang 
+                });
+
+                if (Array.isArray(response) && response.length > 0) {
+                    setArticles(response);
+                } else if (propArticles && propArticles.length > 0) {
+                    // Fallback to propArticles if available
+                    setArticles(propArticles);
                 }
             } catch (error) {
-                console.error('Failed to fetch must-read articles:', error);
+                console.warn('[MustRead] Failed to fetch featured articles:', error);
+                if (propArticles && propArticles.length > 0) {
+                    setArticles(propArticles);
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         fetchArticles();
-    }, [activeLanguage]);
+    }, [activeLanguage, propArticles]);
 
     useEffect(() => {
         if (articles.length <= 1) return;
@@ -40,7 +55,13 @@ const MustRead = ({ activeLanguage = 'telugu' }) => {
 
     if (loading || articles.length === 0) return null;
 
-    const currentArticle = articles[currentIndex];
+    const item = articles[currentIndex];
+
+    // Normalize keys (handle both Article object and Feature object from results)
+    const title = item.article_title || item.title;
+    const slug = item.article_slug || item.slug;
+    // article_section comes from modified backend, section comes from query
+    const section = item.article_section || item.section || 'news';
 
     return (
         <div className="must-read-section container">
@@ -55,16 +76,23 @@ const MustRead = ({ activeLanguage = 'telugu' }) => {
                     <AnimatePresence mode="wait">
                         <motion.div 
                             className="ticker-item-wrapper" 
-                            key={currentArticle.id}
+                            key={item.feature_id || item.id || currentIndex}
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -20, opacity: 0 }}
                             transition={{ duration: 0.5 }}
                         >
-                            <a href={currentArticle.fileUrl} target="_blank" rel="noopener noreferrer" className="must-read-item">
-                                <span className="ticket-tag">{currentArticle.region}</span>
-                                <p>{currentArticle.title}</p>
-                            </a>
+                            {slug ? (
+                                <Link to={`/article/${section}/${slug}`} className="must-read-item">
+                                    <span className="ticket-tag">{section === 'null' || !section ? 'News' : section}</span>
+                                    <p>{title}</p>
+                                </Link>
+                            ) : (
+                                <div className="must-read-item">
+                                    <span className="ticket-tag">{section || 'Update'}</span>
+                                    <p>{title}</p>
+                                </div>
+                            )}
                         </motion.div>
                     </AnimatePresence>
                 </div>

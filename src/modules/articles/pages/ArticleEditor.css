@@ -383,3 +383,43 @@ input:checked + .slider:before {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
 }
+
+/* React Quill Customization */
+.quill-editor-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid var(--slate-100);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quill-editor-wrapper:focus-within {
+    border-color: var(--article-accent);
+    box-shadow: 0 0 0 5px var(--article-accent-light);
+    transform: translateY(-2px);
+}
+
+.quill-editor-wrapper .ql-toolbar {
+    border: none !important;
+    border-bottom: 1px solid var(--slate-100) !important;
+    background: #f8fafc;
+    padding: 12px !important;
+}
+
+.quill-editor-wrapper .ql-container {
+    border: none !important;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--slate-900);
+    min-height: 250px;
+}
+
+.quill-editor-wrapper .ql-editor {
+    min-height: 250px;
+    padding: 1.5rem;
+}
+
+.quill-editor-wrapper .ql-editor.ql-blank::before {
+    font-style: normal;
+    color: #94a3b8;
+}

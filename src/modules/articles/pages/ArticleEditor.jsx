@@ -15,6 +15,8 @@ import { useArticle, useCreateArticle, useUpdateArticle, usePublishArticle, useA
 import { useAdminCategories, useCategoriesBySection, useDeleteCategory, useToggleCategoryStatus, useFetchCategoryChildren, useSections } from '../../../hooks/useTaxonomy';
 import './ArticleEditor.css';
 import '../../../styles/Dashboard.css';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const ArticleEditor = () => {
     const { section: sectionParam, id } = useParams();
@@ -144,29 +146,70 @@ const ArticleEditor = () => {
 
     const [errors, setErrors] = useState({});
     
+    // Helper to check if Quill content is effectively empty
+    const isContentEmpty = (content) => {
+        if (!content) return true;
+        // Strip HTML tags and check for non-whitespace content
+        // Also check if it contains images or iframes which count as content
+        const hasMedia = content.includes('<img') || content.includes('<iframe');
+        const textContent = content.replace(/<[^>]*>/g, '').trim();
+        return !textContent && !hasMedia;
+    };
+
     const validateForm = () => {
         const newErrors = {};
-        const requiredFields = {
+        let hasEnglish = false;
+        let hasTelugu = false;
+
+        // Check English completeness
+        if (formData.eng_title?.trim() || !isContentEmpty(formData.eng_content) || formData.eng_summary?.trim()) {
+            if (!formData.eng_title?.trim()) newErrors.eng_title = true;
+            if (isContentEmpty(formData.eng_content)) newErrors.eng_content = true;
+            if (!formData.eng_summary?.trim()) newErrors.eng_summary = true;
+            
+            if (!newErrors.eng_title && !newErrors.eng_content && !newErrors.eng_summary) {
+                hasEnglish = true;
+            }
+        }
+
+        // Check Telugu completeness
+        if (formData.tel_title?.trim() || !isContentEmpty(formData.tel_content) || formData.tel_summary?.trim()) {
+            if (!formData.tel_title?.trim()) newErrors.tel_title = true;
+            if (isContentEmpty(formData.tel_content)) newErrors.tel_content = true;
+            if (!formData.tel_summary?.trim()) newErrors.tel_summary = true;
+            
+            if (!newErrors.tel_title && !newErrors.tel_content && !newErrors.tel_summary) {
+                hasTelugu = true;
+            }
+        }
+
+        // Require at least one fully complete language
+        if (!hasEnglish && !hasTelugu) {
+            showSnackbar('Please complete at least one language (Title, Summary, and Content)', 'error');
+            if (formData.eng_title || formData.eng_content || formData.eng_summary) setErrors({...newErrors, general: 'Complete English section'});
+            else if (formData.tel_title || formData.tel_content || formData.tel_summary) setErrors({...newErrors, general: 'Complete Telugu section'});
+            else setErrors({...newErrors, eng_title: true, tel_title: true}); // Highlight something
+            return false;
+        }
+
+        // If a language was started but incomplete, show error
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            showSnackbar('Please complete all fields for the selected language', 'error');
+            return false;
+        }
+
+        // Common required fields
+        const commonRequired = {
             section: 'Section',
             slug: 'Slug',
-            eng_title: 'English Title',
-            eng_content: 'English Content',
-            eng_summary: 'English Summary',
-            tel_title: 'Telugu Title',
-            tel_content: 'Telugu Content',
-            tel_summary: 'Telugu Summary',
-            expires_at: 'Article Expiry Date'
+            // expires_at: 'Article Expiry Date' // Optional check if needed
         };
 
-        for (const [key, label] of Object.entries(requiredFields)) {
+        for (const [key, label] of Object.entries(commonRequired)) {
             if (!formData[key] || (typeof formData[key] === 'string' && !formData[key].trim())) {
                 newErrors[key] = true;
                 showSnackbar(`${label} is required`, 'error');
-                
-                // Switch tab if error is in a specific language
-                if (key.startsWith('eng_')) setActiveTab('english');
-                if (key.startsWith('tel_')) setActiveTab('telugu');
-                
                 setErrors(newErrors);
                 return false;
             }
@@ -214,6 +257,30 @@ const ArticleEditor = () => {
             return { ...prev, category_ids: updated };
         });
     };
+
+    const handleEditorChange = (name, content) => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: content
+        }));
+    };
+    
+    const modules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+        ],
+    };
+
+    const formats = [
+        'header',
+        'bold', 'italic', 'underline', 'strike',
+        'list', 'bullet',
+        'link', 'image'
+    ];
 
     // Media Upload Handlers
     const handleBannerFileChange = (e) => {
@@ -302,28 +369,9 @@ const ArticleEditor = () => {
             
             // For NEW articles: Create with PUBLISHED status
             if (!isEditMode) {
-                const translations = [];
-                if (formData.tel_title || formData.tel_content) {
-                    translations.push({
-                        language: 'te',
-                        title: formData.tel_title || '',
-                        content: formData.tel_content || '',
-                        summary: formData.tel_summary || ''
-                    });
-                }
-                if (formData.eng_title || formData.eng_content) {
-                    translations.push({
-                        language: 'en',
-                        title: formData.eng_title || '',
-                        content: formData.eng_content || '',
-                        summary: formData.eng_summary || ''
-                    });
-                }
-                
                 const payload = {
                     slug: formData.slug || '',
                     section: formData.section || '',
-                    translations: translations,
                     category_ids: formData.category_ids || [],
                     tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : [],
                     keywords: typeof formData.keywords === 'string' ? formData.keywords.split(',').map(k => k.trim()).filter(k => k) : [],
@@ -337,6 +385,20 @@ const ArticleEditor = () => {
                     expires_at: formData.expires_at || null,
                     status: scheduleDate ? 'SCHEDULED' : 'PUBLISHED'
                 };
+
+                // Add Telugu fields if valid
+                if (formData.tel_title?.trim() && !isContentEmpty(formData.tel_content)) {
+                    payload.tel_title = formData.tel_title;
+                    payload.tel_content = formData.tel_content;
+                    payload.tel_summary = formData.tel_summary || '';
+                }
+
+                // Add English fields if valid
+                if (formData.eng_title?.trim() && !isContentEmpty(formData.eng_content)) {
+                    payload.eng_title = formData.eng_title;
+                    payload.eng_content = formData.eng_content;
+                    payload.eng_summary = formData.eng_summary || '';
+                }
 
                 // Add media ONLY if they exist to satisfy backend validators
                 if (bannerFile) payload.banner_file = bannerFile;
@@ -584,17 +646,18 @@ const ArticleEditor = () => {
                                         ></textarea>
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                        <label>Main Body (English HTML) <span style={{ color: 'red' }}>*</span></label>
-                                        <textarea 
-                                            name="eng_content" 
-                                            value={formData.eng_content || ''} 
-                                            onChange={handleInputChange} 
-                                            placeholder="HTML content supported..." 
-                                            rows="20" 
-                                            required
-                                            className={errors.eng_content ? 'error' : ''}
-                                        ></textarea>
-                                        <span className="html-editor-info"><i className="fas fa-code"></i> Raw HTML Editor - Use tags for formatting (p, br, h3, ul, li)</span>
+                                        <label>Main Body (English Content) <span style={{ color: 'red' }}>*</span></label>
+                                        <div className="quill-editor-wrapper">
+                                            <ReactQuill 
+                                                theme="snow"
+                                                value={formData.eng_content || ''}
+                                                onChange={(content) => handleEditorChange('eng_content', content)}
+                                                modules={modules}
+                                                formats={formats}
+                                                placeholder="Write your article in English..."
+                                                className={errors.eng_content ? 'error' : ''}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
@@ -623,17 +686,18 @@ const ArticleEditor = () => {
                                         ></textarea>
                                     </div>
                                     <div className="form-section" style={{ marginTop: '1.5rem' }}>
-                                        <label>Main Body (Telugu HTML) <span style={{ color: 'red' }}>*</span></label>
-                                        <textarea 
-                                            name="tel_content" 
-                                            value={formData.tel_content || ''} 
-                                            onChange={handleInputChange} 
-                                            placeholder="తెలుగు కంటెంట్..." 
-                                            rows="20" 
-                                            required
-                                            className={errors.tel_content ? 'error' : ''}
-                                        ></textarea>
-                                        <span className="html-editor-info"><i className="fas fa-code"></i> Raw HTML Editor for Telugu translation</span>
+                                        <label>Main Body (Telugu Content) <span style={{ color: 'red' }}>*</span></label>
+                                        <div className="quill-editor-wrapper">
+                                            <ReactQuill 
+                                                theme="snow"
+                                                value={formData.tel_content || ''}
+                                                onChange={(content) => handleEditorChange('tel_content', content)}
+                                                modules={modules}
+                                                formats={formats}
+                                                placeholder="Write your article in Telugu..."
+                                                className={errors.tel_content ? 'error' : ''}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             )}

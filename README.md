@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 # Career Vedha Frontend
 
 A premium, modern, and highly interactive Career Guidance and Portal management system built with React. This platform provides a comprehensive suite of tools for students to explore careers, take exams, and for administrators to manage users, roles, and notifications.

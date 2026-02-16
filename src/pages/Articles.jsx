@@ -36,7 +36,7 @@ const ArticlesPage = () => {
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'telugu';
+        return localStorage.getItem('preferredLanguage') || 'english';
     });
     const [searchQuery, setSearchQuery] = useState('');
     const [searchParams] = useSearchParams();

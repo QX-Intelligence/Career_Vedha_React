@@ -10,9 +10,9 @@ const Sidebar = memo(() => {
         <aside className="sidebar">
             <TrendingWidget />
 
-            <NewsletterForm />
+            {/* <NewsletterForm /> */}
             {/* <AppDownload /> */}
-            <QuizWidget />
+            {/* <QuizWidget /> */}
         </aside>
     );
 });

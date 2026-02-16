@@ -7,7 +7,7 @@ import API_CONFIG from '../../config/api.config';
 
 const PrimaryNav = ({ isOpen }) => {
     const location = useLocation();
-    const activeLanguage = localStorage.getItem('preferredLanguage') || 'telugu';
+    const activeLanguage = localStorage.getItem('preferredLanguage') || 'english';
     const t = getTranslations(activeLanguage);
     const [sections, setSections] = useState([]);
     const [levels, setLevels] = useState([]);

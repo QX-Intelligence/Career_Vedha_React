@@ -15,7 +15,7 @@ const SearchResults = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('all');
     const [resultsByType, setResultsByType] = useState({});
-    const [activeLanguage, setActiveLanguage] = useState('telugu');
+    const [activeLanguage, setActiveLanguage] = useState('english');
 
     useEffect(() => {
         performSearch();

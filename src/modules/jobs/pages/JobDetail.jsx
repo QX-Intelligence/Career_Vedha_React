@@ -17,7 +17,7 @@ const JobDetail = () => {
     const [error, setError] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'telugu';
+        return localStorage.getItem('preferredLanguage') || 'english';
     });
 
     useEffect(() => {

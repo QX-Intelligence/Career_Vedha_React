@@ -98,10 +98,10 @@ const TermsAndConditions = () => {
                             <p>
                                 If you have any questions about these Terms and Conditions, please contact us at:
                             </p>
-                            <p className="contact-details">
+                            {/* <p className="contact-details">
                                 <strong>Email:</strong> info@careervedha.com<br />
                                 <strong>Address:</strong> Hyderabad, Telangana, India
-                            </p>
+                            </p> */}
                             <button 
                                 className="premium-contact-trigger"
                                 style={{ marginTop: '24px', maxWidth: '280px' }}

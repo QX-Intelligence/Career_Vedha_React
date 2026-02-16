@@ -14,7 +14,7 @@ const ArticleDetail = () => {
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'telugu';
+        return localStorage.getItem('preferredLanguage') || 'english';
     });
 
     useEffect(() => {
@@ -35,6 +35,42 @@ const ArticleDetail = () => {
         };
         fetchArticle();
     }, [section, slug, activeLanguage]);
+
+    // Effect to handle external links in article content
+    // Effect to handle external links in article content
+    useEffect(() => {
+        if (!loading && article) {
+            const contentDiv = document.querySelector('.article-rich-text');
+            if (contentDiv) {
+                const links = contentDiv.querySelectorAll('a');
+                links.forEach(link => {
+                    let href = link.getAttribute('href');
+                    if (href) {
+                        // If it starts with slash, it's relative (keep it)
+                        // If it starts with http/https, it's absolute
+                        // If it doesn't start with http/https/slash/mailto/tel, assume it's external domain (e.g. youtube.com)
+                        
+                        const isProtocol = href.match(/^[a-zA-Z]+:/); // matches http:, mailto:, etc.
+                        const isRelative = href.startsWith('/') || href.startsWith('#');
+                        
+                        if (!isProtocol && !isRelative) {
+                            // Assume it's a domain like "youtube.com" -> prefix with https
+                            href = 'https://' + href;
+                            link.setAttribute('href', href);
+                        }
+
+                        // Now check if it's external to open in new tab
+                        if (href.startsWith('http') || href.startsWith('https')) {
+                            if (!href.includes(window.location.hostname)) {
+                                link.setAttribute('target', '_blank');
+                                link.setAttribute('rel', 'noopener noreferrer');
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }, [article, loading]);
 
     const handleLanguageChange = (lang) => {
         setActiveLanguage(lang);
@@ -119,7 +155,6 @@ const ArticleDetail = () => {
                                                 src={fallbackImage}
                                                 alt={article.title}
                                             />
-                                            {article.section && <span className="image-badge">{article.section.toUpperCase()}</span>}
                                         </div>
                                     );
                                 }
@@ -140,7 +175,6 @@ const ArticleDetail = () => {
                                                     src={mediaUrl}
                                                     alt={mediaTitle}
                                                 />
-                                                {article.section && <span className="image-badge">{article.section.toUpperCase()}</span>}
                                             </div>
                                         ) : mediaType === 'video' ? (
                                             <div className="article-featured-video">
@@ -148,7 +182,6 @@ const ArticleDetail = () => {
                                                     <source src={mediaUrl} type="video/mp4" />
                                                     Your browser does not support the video tag.
                                                 </video>
-                                                {article.section && <span className="image-badge">{article.section.toUpperCase()}</span>}
                                             </div>
                                         ) : null}
                                     </div>

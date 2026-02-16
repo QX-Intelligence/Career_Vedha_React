@@ -884,50 +884,69 @@ export const globalSearchService = {
         };
 
         try {
-            // Search Articles (if type includes 'all' or 'articles')
+            // Search Articles (if type includes 'all' or 'article')
             if (types.includes('all') || types.includes('article')) {
                 promises.push(
-                    djangoApi.get('cms/articles/', { 
+                    djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.PUBLISHED_ARTICLES, { 
                         params: { 
-                            search: searchQuery,
-                            limit: 20 
+                            limit: 100 
                         } 
                     })
                     .then(res => {
-                        resultMap.articles = (res.data.results || []).map(article => ({
-                            type: 'article',
-                            id: article.id,
-                            title: article.headline || article.title,
-                            summary: article.summary,
-                            url: `/${article.section}/${article.slug}`,
-                            publishedAt: article.published_at,
-                            image: article.banner_media?.url,
-                            section: article.section
-                        }));
+                        const allArticles = (res.data.results || []);
+                        resultMap.articles = allArticles
+                            .filter(article => {
+                                const searchTerm = searchQuery.toLowerCase();
+                                return (
+                                    (article.headline || '').toLowerCase().includes(searchTerm) ||
+                                    (article.title || '').toLowerCase().includes(searchTerm) ||
+                                    (article.summary || '').toLowerCase().includes(searchTerm)
+                                );
+                            })
+                            .map(article => ({
+                                type: 'article',
+                                id: article.id,
+                                title: article.headline || article.title,
+                                summary: article.summary,
+                                url: `/${article.section}/${article.slug}`,
+                                publishedAt: article.published_at,
+                                image: article.banner_media?.url,
+                                section: article.section
+                            }));
                     })
                     .catch(err => console.error('Article search error:', err))
                 );
             }
 
-            // Search Jobs (if endpoint exists)
+            // Search Jobs (if type includes 'all' or 'jobs')
             if (types.includes('all') || types.includes('jobs')) {
                 promises.push(
-                    apiClient.get(API_CONFIG.ENDPOINTS.JOBS || '/api/jobs', {
-                        params: { search: searchQuery, limit: 10 }
+                    djangoApi.get('jobs/', {
+                        params: { limit: 100 }
                     })
                     .then(res => {
-                        const jobs = res.data?.results || res.data || [];
-                        resultMap.jobs = jobs.map(job => ({
-                            type: 'job',
-                            id: job.id,
-                            title: job.title,
-                            company: job.company,
-                            location: job.location,
-                            url: `/jobs/${job.id}`,
-                            postedAt: job.posted_at || job.created_at
-                        }));
+                        const allJobs = res.data?.results || res.data || [];
+                        resultMap.jobs = allJobs
+                            .filter(job => {
+                                const searchTerm = searchQuery.toLowerCase();
+                                return (
+                                    (job.title || '').toLowerCase().includes(searchTerm) ||
+                                    (job.company || '').toLowerCase().includes(searchTerm) ||
+                                    (job.location || '').toLowerCase().includes(searchTerm) ||
+                                    (job.description || '').toLowerCase().includes(searchTerm)
+                                );
+                            })
+                            .map(job => ({
+                                type: 'job',
+                                id: job.id,
+                                title: job.title,
+                                company: job.company,
+                                location: job.location,
+                                url: `/jobs/${job.id}`,
+                                postedAt: job.posted_at || job.created_at
+                            }));
                     })
-                    .catch(err => console.log('Jobs search not available'))
+                    .catch(err => console.error('Jobs search error:', err))
                 );
             }
 

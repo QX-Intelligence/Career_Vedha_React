@@ -3,7 +3,7 @@ import { useTrendingArticles } from '../../hooks/useHomeContent';
 import { Link } from 'react-router-dom';
 
 const TrendingWidget = () => {
-    const lang = localStorage.getItem('preferredLanguage') || 'telugu';
+    const lang = localStorage.getItem('preferredLanguage') || 'english';
     const { data: trending = [], isLoading: loading } = useTrendingArticles(5, lang);
 
     if (loading) {

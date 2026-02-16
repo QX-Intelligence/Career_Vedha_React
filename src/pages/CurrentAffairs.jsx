@@ -66,7 +66,7 @@ const CurrentAffairs = () => {
     const LIMIT = 12;
 
     const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'telugu';
+        return localStorage.getItem('preferredLanguage') || 'english';
     });
 
     const lang = activeLanguage === 'telugu' ? 'te' : 'en';

@@ -10,7 +10,7 @@ import './Articles.css';
 
 const NewsPage = () => {
     const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'telugu';
+        return localStorage.getItem('preferredLanguage') || 'english';
     });
     const t = getTranslations(activeLanguage);
     const [searchQuery, setSearchQuery] = useState('');

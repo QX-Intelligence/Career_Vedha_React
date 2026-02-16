@@ -763,7 +763,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                                 <CustomSelect
                                     value={featureData.feature_type}
                                     onChange={(val) => setFeatureData(prev => ({ ...prev, feature_type: val }))}
-                                    options={['HERO', 'TOP', 'BREAKING', 'EDITOR_PICK']}
+                                    options={['HERO', 'TOP', 'BREAKING', 'EDITOR_PICK', 'MUST_READ']}
                                     placeholder="Select placement..."
                                 />
                             </div>
