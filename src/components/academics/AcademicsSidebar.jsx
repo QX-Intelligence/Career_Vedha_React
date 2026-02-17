@@ -40,7 +40,7 @@ const AcademicsSidebar = ({ activeLevelId, onLevelChange }) => {
                 </div>
                 
                 <div className="luxury-options-list">
-                    {hierarchy.map((level) => (
+                    {Array.isArray(hierarchy) && hierarchy.map((level) => (
                         <div 
                             key={level.id} 
                             className={`luxury-option-item ${activeLevelId === level.id ? 'active' : ''}`}

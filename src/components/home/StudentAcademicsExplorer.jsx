@@ -175,7 +175,7 @@ const StudentAcademicsExplorer = ({ showHeader = true, className = '', style = {
     // 1. Level View (Root)
     const renderLevels = () => (
         <div className="explorer-grid animated-grid">
-            {hierarchy.map(level => {
+            {Array.isArray(hierarchy) && hierarchy.map(level => {
                 const hasSubjects = level.subjects && level.subjects.length > 0;
                 // Logic: If no subjects, this level is a leaf node -> Offer Exam directly (mapped to Category)
                 
@@ -221,7 +221,7 @@ const StudentAcademicsExplorer = ({ showHeader = true, className = '', style = {
     // 2. Subject View (Children of Level)
     const renderSubjects = () => (
         <div className="explorer-grid animated-grid">
-            {selectedLevel.subjects.map(subject => {
+            {Array.isArray(selectedLevel?.subjects) && selectedLevel.subjects.map(subject => {
                 const hasChapters = subject.chapters && subject.chapters.length > 0;
                 // Logic: If no chapters, offers Subject Exam (Category based)
                 
@@ -267,7 +267,7 @@ const StudentAcademicsExplorer = ({ showHeader = true, className = '', style = {
     // 3. Chapter View (Children of Subject) -> This is "Materials" level
     const renderChapters = () => (
         <div className="explorer-grid chapter-grid">
-             {selectedSubject.chapters.map(chapter => (
+             {Array.isArray(selectedSubject?.chapters) && selectedSubject.chapters.map(chapter => (
                 <div 
                     key={chapter.id} 
                     className="explorer-card premium-chapter-card"

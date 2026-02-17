@@ -156,7 +156,8 @@ export const academicsService = {
             const response = await djangoApi.get('academics/subject-blocks/', {
                 params: { subject_id: subjectId, lang }
             });
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.content || []);
         } catch (error) {
             console.error('Error fetching subject blocks:', error);
             throw error;
@@ -443,7 +444,8 @@ export const academicsService = {
     getAcademicsHierarchy: async () => {
         try {
             const response = await api.get(API_CONFIG.ENDPOINTS.ACADEMICS_HIERARCHY);
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.content || []);
         } catch (error) {
             console.error('Error fetching academics hierarchy:', error);
             throw error;
@@ -457,7 +459,8 @@ export const academicsService = {
     getDjangoHierarchy: async () => {
         try {
             const response = await djangoApi.get('academics/hierarchy/');
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.content || []);
         } catch (error) {
             console.error('Error fetching Django academics hierarchy:', error);
             throw error;
