@@ -16,8 +16,8 @@ const PreviousPapers = () => {
                     questionPaperService.getPapersByCategory('QUESTIONPAPER', null, 6),
                     questionPaperService.getPapersByCategory('MATERIAL', null, 6)
                 ]);
-                setPapers(papersData);
-                setMaterials(materialsData);
+                setPapers(Array.isArray(papersData) ? papersData : (papersData?.results || papersData?.content || []));
+                setMaterials(Array.isArray(materialsData) ? materialsData : (materialsData?.results || materialsData?.content || []));
             } catch (error) {
                 console.error('Failed to fetch data:', error);
             } finally {

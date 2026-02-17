@@ -593,7 +593,9 @@ export const questionPaperService = {
             if (cursor) params.cursor = cursor;
             
             const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_PAPERS_BY_CATEGORY, { params });
-            return response.data;
+            const data = response.data;
+            // Handle different response formats (Raw Array vs Paginated Object)
+            return Array.isArray(data) ? data : (data?.results || data?.content || []);
         } catch (error) {
             console.error('Error fetching papers by category:', error);
             return [];
