@@ -16,7 +16,8 @@ export const academicsService = {
     getLevels: async (params = {}) => {
         try {
             const response = await djangoApi.get('academics/levels/', { params });
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching academic levels:', error);
             throw error;
@@ -30,7 +31,8 @@ export const academicsService = {
     getSubjects: async (params = {}) => {
         try {
             const response = await djangoApi.get('academics/subjects/', { params });
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching subjects:', error);
             throw error;
@@ -43,7 +45,8 @@ export const academicsService = {
     getCategories: async () => {
         try {
             const response = await djangoApi.get('academics/categories/');
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching categories:', error);
             throw error;
@@ -57,7 +60,8 @@ export const academicsService = {
     getChapters: async (params = {}) => {
         try {
             const response = await djangoApi.get('academics/chapters/', { params });
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching chapters:', error);
             throw error;
@@ -85,7 +89,8 @@ export const academicsService = {
     getMaterials: async (params = {}) => {
         try {
             const response = await djangoApi.get('academics/materials/', { params });
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching materials:', error);
             throw error;
@@ -157,7 +162,7 @@ export const academicsService = {
                 params: { subject_id: subjectId, lang }
             });
             const data = response.data;
-            return Array.isArray(data) ? data : (data?.results || data?.content || []);
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching subject blocks:', error);
             throw error;
@@ -445,7 +450,7 @@ export const academicsService = {
         try {
             const response = await api.get(API_CONFIG.ENDPOINTS.ACADEMICS_HIERARCHY);
             const data = response.data;
-            return Array.isArray(data) ? data : (data?.results || data?.content || []);
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching academics hierarchy:', error);
             throw error;
@@ -460,7 +465,7 @@ export const academicsService = {
         try {
             const response = await djangoApi.get('academics/hierarchy/');
             const data = response.data;
-            return Array.isArray(data) ? data : (data?.results || data?.content || []);
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching Django academics hierarchy:', error);
             throw error;

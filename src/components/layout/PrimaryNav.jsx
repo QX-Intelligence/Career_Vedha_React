@@ -18,11 +18,12 @@ const PrimaryNav = ({ isOpen }) => {
             try {
                 // Fetch Article Sections
                 const sectionsResponse = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_SECTIONS);
-                setSections(sectionsResponse.data);
+                const sData = sectionsResponse.data;
+                setSections(Array.isArray(sData) ? sData : (sData?.results || sData?.data || []));
 
                 // Fetch Academic Levels
                 const levelsData = await academicsService.getLevels();
-                setLevels(levelsData);
+                setLevels(Array.isArray(levelsData) ? levelsData : (levelsData?.results || levelsData?.data || []));
             } catch (error) {
                 console.error('Error fetching data for nav:', error);
             }
@@ -38,20 +39,20 @@ const PrimaryNav = ({ isOpen }) => {
             icon: 'fas fa-newspaper', 
             path: '/articles', 
             hasDropdown: true,
-            dropdownItems: sections.map(s => ({
+            dropdownItems: Array.isArray(sections) ? sections.map(s => ({
                 name: s.name,
                 path: `/articles?section=${s.id}`
-            }))
+            })) : []
         },
         { 
             name: t.navAcademics, 
             icon: 'fas fa-graduation-cap', 
             path: '/academic-exams', 
             hasDropdown: true,
-            dropdownItems: levels.map(l => ({
+            dropdownItems: Array.isArray(levels) ? levels.map(l => ({
                 name: l.name,
                 path: `/academic-exams?level=${l.id}`
-            }))
+            })) : []
         },
         { 
             name: t.navCurrentAffairs, 

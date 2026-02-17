@@ -595,7 +595,7 @@ export const questionPaperService = {
             const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_PAPERS_BY_CATEGORY, { params });
             const data = response.data;
             // Handle different response formats (Raw Array vs Paginated Object)
-            return Array.isArray(data) ? data : (data?.results || data?.content || []);
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching papers by category:', error);
             return [];
@@ -661,7 +661,8 @@ export const currentAffairsService = {
             if (params.cursorId) queryParams.cursorId = params.cursorId;
 
             const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_ALL_AFFAIRS, { params: queryParams });
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error('Error fetching current affairs:', error);
             return [];
@@ -686,7 +687,8 @@ export const currentAffairsService = {
             if (params.cursorId) queryParams.cursorId = params.cursorId;
             
             const response = await apiClient.get(API_CONFIG.ENDPOINTS.CURRENT_AFFAIRS_BY_REGION, { params: queryParams });
-            return response.data;
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {
             console.error(`Error fetching affairs for region ${region}:`, error);
             return [];
