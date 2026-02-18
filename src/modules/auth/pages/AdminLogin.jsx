@@ -15,12 +15,11 @@ const AdminLogin = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const { isAuthenticated, role } = getUserContext();
-        if (isAuthenticated && (role === 'ADMIN' || role === 'SUPER_ADMIN')) {
-            showSnackbar('You are already logged in.', 'info');
+        const { isAuthenticated } = getUserContext();
+        if (isAuthenticated) {
             navigate('/dashboard', { replace: true });
         }
-    }, [navigate, showSnackbar]);
+    }, [navigate]);
 
     useEffect(() => {
         if (step === 2 && otpInputRefs.current[0]) {
@@ -82,21 +81,23 @@ const AdminLogin = () => {
                 otp: otpString
             });
 
-            const { accessToken, role, email: userEmail, firstName, lastName, status, id } = response.data;
+            const { accessToken, role } = response.data;
 
-            // Security Check
-            const allowedRoles = ['ADMIN', 'SUPER_ADMIN', 'PUBLISHER', 'EDITOR', 'CONTRIBUTOR'];
-            if (!allowedRoles.includes(role)) {
-                showSnackbar('Access Denied. Unauthorized role.', 'error');
+            // Security Check - If we got a role, the backend has already authorized this user
+            // We just need to ensure we have an accessToken
+            if (!accessToken) {
+                showSnackbar('Login failed. No token received.', 'error');
                 setLoading(false);
                 return;
             }
 
-            setUserContext(accessToken, role, userEmail, firstName, lastName, status, id);
+            // The backend returns the role name directly (e.g., "SUPER_ADMIN")
+            // setUserContext takes: (token, role, email, firstName, lastName, status, id)
+            setUserContext(accessToken, role, email);
             showSnackbar('Login successful!', 'success');
 
             setTimeout(() => {
-                navigate('/dashboard');
+                navigate('/dashboard', { replace: true });
             }, 1000);
 
         } catch (err) {

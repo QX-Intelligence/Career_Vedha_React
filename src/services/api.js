@@ -23,7 +23,8 @@ const api = axios.create({
 
 export const setUserContext = (token, role, email, firstName = null, lastName = null, status = null, id = null) => {
     _accessToken = token;
-    _userRole = role;
+    // Normalize role: remove ROLE_ prefix and convert to uppercase
+    _userRole = role ? role.replace(/^ROLE_/, '').toUpperCase() : null;
     _userEmail = email;
     _userId = id || email; // Fallback to email if id is missing
     _firstName = firstName;
@@ -111,9 +112,9 @@ api.interceptors.response.use(
 
             try {
                 const response = await axios.post(`${API_BASE}/refresh`, {}, { withCredentials: true });
-                const { accessToken, role, email, firstName, lastName, status } = response.data;
+                const { accessToken, role } = response.data;
 
-                setUserContext(accessToken, role, email, firstName, lastName, status);
+                setUserContext(accessToken, role);
 
                 processQueue(null, accessToken);
 

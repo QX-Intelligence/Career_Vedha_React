@@ -88,8 +88,10 @@ function App() {
             try {
                 // Always attempt to refresh on startup to restore in-memory context
                 const response = await api.post('/refresh', {});
-                const { accessToken, role, email, firstName, lastName, status } = response.data;
-                setUserContext(accessToken, role, email, firstName, lastName, status);
+                const { accessToken, role } = response.data;
+                // Since refresh might not return email, we could potentially get it from a temporary source 
+                // but for now we follow the backend which only returns token and role.
+                setUserContext(accessToken, role);
             } catch (err) {
                 // If refresh fails, it just means no active session
                 console.log("No active session found on startup");

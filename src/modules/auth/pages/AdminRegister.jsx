@@ -22,6 +22,13 @@ const AdminRegister = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const { isAuthenticated } = getUserContext();
+        if (isAuthenticated) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [navigate]);
+
+    useEffect(() => {
         if (step === 2 && otpInputRefs.current[0]) {
             otpInputRefs.current[0].focus();
         }
