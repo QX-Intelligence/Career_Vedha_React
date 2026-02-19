@@ -605,9 +605,7 @@ export const questionPaperService = {
     // Bulk Create Papers (Multipart)
     createPapers: async (formData) => {
         try {
-            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_PREV_PAPERS, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_PREV_PAPERS, formData);
             return response.data;
         } catch (error) {
             console.error('Error creating papers:', error);
@@ -618,9 +616,7 @@ export const questionPaperService = {
     // Alias for bulk upload
     bulkUploadPapers: async (formData) => {
         try {
-            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_PREV_PAPERS, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_PREV_PAPERS, formData);
             return response.data;
         } catch (error) {
             console.error('Error uploading papers:', error);
@@ -699,34 +695,36 @@ export const currentAffairsService = {
     // Backend expects lists for bulk creation: List<String> title, List<String> summary, etc.
     createCurrentAffairs: async (data) => {
         try {
-            const formData = new FormData();
+            let payload = data;
             
-            // If data is already FormData, use it directly
-            if (data instanceof FormData) {
-                const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_CURRENT_AFFAIRS, data, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
+            // If data is not already FormData, construct it
+            if (!(data instanceof FormData)) {
+                const formData = new FormData();
+                const items = Array.isArray(data) ? data : [data];
+                
+                items.forEach((item) => {
+                    formData.append('title', item.title || '');
+                    formData.append('region', item.region || 'INDIA');
+                    
+                    // Normalize and append language
+                    let lang = (item.language || 'TE').toUpperCase();
+                    if (lang === 'TELUGU') lang = 'TE';
+                    if (lang === 'ENGLISH') lang = 'EN';
+                    formData.append('language', lang);
+                    
+                    // Optional but expected fields (always append to avoid backend index issues)
+                    formData.append('summary', item.summary || '');
+                    formData.append('description', item.description || '');
+                    
+                    if (item.file) {
+                        formData.append('file', item.file);
+                    }
                 });
-                return response.data;
+                payload = formData;
             }
             
-            // Otherwise, construct FormData with arrays (backend expects lists)
-            // Support both single item (wrap in array) and bulk creation
-            const items = Array.isArray(data) ? data : [data];
-            
-            items.forEach((item, index) => {
-                formData.append('title', item.title);
-                formData.append('region', item.region);
-                
-                // Optional fields
-                if (item.summary) formData.append('summary', item.summary);
-                if (item.description) formData.append('description', item.description);
-                if (item.language) formData.append('language', item.language);
-                if (item.file) formData.append('file', item.file);
-            });
-            
-            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_CURRENT_AFFAIRS, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            // NOTE: Do NOT set Content-Type header manually for FormData
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_CURRENT_AFFAIRS, payload);
             return response.data;
         } catch (error) {
             console.error('Error creating current affairs:', error);
@@ -736,36 +734,29 @@ export const currentAffairsService = {
 
     // Update Current Affair (Multipart)
     // Backend expects single values: String title, String summary, String description, String region, MultipartFile file
-    // NOTE: Language is NOT accepted in update endpoint
     updateCurrentAffair: async (id, data) => {
         try {
-            const formData = new FormData();
+            let payload = data;
             
-            // If data is already FormData, use it but ensure no language field
-            if (data instanceof FormData) {
-                // Remove language if present (backend doesn't accept it)
-                if (data.has('language')) {
-                    data.delete('language');
+            if (!(data instanceof FormData)) {
+                const formData = new FormData();
+                formData.append('title', data.title || '');
+                formData.append('region', data.region || 'INDIA');
+                formData.append('summary', data.summary || '');
+                formData.append('description', data.description || '');
+                
+                if (data.file) {
+                    formData.append('file', data.file);
                 }
-                const response = await apiClient.put(API_CONFIG.ENDPOINTS.UPDATE_CURRENT_AFFAIR(id), data, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-                return response.data;
+                payload = formData;
+            } else {
+                // If it is FormData, ensure language is NOT present (backend update doesn't take it)
+                if (payload.has('language')) {
+                    payload.delete('language');
+                }
             }
             
-            // Construct FormData with single values (not arrays)
-            formData.append('title', data.title);
-            formData.append('region', data.region);
-            
-            // Optional fields
-            if (data.summary) formData.append('summary', data.summary);
-            if (data.description) formData.append('description', data.description);
-            if (data.file) formData.append('file', data.file);
-            // DO NOT send language - backend doesn't accept it
-            
-            const response = await apiClient.put(API_CONFIG.ENDPOINTS.UPDATE_CURRENT_AFFAIR(id), formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await apiClient.put(API_CONFIG.ENDPOINTS.UPDATE_CURRENT_AFFAIR(id), payload);
             return response.data;
         } catch (error) {
             console.error(`Error updating current affair ${id}:`, error);

@@ -161,42 +161,25 @@ const CurrentAffairsManagement = () => {
         setSubmitting(true);
         try {
             if (isEditing) {
-                // Update: send single values, NO language parameter
-                const uploadData = new FormData();
-                uploadData.append('title', formData.title);
-                uploadData.append('region', formData.region);
-                
-                // Optional fields
-                if (formData.summary) uploadData.append('summary', formData.summary);
-                if (formData.description) uploadData.append('description', formData.description);
-                if (formData.file) uploadData.append('file', formData.file);
-                // DO NOT send language - backend doesn't accept it in update
-                
-                await currentAffairsService.updateCurrentAffair(selectedId, uploadData);
+                await currentAffairsService.updateCurrentAffair(selectedId, formData);
                 showSnackbar('Current affair updated successfully', 'success');
             } else {
-                // Create: backend expects lists, so append each value separately
-                // FormData.append with same key multiple times creates an array
-                const uploadData = new FormData();
-                
-                // Required fields (as arrays)
-                uploadData.append('title', formData.title);
-                uploadData.append('region', formData.region);
-                uploadData.append('language', formData.language);
-                
-                // Optional fields (as arrays)
-                if (formData.summary) uploadData.append('summary', formData.summary);
-                if (formData.description) uploadData.append('description', formData.description);
-                if (formData.file) uploadData.append('file', formData.file);
-
-                await currentAffairsService.createCurrentAffairs(uploadData);
+                await currentAffairsService.createCurrentAffairs(formData);
                 showSnackbar('Current affair created successfully', 'success');
             }
             setShowModal(false);
             fetchAffairs(null, null, true);
         } catch (error) {
-            console.error('Submit error:', error);
-            showSnackbar(error.response?.data || 'Operation failed', 'error');
+            console.error('Upload failed:', error);
+            const errorData = error.response?.data;
+            let errorMsg = errorData?.message || errorData?.error || (typeof errorData === 'string' ? errorData : null) || error.message || 'Upload failed';
+            
+            // Helpful hint for true Network Errors during uploads
+            if (error.message === 'Network Error' && !error.response) {
+                errorMsg = 'Network Error: Possibly file too large or connection lost';
+            }
+            
+            showSnackbar('Upload failed: ' + errorMsg, 'error');
         } finally {
             setSubmitting(false);
         }
@@ -209,7 +192,10 @@ const CurrentAffairsManagement = () => {
             showSnackbar('Deleted successfully', 'success');
             fetchAffairs(null, null, true);
         } catch (error) {
-            showSnackbar('Failed to delete', 'error');
+            console.error('Delete failed:', error);
+            const errorData = error.response?.data;
+            const errorMsg = errorData?.message || errorData?.error || (typeof errorData === 'string' ? errorData : null) || error.message || 'Failed to delete';
+            showSnackbar('Failed to delete: ' + errorMsg, 'error');
         }
     };
 
@@ -360,14 +346,14 @@ const CurrentAffairsManagement = () => {
                                 </div>
 
                                 <div className="form-group">
-                                    <label className="form-label">File (Image/PDF)</label>
+                                    <label className="form-label">File (Image/PDF/Doc)</label>
                                     <div className="file-input-wrapper">
                                         <label className="file-input-label">
                                             <i className="fas fa-cloud-upload-alt"></i>
                                             <input
                                                 type="file"
                                                 onChange={e => setFormData({...formData, file: e.target.files[0]})}
-                                                accept="image/*,application/pdf"
+                                                accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                                 style={{display: 'none'}}
                                             />
                                             {formData.file ? formData.file.name : 'Click to upload file'}

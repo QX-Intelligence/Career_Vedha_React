@@ -97,7 +97,15 @@ const PapersManagement = () => {
             fetchPapers();
         } catch (error) {
             console.error('Upload failed:', error);
-            showSnackbar('Upload failed: ' + (error.response?.data?.message || error.message), 'error');
+            const errorData = error.response?.data;
+            let errorMsg = errorData?.message || errorData?.error || (typeof errorData === 'string' ? errorData : null) || error.message || 'Upload failed';
+            
+            // Helpful hint for true Network Errors during uploads
+            if (error.message === 'Network Error' && !error.response) {
+                errorMsg = 'Network Error: Possibly file too large or connection lost';
+            }
+            
+            showSnackbar('Upload failed: ' + errorMsg, 'error');
         } finally {
             setUploadProgress(false);
         }
@@ -131,7 +139,10 @@ const PapersManagement = () => {
             showSnackbar('Paper deleted!', 'success');
             fetchPapers();
         } catch (error) {
-            showSnackbar('Delete failed', 'error');
+            console.error('Delete failed:', error);
+            const errorData = error.response?.data;
+            const errorMsg = errorData?.message || errorData?.error || (typeof errorData === 'string' ? errorData : null) || error.message || 'Delete failed';
+            showSnackbar('Delete failed: ' + errorMsg, 'error');
         }
     };
 
