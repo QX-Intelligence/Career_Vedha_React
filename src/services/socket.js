@@ -13,7 +13,7 @@ class WebSocketService {
     connect(role) {
         if (this.stompClient?.active) return;
 
-        const wsUrl = API_CONFIG.WS_URL || import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws';
+        const wsUrl = API_CONFIG.WS_URL || import.meta.env.VITE_WS_URL || 'https://backend.quinzexintelligence.com/ws';
         console.log("🔌 Attempting WebSocket connection to:", wsUrl);
 
         this.stompClient = new Client({
