@@ -101,10 +101,10 @@ const API_CONFIG = {
     // Request timeout in milliseconds (30 seconds for complex Django queries)
     TIMEOUT: 30000,
 
-    // NOTE: Do NOT define a global Content-Type header here.
-    // For JSON requests, axios sets it automatically.
-    // For multipart/FormData requests, the browser must set it (with boundary) — never override manually.
-    HEADERS: {}
+    // Headers
+    HEADERS: {
+        'Content-Type': 'application/json',
+    }
 };
 
 export default API_CONFIG;

@@ -142,9 +142,7 @@ export const newsService = {
                     }
                 });
                 payload = formData;
-                // NOTE: Do NOT set Content-Type manually for FormData.
-                // Axios + browser automatically add: multipart/form-data; boundary=----XYZ
-                headers = {};
+                headers = { 'Content-Type': 'multipart/form-data' };
             } else {
                 // If JSON, filter out null/undefined to satisfy strict backend validators
                 payload = Object.fromEntries(
@@ -196,9 +194,7 @@ export const newsService = {
                     }
                 });
                 payload = formData;
-                // NOTE: Do NOT set Content-Type manually for FormData.
-                // Axios + browser automatically add: multipart/form-data; boundary=----XYZ
-                headers = {};
+                headers = { 'Content-Type': 'multipart/form-data' };
             } else {
                 // If JSON, filter out null/undefined
                 payload = Object.fromEntries(
