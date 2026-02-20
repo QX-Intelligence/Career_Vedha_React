@@ -120,10 +120,10 @@ export const newsService = {
         try {
             // Check if we have file uploads in any potential field
             const hasFiles = Object.values(articleData).some(val => val instanceof File);
-            
+
             let payload = articleData;
             let headers = {};
-            
+
             if (hasFiles) {
                 // Convert to FormData for file upload
                 const formData = new FormData();
@@ -142,14 +142,16 @@ export const newsService = {
                     }
                 });
                 payload = formData;
-                headers = { 'Content-Type': 'multipart/form-data' };
+                // NOTE: Do NOT set Content-Type manually for FormData.
+                // Axios + browser automatically add: multipart/form-data; boundary=----XYZ
+                headers = {};
             } else {
                 // If JSON, filter out null/undefined to satisfy strict backend validators
                 payload = Object.fromEntries(
                     Object.entries(articleData).filter(([_, v]) => v !== null && v !== undefined)
                 );
             }
-            
+
             const response = await djangoApi.post('cms/articles/', payload, { headers });
             return response.data;
         } catch (error) {
@@ -174,10 +176,10 @@ export const newsService = {
         try {
             // Check if we have file uploads
             const hasFiles = Object.values(articleData).some(val => val instanceof File);
-            
+
             let payload = articleData;
             let headers = {};
-            
+
             if (hasFiles) {
                 // Convert to FormData for file upload
                 const formData = new FormData();
@@ -194,14 +196,16 @@ export const newsService = {
                     }
                 });
                 payload = formData;
-                headers = { 'Content-Type': 'multipart/form-data' };
+                // NOTE: Do NOT set Content-Type manually for FormData.
+                // Axios + browser automatically add: multipart/form-data; boundary=----XYZ
+                headers = {};
             } else {
                 // If JSON, filter out null/undefined
                 payload = Object.fromEntries(
                     Object.entries(articleData).filter(([_, v]) => v !== null && v !== undefined)
                 );
             }
-            
+
             const response = await djangoApi.patch(`cms/articles/${articleId}/`, payload, { headers });
             return response.data;
         } catch (error) {
@@ -527,7 +531,7 @@ export const newsService = {
             if (params.lang) {
                 params.lang = params.lang === 'telugu' ? 'te' : (params.lang === 'english' ? 'en' : params.lang);
             }
-            
+
             const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.PUBLISHED_ARTICLES, { params });
             // The published endpoint returns { results, next_cursor, has_next, limit } directly
             return response.data;
@@ -591,7 +595,7 @@ export const questionPaperService = {
         try {
             const params = { category, limit };
             if (cursor) params.cursor = cursor;
-            
+
             const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_PAPERS_BY_CATEGORY, { params });
             const data = response.data;
             // Handle different response formats (Raw Array vs Paginated Object)
@@ -643,7 +647,7 @@ export const currentAffairsService = {
         try {
             // Ensure language is uppercase as required by backend
             const queryParams = {};
-            
+
             // Only add parameters if they have values
             if (params.language) {
                 let lang = params.language.toUpperCase();
@@ -651,7 +655,7 @@ export const currentAffairsService = {
                 if (lang === 'ENGLISH') lang = 'EN';
                 queryParams.language = lang;
             }
-            
+
             if (params.limit) queryParams.limit = params.limit;
             if (params.cursorTime) queryParams.cursorTime = params.cursorTime;
             if (params.cursorId) queryParams.cursorId = params.cursorId;
@@ -669,7 +673,7 @@ export const currentAffairsService = {
     getByRegion: async (region, params = {}) => {
         try {
             const queryParams = { region: region.toUpperCase() };
-            
+
             // Only add parameters if they have values
             if (params.language) {
                 let lang = params.language.toUpperCase();
@@ -677,11 +681,11 @@ export const currentAffairsService = {
                 if (lang === 'ENGLISH') lang = 'EN';
                 queryParams.language = lang;
             }
-            
+
             if (params.limit) queryParams.limit = params.limit;
             if (params.cursorTime) queryParams.cursorTime = params.cursorTime;
             if (params.cursorId) queryParams.cursorId = params.cursorId;
-            
+
             const response = await apiClient.get(API_CONFIG.ENDPOINTS.CURRENT_AFFAIRS_BY_REGION, { params: queryParams });
             const data = response.data;
             return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
@@ -696,33 +700,33 @@ export const currentAffairsService = {
     createCurrentAffairs: async (data) => {
         try {
             let payload = data;
-            
+
             // If data is not already FormData, construct it
             if (!(data instanceof FormData)) {
                 const formData = new FormData();
                 const items = Array.isArray(data) ? data : [data];
-                
+
                 items.forEach((item) => {
                     formData.append('title', item.title || '');
                     formData.append('region', item.region || 'INDIA');
-                    
+
                     // Normalize and append language
                     let lang = (item.language || 'TE').toUpperCase();
                     if (lang === 'TELUGU') lang = 'TE';
                     if (lang === 'ENGLISH') lang = 'EN';
                     formData.append('language', lang);
-                    
+
                     // Optional but expected fields (always append to avoid backend index issues)
                     formData.append('summary', item.summary || '');
                     formData.append('description', item.description || '');
-                    
+
                     if (item.file) {
                         formData.append('file', item.file);
                     }
                 });
                 payload = formData;
             }
-            
+
             // NOTE: Do NOT set Content-Type header manually for FormData
             const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_CURRENT_AFFAIRS, payload);
             return response.data;
@@ -737,14 +741,14 @@ export const currentAffairsService = {
     updateCurrentAffair: async (id, data) => {
         try {
             let payload = data;
-            
+
             if (!(data instanceof FormData)) {
                 const formData = new FormData();
                 formData.append('title', data.title || '');
                 formData.append('region', data.region || 'INDIA');
                 formData.append('summary', data.summary || '');
                 formData.append('description', data.description || '');
-                
+
                 if (data.file) {
                     formData.append('file', data.file);
                 }
@@ -755,7 +759,7 @@ export const currentAffairsService = {
                     payload.delete('language');
                 }
             }
-            
+
             const response = await apiClient.put(API_CONFIG.ENDPOINTS.UPDATE_CURRENT_AFFAIR(id), payload);
             return response.data;
         } catch (error) {
@@ -838,7 +842,7 @@ export const searchService = {
             return await apiClient.get(API_CONFIG.ENDPOINTS.SEARCH, {
                 params: { q: query, ...filters }
             })
-;
+                ;
         } catch (error) {
             console.error('Error searching:', error);
             return { data: [] };
@@ -882,34 +886,34 @@ export const globalSearchService = {
             // Search Articles (if type includes 'all' or 'article')
             if (types.includes('all') || types.includes('article')) {
                 promises.push(
-                    djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.PUBLISHED_ARTICLES, { 
-                        params: { 
-                            limit: 100 
-                        } 
+                    djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.PUBLISHED_ARTICLES, {
+                        params: {
+                            limit: 100
+                        }
                     })
-                    .then(res => {
-                        const allArticles = (res.data.results || []);
-                        resultMap.articles = allArticles
-                            .filter(article => {
-                                const searchTerm = searchQuery.toLowerCase();
-                                return (
-                                    (article.headline || '').toLowerCase().includes(searchTerm) ||
-                                    (article.title || '').toLowerCase().includes(searchTerm) ||
-                                    (article.summary || '').toLowerCase().includes(searchTerm)
-                                );
-                            })
-                            .map(article => ({
-                                type: 'article',
-                                id: article.id,
-                                title: article.headline || article.title,
-                                summary: article.summary,
-                                url: `/${article.section}/${article.slug}`,
-                                publishedAt: article.published_at,
-                                image: article.banner_media?.url,
-                                section: article.section
-                            }));
-                    })
-                    .catch(err => console.error('Article search error:', err))
+                        .then(res => {
+                            const allArticles = (res.data.results || []);
+                            resultMap.articles = allArticles
+                                .filter(article => {
+                                    const searchTerm = searchQuery.toLowerCase();
+                                    return (
+                                        (article.headline || '').toLowerCase().includes(searchTerm) ||
+                                        (article.title || '').toLowerCase().includes(searchTerm) ||
+                                        (article.summary || '').toLowerCase().includes(searchTerm)
+                                    );
+                                })
+                                .map(article => ({
+                                    type: 'article',
+                                    id: article.id,
+                                    title: article.headline || article.title,
+                                    summary: article.summary,
+                                    url: `/${article.section}/${article.slug}`,
+                                    publishedAt: article.published_at,
+                                    image: article.banner_media?.url,
+                                    section: article.section
+                                }));
+                        })
+                        .catch(err => console.error('Article search error:', err))
                 );
             }
 
@@ -919,29 +923,29 @@ export const globalSearchService = {
                     djangoApi.get('jobs/', {
                         params: { limit: 100 }
                     })
-                    .then(res => {
-                        const allJobs = res.data?.results || res.data || [];
-                        resultMap.jobs = allJobs
-                            .filter(job => {
-                                const searchTerm = searchQuery.toLowerCase();
-                                return (
-                                    (job.title || '').toLowerCase().includes(searchTerm) ||
-                                    (job.company || '').toLowerCase().includes(searchTerm) ||
-                                    (job.location || '').toLowerCase().includes(searchTerm) ||
-                                    (job.description || '').toLowerCase().includes(searchTerm)
-                                );
-                            })
-                            .map(job => ({
-                                type: 'job',
-                                id: job.id,
-                                title: job.title,
-                                company: job.company,
-                                location: job.location,
-                                url: `/jobs/${job.id}`,
-                                postedAt: job.posted_at || job.created_at
-                            }));
-                    })
-                    .catch(err => console.error('Jobs search error:', err))
+                        .then(res => {
+                            const allJobs = res.data?.results || res.data || [];
+                            resultMap.jobs = allJobs
+                                .filter(job => {
+                                    const searchTerm = searchQuery.toLowerCase();
+                                    return (
+                                        (job.title || '').toLowerCase().includes(searchTerm) ||
+                                        (job.company || '').toLowerCase().includes(searchTerm) ||
+                                        (job.location || '').toLowerCase().includes(searchTerm) ||
+                                        (job.description || '').toLowerCase().includes(searchTerm)
+                                    );
+                                })
+                                .map(job => ({
+                                    type: 'job',
+                                    id: job.id,
+                                    title: job.title,
+                                    company: job.company,
+                                    location: job.location,
+                                    url: `/jobs/${job.id}`,
+                                    postedAt: job.posted_at || job.created_at
+                                }));
+                        })
+                        .catch(err => console.error('Jobs search error:', err))
                 );
             }
 
@@ -951,7 +955,7 @@ export const globalSearchService = {
                     questionPaperService.getPapersByCategory('QUESTIONPAPER', null, 50)
                         .then(papers => {
                             resultMap.papers = papers
-                                .filter(p => 
+                                .filter(p =>
                                     p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                     p.description?.toLowerCase().includes(searchQuery.toLowerCase())
                                 )
@@ -977,7 +981,7 @@ export const globalSearchService = {
                         .then(affairs => {
                             const results = affairs || [];
                             resultMap.currentAffairs = results
-                                .filter(ca => 
+                                .filter(ca =>
                                     ca.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                     ca.summary?.toLowerCase().includes(searchQuery.toLowerCase())
                                 )

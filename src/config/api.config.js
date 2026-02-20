@@ -65,7 +65,7 @@ const API_CONFIG = {
         // Post Notifications (Articles)
         POST_NOTIFICATIONS: 'post-notifications',
         POST_UNSEEN_COUNT: 'post-unseen-count',
-        
+
         POST_MARK_SEEN: (id) => `post-notifications/${id}/seen`,
         POST_RESET_UNSEEN: 'reset-unseen',
 
@@ -86,7 +86,7 @@ const API_CONFIG = {
         PUBLISHED_ARTICLES: 'cms/articles/published/',
         TAXONOMY_SECTIONS: 'taxonomy/sections/',
     },
-    
+
     DJANGO_MEDIA_BASE_URL: import.meta.env.VITE_API_URL_DJANGO_MEDIA || 'http://localhost:8000/api',
 
     MEDIA: {
@@ -101,10 +101,10 @@ const API_CONFIG = {
     // Request timeout in milliseconds (30 seconds for complex Django queries)
     TIMEOUT: 30000,
 
-    // Headers
-    HEADERS: {
-        'Content-Type': 'application/json',
-    }
+    // NOTE: Do NOT define a global Content-Type header here.
+    // For JSON requests, axios sets it automatically.
+    // For multipart/FormData requests, the browser must set it (with boundary) — never override manually.
+    HEADERS: {}
 };
 
 export default API_CONFIG;
