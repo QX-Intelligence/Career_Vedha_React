@@ -41,7 +41,3 @@ jobs:
       - name: Upload build to EC2
         run: |
           scp -r dist/* $EC2_USER@$EC2_HOST:/var/www/frontend/
-
-      - name: Restart Nginx (optional)
-        run: |
-          ssh $EC2_USER@$EC2_HOST "sudo systemctl restart nginx"
