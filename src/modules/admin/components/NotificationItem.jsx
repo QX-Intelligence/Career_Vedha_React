@@ -49,10 +49,10 @@ const NotificationItem = React.memo(({ notification, onApprove, onReject, onMark
             {/* Actions Row */}
             {!isArchive && notification.notificationStatus === 'PENDING' && (
                 <div className="notification-card-footer">
-                    <button className="btn-reject" onClick={() => onReject(notification)}>
+                    <button className="btn-reject" onClick={() => onReject(notification.id)}>
                         <i className="fas fa-times"></i> Reject
                     </button>
-                    <button className="btn-approve" onClick={() => onApprove(notification)}>
+                    <button className="btn-approve" onClick={() => onApprove(notification.id)}>
                         <i className="fas fa-check"></i> Approve
                     </button>
                 </div>
