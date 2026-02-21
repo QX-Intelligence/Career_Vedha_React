@@ -10,16 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: ap-south-2
-      S3_BUCKET: cvedha-prod-s3-react-01      
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create a .env file here
-        run: |
-          echo "${{ secrets.REACT_ENV_FILE }}" > .env
+      - name: Create .env file
+        run: echo "${{ secrets.REACT_ENV_FILE }}" > .env
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -32,19 +31,17 @@ jobs:
       - name: Build React App
         run: npm run build
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Upload to S3
+      - name: Setup SSH Key
         run: |
-          aws s3 sync dist/ s3://$S3_BUCKET --delete
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
 
-      - name: Invalidate CloudFront Cache
+      - name: Upload build to EC2
         run: |
-          aws cloudfront create-invalidation \
-          --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-          --paths "/*"
+          scp -r dist/* $EC2_USER@$EC2_HOST:/var/www/frontend/
+
+      - name: Restart Nginx (optional)
+        run: |
+          ssh $EC2_USER@$EC2_HOST "sudo systemctl restart nginx"
