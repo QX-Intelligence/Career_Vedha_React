@@ -14,9 +14,7 @@ const VideoPlayerModal = ({ isOpen, onClose, videoUrl, title }) => {
     const isShort = videoUrl.includes('shorts');
     
     // Construct embed URL with autoplay
-    const embedUrl = isShort 
-        ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`
-        : `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3&showinfo=0`;
 
     return (
         <div className="video-player-modal-overlay" onClick={onClose}>

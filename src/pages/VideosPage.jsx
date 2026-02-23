@@ -121,10 +121,12 @@ const VideosPage = () => {
                                         <div className="video-thumbnail-wrapper">
                                             <img src={thumbnail} alt={video.title} loading="lazy" />
                                             <div className="card-overlay-branded-full">
-                                                <h3 className="video-title">{video.title}</h3>
-                                                <div className="branding-mini-row">
-                                                    <img src="/favicon.png" alt="Logo" className="favicon-tiny" />
-                                                    <span>Career Vedha</span>
+                                                <div className="overlay-flex-container">
+                                                    <img src="/favicon.png" alt="Logo" className="favicon-main" />
+                                                    <div className="branding-text-content">
+                                                        <h3 className="video-title">{video.title}</h3>
+                                                        <span className="brand-name-text">Career Vedha</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="play-overlay">

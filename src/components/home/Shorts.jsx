@@ -82,11 +82,13 @@ const Shorts = ({ activeLanguage }) => {
                                     alt={short.title} 
                                     className="card-img-branded"
                                 />
-                                <div className="card-overlay-content-mini">
-                                    <h4 className="card-branded-title-mini line-clamp-2">{short.title}</h4>
-                                    <div className="brand-logo-branding-mini">
-                                        <img src="/favicon.png" alt="Logo" className="favicon-logo-mini" />
-                                        <span>Career Vedha</span>
+                                <div className="card-overlay-content-branded">
+                                    <div className="overlay-flex-container">
+                                        <img src="/favicon.png" alt="Logo" className="favicon-main" />
+                                        <div className="branding-text-content">
+                                            <h4 className="card-branded-title line-clamp-2">{short.title}</h4>
+                                            <span className="brand-name-text">Career Vedha</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="play-icon-overlay-branded">
@@ -142,35 +144,46 @@ const Shorts = ({ activeLanguage }) => {
                 .short-card-branded:hover .card-img-branded {
                     opacity: 0.7;
                 }
-                .card-overlay-content-mini {
+                .card-overlay-content-branded {
                     position: absolute;
                     top: 0;
                     left: 0;
                     width: 100%;
-                    padding: 15px;
-                    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+                    padding: 12px;
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
                     z-index: 2;
                 }
-                .brand-logo-branding-mini {
+                .overlay-flex-container {
                     display: flex;
-                    align-items: center;
-                    gap: 8px;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+                .favicon-main {
+                    width: 32px;
+                    height: 32px;
+                    object-fit: contain;
+                    flex-shrink: 0;
+                    margin-top: 1px;
+                }
+                .branding-text-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1px;
+                    flex: 1;
+                }
+                .brand-name-text {
                     color: #fff;
-                    font-size: 0.75rem;
+                    font-size: 0.65rem;
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
+                    opacity: 0.9;
                 }
-                .favicon-logo-mini {
-                    width: 20px;
-                    height: 20px;
-                    object-fit: contain;
-                }
-                .card-branded-title-mini {
-                    font-size: 0.95rem;
+                .card-branded-title {
+                    font-size: 0.85rem;
                     font-weight: 600;
                     color: #fff;
-                    margin: 0 0 5px 0;
+                    margin: 0;
                     line-height: 1.3;
                     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
                 }
@@ -194,6 +207,10 @@ const Shorts = ({ activeLanguage }) => {
                     .short-card-branded {
                         width: calc(50% - 10px);
                         height: 220px;
+                    }
+                    .favicon-main {
+                        width: 24px;
+                        height: 24px;
                     }
                 }
             `}} />

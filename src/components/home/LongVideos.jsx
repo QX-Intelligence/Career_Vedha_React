@@ -79,11 +79,13 @@ const LongVideos = () => {
                                     alt={video.title} 
                                     className="card-img-branded"
                                 />
-                                <div className="card-overlay-content">
-                                    <h4 className="card-branded-title line-clamp-2">{video.title}</h4>
-                                    <div className="brand-logo-branding">
-                                        <img src="/favicon.png" alt="Logo" className="favicon-logo" />
-                                        <span>Career Vedha</span>
+                                <div className="card-overlay-content-branded">
+                                    <div className="overlay-flex-container">
+                                        <img src="/favicon.png" alt="Logo" className="favicon-main" />
+                                        <div className="branding-text-content">
+                                            <h4 className="card-branded-title line-clamp-2">{video.title}</h4>
+                                            <span className="brand-name-text">Career Vedha</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="play-icon-overlay-branded">
@@ -139,36 +141,47 @@ const LongVideos = () => {
                 .long-video-card-branded:hover .card-img-branded {
                     opacity: 0.6;
                 }
-                .card-overlay-content {
+                .card-overlay-content-branded {
                     position: absolute;
                     top: 0;
                     left: 0;
                     width: 100%;
                     padding: 20px;
-                    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
                     z-index: 2;
                 }
-                .brand-logo-branding {
+                .overlay-flex-container {
                     display: flex;
-                    align-items: center;
-                    gap: 10px;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+                .favicon-main {
+                    width: 45px;
+                    height: 45px;
+                    object-fit: contain;
+                    flex-shrink: 0;
+                    margin-top: 2px;
+                }
+                .branding-text-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    flex: 1;
+                }
+                .brand-name-text {
                     color: #fff;
                     font-size: 0.85rem;
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 1px;
-                }
-                .favicon-logo {
-                    width: 28px;
-                    height: 28px;
-                    object-fit: contain;
+                    opacity: 0.9;
                 }
                 .card-branded-title {
-                    font-size: 1.15rem;
+                    font-size: 1.1rem;
                     font-weight: 600;
                     color: #fff;
-                    margin: 0 0 8px 0;
-                    line-height: 1.4;
+                    margin: 0;
+                    line-height: 1.35;
                     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
                 }
                 .play-icon-overlay-branded {
@@ -211,6 +224,13 @@ const LongVideos = () => {
                     .long-video-card-branded {
                         width: 100%;
                         height: 250px;
+                    }
+                    .favicon-main {
+                        width: 35px;
+                        height: 35px;
+                    }
+                    .card-branded-title {
+                        font-size: 1rem;
                     }
                 }
             `}} />
