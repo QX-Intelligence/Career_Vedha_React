@@ -119,7 +119,7 @@ const VideosPage = () => {
                                         onClick={() => handleVideoClick(video)}
                                     >
                                         <div className="video-thumbnail-wrapper">
-                                            <img src={thumbnail} alt={video.title} loading="lazy" />
+                                            <img src={thumbnail} alt={video.title} loading="lazy" className="thumbnail-main" />
                                             <div className="card-overlay-branded-full">
                                                 <div className="overlay-flex-container">
                                                     <img src="/favicon.png" alt="Logo" className="favicon-main" />

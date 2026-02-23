@@ -41,7 +41,7 @@
     aspect-ratio: 9/16;
 }
 
-.video-thumbnail-wrapper img {
+.video-thumbnail-wrapper .thumbnail-main {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -49,7 +49,7 @@
     transition: opacity 0.3s ease;
 }
 
-.video-item:hover .video-thumbnail-wrapper img {
+.video-item:hover .video-thumbnail-wrapper .thumbnail-main {
     opacity: 0.6;
 }
 
