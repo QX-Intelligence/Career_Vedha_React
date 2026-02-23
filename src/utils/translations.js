@@ -20,6 +20,9 @@ export const translations = {
         navAdmitCards: "Admit Cards",
         navSyllabus: "Syllabus",
         navArticles: "Articles",
+        navVideos: "Videos",
+        navLongVideos: "Long Videos",
+        navShorts: "Shorts",
         navEStore: "E-Store",
         
         // ===== HOME PAGE =====
@@ -149,6 +152,9 @@ export const translations = {
         navAdmitCards: "అడ్మిట్ కార్డులు",
         navSyllabus: "పాఠ్యాంశాలు",
         navArticles: "కథనాలు",
+        navVideos: "వీడియోలు",
+        navLongVideos: "లాంగ్ వీడియోలు",
+        navShorts: "షార్ట్స్",
         navEStore: "ఈ-స్టోర్",
         
         // ===== HOME PAGE =====

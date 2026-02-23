@@ -66,6 +66,16 @@ const PrimaryNav = ({ isOpen }) => {
             ]
         },
         { name: t.navJobs, icon: 'fas fa-briefcase', path: '/jobs', hasDropdown: false },
+        { 
+            name: t.navVideos, 
+            icon: 'fas fa-video', 
+            path: '/videos', 
+            hasDropdown: true,
+            dropdownItems: [
+                { name: t.navLongVideos, path: '/videos/long' },
+                { name: t.navShorts, path: '/videos/shorts' }
+            ]
+        },
         { name: t.navEStore, icon: 'fas fa-shopping-cart', path: '/e-store', hasDropdown: false },
     ];
 
