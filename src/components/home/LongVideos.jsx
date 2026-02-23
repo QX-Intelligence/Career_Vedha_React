@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { youtubeService } from '../../services';
 import Skeleton from '../ui/Skeleton';
+import VideoPlayerModal from '../ui/VideoPlayerModal';
 
 const LongVideos = () => {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedVideo, setSelectedVideo] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchVideos = async () => {
@@ -29,29 +32,23 @@ const LongVideos = () => {
         return (match && match[2].length === 11) ? match[2] : null;
     };
 
-    const handleVideoClick = (url) => {
-        const videoId = getYoutubeId(url);
-        if (videoId) {
-            window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
-        } else {
-            window.open(url, '_blank');
-        }
+    const handleVideoClick = (video) => {
+        setSelectedVideo(video);
+        setIsModalOpen(true);
     };
 
     if (loading) {
         return (
-            <section className="long-videos-section py-5">
-                <div className="container">
-                    <div className="section-header d-flex justify-content-between align-items-center mb-4">
-                        <Skeleton variant="title" width="200px" />
-                    </div>
-                    <div className="row">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="col-lg-3 col-md-6 mb-4">
-                                <Skeleton variant="card" height="180px" />
-                            </div>
-                        ))}
-                    </div>
+            <section className="long-videos-section py-4">
+                <div className="section-header-flex d-flex justify-content-between align-items-center mb-4">
+                    <Skeleton variant="title" width="200px" />
+                </div>
+                <div className="row">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="col-lg-3 col-md-6 mb-4">
+                            <Skeleton variant="card" height="300px" />
+                        </div>
+                    ))}
                 </div>
             </section>
         );
@@ -75,30 +72,35 @@ const LongVideos = () => {
                         : '/placeholder-video.jpg';
                     
                     return (
-                        <div key={video.id} className="long-video-card-branded" onClick={() => handleVideoClick(video.url)}>
-                            <div className="card-branded-header">
-                                <div className="brand-logo-mini">
-                                    <i className="fas fa-graduation-cap"></i>
-                                    <span>Career Vedha</span>
-                                </div>
-                                <h4 className="card-branded-title line-clamp-1">{video.title}</h4>
-                            </div>
-                            <div className="card-branded-body">
-                                <div className="video-thumb-container">
-                                    <img 
-                                        src={thumbnail} 
-                                        alt={video.title} 
-                                        className="card-img-branded"
-                                    />
-                                    <div className="play-icon-overlay-branded">
-                                        <i className="fas fa-play-circle text-white fa-3x"></i>
+                        <div key={video.id} className="long-video-card-branded" onClick={() => handleVideoClick(video)}>
+                            <div className="video-thumb-container">
+                                <img 
+                                    src={thumbnail} 
+                                    alt={video.title} 
+                                    className="card-img-branded"
+                                />
+                                <div className="card-overlay-content">
+                                    <h4 className="card-branded-title line-clamp-2">{video.title}</h4>
+                                    <div className="brand-logo-branding">
+                                        <img src="/favicon.png" alt="Logo" className="favicon-logo" />
+                                        <span>Career Vedha</span>
                                     </div>
+                                </div>
+                                <div className="play-icon-overlay-branded">
+                                    <i className="fas fa-play-circle text-white fa-3x"></i>
                                 </div>
                             </div>
                         </div>
                     );
                 })}
             </div>
+
+            <VideoPlayerModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                videoUrl={selectedVideo?.url || ''}
+                title={selectedVideo?.title || ''}
+            />
 
             <style dangerouslySetInnerHTML={{ __html: `
                 .long-videos-flex-grid {
@@ -110,52 +112,17 @@ const LongVideos = () => {
                 .long-video-card-branded {
                     width: 300px;
                     height: 300px;
-                    background: #fff;
+                    background: #000;
                     border-radius: 12px;
                     overflow: hidden;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
                     transition: all 0.3s ease;
                     cursor: pointer;
-                    display: flex;
-                    flex-direction: column;
-                    border: 1px solid #eee;
+                    position: relative;
                 }
                 .long-video-card-branded:hover {
                     transform: translateY(-5px);
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-                }
-                .card-branded-header {
-                    padding: 12px;
-                    background: #f8fafc;
-                    border-bottom: 1px solid #f1f5f9;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                    height: 80px;
-                }
-                .brand-logo-mini {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    color: var(--primary-yellow, #ffca28);
-                    font-size: 0.75rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-                .card-branded-title {
-                    font-size: 0.95rem;
-                    font-weight: 600;
-                    color: #334155;
-                    margin: 0;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-                .card-branded-body {
-                    flex: 1;
-                    position: relative;
-                    overflow: hidden;
+                    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
                 }
                 .video-thumb-container {
                     width: 100%;
@@ -166,22 +133,59 @@ const LongVideos = () => {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
+                    opacity: 0.8;
+                    transition: opacity 0.3s ease;
                 }
-                .play-icon-overlay-branded {
+                .long-video-card-branded:hover .card-img-branded {
+                    opacity: 0.6;
+                }
+                .card-overlay-content {
                     position: absolute;
                     top: 0;
                     left: 0;
                     width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.2);
+                    padding: 20px;
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+                    z-index: 2;
+                }
+                .brand-logo-branding {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    color: #fff;
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                .favicon-logo {
+                    width: 28px;
+                    height: 28px;
+                    object-fit: contain;
+                }
+                .card-branded-title {
+                    font-size: 1.15rem;
+                    font-weight: 600;
+                    color: #fff;
+                    margin: 0 0 8px 0;
+                    line-height: 1.4;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                }
+                .play-icon-overlay-branded {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
+                    opacity: 0.3;
+                    transition: all 0.3s ease;
+                    z-index: 1;
                 }
                 .long-video-card-branded:hover .play-icon-overlay-branded {
                     opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.1);
                 }
                 .btn-modern-see-all {
                     padding: 6px 16px;
@@ -201,7 +205,7 @@ const LongVideos = () => {
                 .video-subsection-title {
                     color: #1e293b;
                     font-weight: 700;
-                    font-size: 1.25rem;
+                    font-size: 1.5rem;
                 }
                 @media (max-width: 640px) {
                     .long-video-card-branded {

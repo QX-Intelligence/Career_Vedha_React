@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { youtubeService } from '../../services';
 import Skeleton from '../ui/Skeleton';
+import VideoPlayerModal from '../ui/VideoPlayerModal';
 
 const Shorts = ({ activeLanguage }) => {
     const [shorts, setShorts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedVideo, setSelectedVideo] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchShorts = async () => {
@@ -30,13 +33,9 @@ const Shorts = ({ activeLanguage }) => {
         return (match && match[2].length === 11) ? match[2] : null;
     };
 
-    const handleShortClick = (url) => {
-        const videoId = getYoutubeId(url);
-        if (videoId) {
-            window.open(`https://www.youtube.com/shorts/${videoId}`, '_blank');
-        } else {
-            window.open(url, '_blank');
-        }
+    const handleShortClick = (video) => {
+        setSelectedVideo(video);
+        setIsModalOpen(true);
     };
 
     if (loading) {
@@ -76,30 +75,35 @@ const Shorts = ({ activeLanguage }) => {
                         : '/placeholder-short.jpg';
                     
                     return (
-                        <div key={short.id} className="short-card-branded" onClick={() => handleShortClick(short.url)}>
-                            <div className="card-branded-header-mini">
-                                <div className="brand-logo-mini-alt">
-                                    <i className="fas fa-graduation-cap"></i>
-                                    <span>Career Vedha</span>
-                                </div>
-                                <h4 className="card-branded-title-mini line-clamp-1">{short.title}</h4>
-                            </div>
-                            <div className="card-branded-body">
-                                <div className="video-thumb-container">
-                                    <img 
-                                        src={thumbnail} 
-                                        alt={short.title} 
-                                        className="card-img-branded"
-                                    />
-                                    <div className="play-icon-overlay-branded">
-                                        <i className="fas fa-play text-white fa-2x"></i>
+                        <div key={short.id} className="short-card-branded" onClick={() => handleShortClick(short)}>
+                            <div className="video-thumb-container">
+                                <img 
+                                    src={thumbnail} 
+                                    alt={short.title} 
+                                    className="card-img-branded"
+                                />
+                                <div className="card-overlay-content-mini">
+                                    <h4 className="card-branded-title-mini line-clamp-2">{short.title}</h4>
+                                    <div className="brand-logo-branding-mini">
+                                        <img src="/favicon.png" alt="Logo" className="favicon-logo-mini" />
+                                        <span>Career Vedha</span>
                                     </div>
+                                </div>
+                                <div className="play-icon-overlay-branded">
+                                    <i className="fas fa-play text-white fa-2x"></i>
                                 </div>
                             </div>
                         </div>
                     );
                 })}
             </div>
+
+            <VideoPlayerModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                videoUrl={selectedVideo?.url || ''}
+                title={selectedVideo?.title || ''}
+            />
 
             <style dangerouslySetInnerHTML={{ __html: `
                 .shorts-flex-grid {
@@ -111,77 +115,80 @@ const Shorts = ({ activeLanguage }) => {
                 .short-card-branded {
                     width: 200px;
                     height: 250px;
-                    background: #fff;
+                    background: #000;
                     border-radius: 12px;
                     overflow: hidden;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                     transition: all 0.3s ease;
                     cursor: pointer;
-                    display: flex;
-                    flex-direction: column;
-                    border: 1px solid #f1f5f9;
+                    position: relative;
                 }
                 .short-card-branded:hover {
                     transform: translateY(-5px);
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-                }
-                .card-branded-header-mini {
-                    padding: 10px;
-                    background: #f8fafc;
-                    border-bottom: 1px solid #f1f5f9;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 3px;
-                    height: 70px;
-                }
-                .brand-logo-mini-alt {
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    color: var(--primary-yellow, #ffca28);
-                    font-size: 0.65rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.3px;
-                }
-                .card-branded-title-mini {
-                    font-size: 0.85rem;
-                    font-weight: 600;
-                    color: #334155;
-                    margin: 0;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-                .card-branded-body {
-                    flex: 1;
-                    position: relative;
-                    overflow: hidden;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
                 }
                 .video-thumb-container {
                     width: 100%;
                     height: 100%;
+                    position: relative;
                 }
                 .card-img-branded {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
+                    opacity: 0.85;
+                    transition: opacity 0.3s ease;
                 }
-                .play-icon-overlay-branded {
+                .short-card-branded:hover .card-img-branded {
+                    opacity: 0.7;
+                }
+                .card-overlay-content-mini {
                     position: absolute;
                     top: 0;
                     left: 0;
                     width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.15);
+                    padding: 15px;
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+                    z-index: 2;
+                }
+                .brand-logo-branding-mini {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #fff;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                .favicon-logo-mini {
+                    width: 20px;
+                    height: 20px;
+                    object-fit: contain;
+                }
+                .card-branded-title-mini {
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    color: #fff;
+                    margin: 0 0 5px 0;
+                    line-height: 1.3;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                }
+                .play-icon-overlay-branded {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
+                    opacity: 0.3;
+                    transition: all 0.3s ease;
+                    z-index: 1;
                 }
                 .short-card-branded:hover .play-icon-overlay-branded {
                     opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.1);
                 }
                 @media (max-width: 480px) {
                     .short-card-branded {

@@ -6,6 +6,7 @@ import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import Skeleton from '../components/ui/Skeleton';
+import VideoPlayerModal from '../components/ui/VideoPlayerModal';
 import '../styles/VideosPage.css';
 
 const VideosPage = () => {
@@ -16,6 +17,8 @@ const VideosPage = () => {
     const [hasMore, setHasMore] = useState(true);
     const [activeLanguage, setActiveLanguage] = useState(() => localStorage.getItem('preferredLanguage') || 'english');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [selectedVideo, setSelectedVideo] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     
     const cursorIdRef = useRef(null);
 
@@ -62,17 +65,9 @@ const VideosPage = () => {
         return (match && match[2].length === 11) ? match[2] : null;
     };
 
-    const handleVideoClick = (url) => {
-        const videoId = getYoutubeId(url);
-        if (videoId) {
-            if (category === 'shorts') {
-                window.open(`https://www.youtube.com/shorts/${videoId}`, '_blank');
-            } else {
-                window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
-            }
-        } else {
-            window.open(url, '_blank');
-        }
+    const handleVideoClick = (video) => {
+        setSelectedVideo(video);
+        setIsModalOpen(true);
     };
 
     const handleLanguageChange = (lang) => {
@@ -120,17 +115,21 @@ const VideosPage = () => {
                                 return (
                                     <div 
                                         key={video.id} 
-                                        className="video-item"
-                                        onClick={() => handleVideoClick(video.url)}
+                                        className={`video-item branded-overlay-card ${category === 'shorts' ? 'short-item-branded' : 'long-item-branded'}`}
+                                        onClick={() => handleVideoClick(video)}
                                     >
                                         <div className="video-thumbnail-wrapper">
                                             <img src={thumbnail} alt={video.title} loading="lazy" />
+                                            <div className="card-overlay-branded-full">
+                                                <h3 className="video-title">{video.title}</h3>
+                                                <div className="branding-mini-row">
+                                                    <img src="/favicon.png" alt="Logo" className="favicon-tiny" />
+                                                    <span>Career Vedha</span>
+                                                </div>
+                                            </div>
                                             <div className="play-overlay">
                                                 <i className="fas fa-play"></i>
                                             </div>
-                                        </div>
-                                        <div className="video-info">
-                                            <h3 className="video-title">{video.title}</h3>
                                         </div>
                                     </div>
                                 );
@@ -156,6 +155,13 @@ const VideosPage = () => {
                     </div>
                 )}
             </main>
+
+            <VideoPlayerModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                videoUrl={selectedVideo?.url || ''}
+                title={selectedVideo?.title || ''}
+            />
 
             <Footer />
         </div>
