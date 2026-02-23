@@ -61,37 +61,135 @@ const Shorts = ({ activeLanguage }) => {
     if (shorts.length === 0) return null;
 
     return (
-        <section className="shorts-section">
-            <div className="container">
-                <div className="section-header">
-                    <h2 className="section-title">Shorts</h2>
-                    <Link to="/videos/shorts" className="see-all-btn">
-                        See All <i className="fas fa-arrow-right"></i>
-                    </Link>
-                </div>
-                <div className="shorts-grid">
-                    {shorts.map((short) => {
-                        const videoId = getYoutubeId(short.url);
-                        const thumbnail = videoId 
-                            ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-                            : '/placeholder-short.jpg';
-                        
-                        return (
-                            <div
-                                key={short.id}
-                                className="short-item"
-                                onClick={() => handleShortClick(short.url)}
-                            >
-                                <img src={thumbnail} alt={short.title} />
-                                <div className="short-overlay">
-                                    <i className="fas fa-play"></i>
-                                    <span className="short-title-text">{short.title}</span>
+        <section className="shorts-section-branded py-4">
+            <div className="section-header-flex d-flex justify-content-between align-items-center mb-4">
+                <h3 className="video-subsection-title m-0">Shorts</h3>
+                <Link to="/videos/shorts" className="btn-modern-see-all">
+                    See All <i className="fas fa-arrow-right ml-1"></i>
+                </Link>
+            </div>
+            <div className="shorts-flex-grid">
+                {shorts.map((short) => {
+                    const videoId = getYoutubeId(short.url);
+                    const thumbnail = videoId 
+                        ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+                        : '/placeholder-short.jpg';
+                    
+                    return (
+                        <div key={short.id} className="short-card-branded" onClick={() => handleShortClick(short.url)}>
+                            <div className="card-branded-header-mini">
+                                <div className="brand-logo-mini-alt">
+                                    <i className="fas fa-graduation-cap"></i>
+                                    <span>Career Vedha</span>
+                                </div>
+                                <h4 className="card-branded-title-mini line-clamp-1">{short.title}</h4>
+                            </div>
+                            <div className="card-branded-body">
+                                <div className="video-thumb-container">
+                                    <img 
+                                        src={thumbnail} 
+                                        alt={short.title} 
+                                        className="card-img-branded"
+                                    />
+                                    <div className="play-icon-overlay-branded">
+                                        <i className="fas fa-play text-white fa-2x"></i>
+                                    </div>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
+                        </div>
+                    );
+                })}
             </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .shorts-flex-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 15px;
+                    justify-content: center;
+                }
+                .short-card-branded {
+                    width: 200px;
+                    height: 250px;
+                    background: #fff;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    display: flex;
+                    flex-direction: column;
+                    border: 1px solid #f1f5f9;
+                }
+                .short-card-branded:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+                }
+                .card-branded-header-mini {
+                    padding: 10px;
+                    background: #f8fafc;
+                    border-bottom: 1px solid #f1f5f9;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 3px;
+                    height: 70px;
+                }
+                .brand-logo-mini-alt {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    color: var(--primary-yellow, #ffca28);
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                }
+                .card-branded-title-mini {
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    color: #334155;
+                    margin: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                .card-branded-body {
+                    flex: 1;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .video-thumb-container {
+                    width: 100%;
+                    height: 100%;
+                }
+                .card-img-branded {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .play-icon-overlay-branded {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.15);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                .short-card-branded:hover .play-icon-overlay-branded {
+                    opacity: 1;
+                }
+                @media (max-width: 480px) {
+                    .short-card-branded {
+                        width: calc(50% - 10px);
+                        height: 220px;
+                    }
+                }
+            `}} />
         </section>
     );
 };

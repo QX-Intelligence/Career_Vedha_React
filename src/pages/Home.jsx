@@ -123,13 +123,23 @@ const Home = () => {
                 <MultiWidgets activeLanguage={activeLanguage} />
             </Suspense> */}
             
-            <Suspense fallback={<SectionSkeleton />}>
-                <LongVideos activeLanguage={activeLanguage} />
-            </Suspense>
+            <section className="home-videos-wrapper bg-white py-5">
+                <div className="container">
+                    <div className="section-header-branded mb-5 text-center">
+                        <div className="section-marker mx-auto mb-3"></div>
+                        <h2 className="section-title text-dark">Videos</h2>
+                        <p className="section-subtitle text-muted">Watch the latest updates and insights from Career Vedha</p>
+                    </div>
+                    
+                    <Suspense fallback={<SectionSkeleton />}>
+                        <LongVideos activeLanguage={activeLanguage} />
+                    </Suspense>
 
-            <Suspense fallback={<SectionSkeleton />}>
-                <Shorts activeLanguage={activeLanguage} />
-            </Suspense>
+                    <Suspense fallback={<SectionSkeleton />}>
+                        <Shorts activeLanguage={activeLanguage} />
+                    </Suspense>
+                </div>
+            </section>
             
             <Footer />
         </div>
