@@ -11,7 +11,7 @@ const Shorts = ({ activeLanguage }) => {
         const fetchShorts = async () => {
             setLoading(true);
             try {
-                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.SHORTS);
+                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.SHORT);
                 // Return only 4-6 for the home page section
                 setShorts(data.slice(0, 6));
             } catch (error) {

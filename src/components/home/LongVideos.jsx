@@ -11,7 +11,7 @@ const LongVideos = () => {
         const fetchVideos = async () => {
             setLoading(true);
             try {
-                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.LONG_VIDEO);
+                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.LONG);
                 setVideos(data.slice(0, 4)); // Show 4 videos in the section
             } catch (error) {
                 console.error('Error loading long videos:', error);

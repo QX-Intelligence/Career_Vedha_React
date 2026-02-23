@@ -807,8 +807,8 @@ export const videosService = {
 export const youtubeService = {
     // Categories
     CATEGORIES: {
-        SHORTS: 'SHORTS',
-        LONG_VIDEO: 'LONG_VIDEO'
+        SHORT: 'SHORT',
+        LONG: 'LONG'
     },
 
     // Get YouTube URLs by category

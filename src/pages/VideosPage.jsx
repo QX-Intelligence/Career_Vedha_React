@@ -19,7 +19,7 @@ const VideosPage = () => {
     
     const cursorIdRef = useRef(null);
 
-    const videoCategory = category === 'shorts' ? youtubeService.CATEGORIES.SHORTS : youtubeService.CATEGORIES.LONG_VIDEO;
+    const videoCategory = category === 'shorts' ? 'SHORT' : 'LONG';
 
     const fetchVideos = useCallback(async (isInitial = false) => {
         if (isInitial) {

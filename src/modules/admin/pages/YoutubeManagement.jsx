@@ -8,10 +8,10 @@ const YoutubeManagement = () => {
     const { showSnackbar } = useSnackbar();
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState(youtubeService.CATEGORIES.SHORTS);
+    const [activeTab, setActiveTab] = useState('SHORT');
     const [selectedIds, setSelectedIds] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentVideo, setCurrentVideo] = useState({ title: '', url: '', category: youtubeService.CATEGORIES.SHORTS });
+    const [currentVideo, setCurrentVideo] = useState({ title: '', url: '', category: 'SHORT' });
     const [isEditing, setIsEditing] = useState(false);
 
     const fetchVideos = useCallback(async () => {
@@ -105,14 +105,14 @@ const YoutubeManagement = () => {
 
             <div className="management-tabs">
                 <button 
-                    className={`tab-btn ${activeTab === youtubeService.CATEGORIES.SHORTS ? 'active' : ''}`}
-                    onClick={() => setActiveTab(youtubeService.CATEGORIES.SHORTS)}
+                    className={`tab-btn ${activeTab === 'SHORT' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('SHORT')}
                 >
                     Shorts
                 </button>
                 <button 
-                    className={`tab-btn ${activeTab === youtubeService.CATEGORIES.LONG_VIDEO ? 'active' : ''}`}
-                    onClick={() => setActiveTab(youtubeService.CATEGORIES.LONG_VIDEO)}
+                    className={`tab-btn ${activeTab === 'LONG' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('LONG')}
                 >
                     Long Videos
                 </button>
@@ -231,8 +231,8 @@ const YoutubeManagement = () => {
                                     value={currentVideo.category} 
                                     onChange={handleInputChange}
                                 >
-                                    <option value="SHORTS">Shorts</option>
-                                    <option value="LONG_VIDEO">Long Video</option>
+                                    <option value="SHORT">Shorts</option>
+                                    <option value="LONG">Long Video</option>
                                 </select>
                             </div>
                             <div className="modal-footer">
