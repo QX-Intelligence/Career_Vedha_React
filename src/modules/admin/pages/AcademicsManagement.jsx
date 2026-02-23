@@ -193,6 +193,8 @@ const AcademicsManagement = () => {
                 delete submitData.document_name;
             }
 
+            console.log(`[Academics] Submitting ${activeTab} (${modalMode}):`, submitData);
+
             if (activeTab === 'levels') {
                 if (modalMode === 'create') {
                     await createLevelMutation.mutateAsync(submitData);
@@ -227,8 +229,9 @@ const AcademicsManagement = () => {
                  }
             }
         } catch (error) {
-            console.error(error);
-            handleMutationError(error, 'Operation failed');
+            console.error(`[Academics] ${activeTab} ${modalMode} Error:`, error);
+            console.error(`[Academics] Error Payload:`, error.response?.data);
+            handleMutationError(error, `Failed to ${modalMode} ${activeTab.slice(0,-1)}`);
         }
     };
 

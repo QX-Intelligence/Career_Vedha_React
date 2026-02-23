@@ -9,10 +9,10 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect, targetType }) => {
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [nextCursor, setNextCursor] = useState(null);
     const [hasNext, setHasNext] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [purpose, setPurpose] = useState(''); // Purpose filter
+    const nextCursorRef = useRef(null);
 
     const observer = useRef();
     const lastMediaElementRef = useCallback(node => {
@@ -24,15 +24,17 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect, targetType }) => {
             }
         });
         if (node) observer.current.observe(node);
-    }, [loading, loadingMore, hasNext]);
+    }, [loading, loadingMore, hasNext]); // fetchMedia is omitted to avoid cycle, but fetchMedia(true) is safe in the callback
 
     const fetchMedia = useCallback(async (loadMore = false) => {
         if (loadMore) {
+            if (loadingMore || !hasNext) return;
             setLoadingMore(true);
         } else {
+            if (loading) return;
             setLoading(true);
             setMediaItems([]);
-            setNextCursor(null);
+            nextCursorRef.current = null;
         }
 
         try {
@@ -40,7 +42,7 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect, targetType }) => {
                 limit: 15,
                 q: searchQuery.trim() || undefined,
                 purpose: purpose || undefined,
-                cursor: loadMore ? nextCursor : undefined
+                cursor: loadMore ? nextCursorRef.current : undefined
             };
 
             const data = await mediaService.list(params);
@@ -52,7 +54,7 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect, targetType }) => {
                 setMediaItems(results);
             }
             
-            setNextCursor(data.next_cursor);
+            nextCursorRef.current = data.next_cursor;
             setHasNext(data.has_next);
         } catch (error) {
             console.error('Error fetching media library:', error);
@@ -61,13 +63,13 @@ const MediaLibraryModal = ({ isOpen, onClose, onSelect, targetType }) => {
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [searchQuery, purpose, nextCursor, showSnackbar]);
+    }, [searchQuery, purpose, hasNext, loading, loadingMore, showSnackbar]);
 
     useEffect(() => {
         if (isOpen) {
             fetchMedia();
         }
-    }, [isOpen, fetchMedia]);
+    }, [isOpen, searchQuery, purpose]); // Only refetch when filters change or modal opens
 
     const handleSelect = (item) => {
         setSelectedId(item.id);
