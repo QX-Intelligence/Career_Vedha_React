@@ -22,21 +22,29 @@ const VideoPlayerModal = ({ isOpen, onClose, videoUrl, title }) => {
                 <button className="video-modal-close" onClick={onClose}>
                     <i className="fas fa-times"></i>
                 </button>
-                <div className="video-player-header">
-                    <h3 className="modal-video-title">{title}</h3>
+                <div className="video-player-header-branded">
+                    <div className="modal-branding-flex">
+                        <img src="/favicon.png" alt="Logo" className="modal-favicon" />
+                        <div className="modal-title-container">
+                            <h3 className="modal-video-title">{title}</h3>
+                            <span className="modal-brand-name">Career Vedha</span>
+                        </div>
+                    </div>
                 </div>
-                <div className={`video-iframe-container ${isShort ? 'short-aspect' : 'long-aspect'}`}>
-                    {videoId ? (
-                        <iframe
-                            src={embedUrl}
-                            title={title}
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe>
-                    ) : (
-                        <div className="video-error">Invalid Video URL</div>
-                    )}
+                <div className={`video-iframe-body ${isShort ? 'short-playback' : 'long-playback'}`}>
+                    <div className="video-iframe-wrapper">
+                        {videoId ? (
+                            <iframe
+                                src={embedUrl}
+                                title={title}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            <div className="video-error">Invalid Video URL</div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
