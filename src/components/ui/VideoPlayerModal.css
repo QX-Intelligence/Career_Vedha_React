@@ -16,10 +16,13 @@
     position: relative;
     width: 90%;
     max-width: 1000px;
+    max-height: 90vh; /* Ensure modal content itself doesn't exceed screen */
     background: #000;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
 }
 
 .video-modal-close {
@@ -32,18 +35,17 @@
     font-size: 1.5rem;
     cursor: pointer;
     transition: transform 0.2s;
+    z-index: 10001;
 }
-
 .video-modal-close:hover {
     transform: scale(1.2);
 }
-
 .video-player-header-branded {
     background: #1a1a1a;
     padding: 15px 25px;
     border-bottom: 1px solid #333;
+    flex-shrink: 0; /* Header should not shrink */
 }
-
 .modal-branding-flex {
     display: flex;
     align-items: center;
@@ -77,10 +79,14 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-
 .video-iframe-body {
     background: #000;
     width: 100%;
+    flex: 1; /* Body takes remaining space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .video-iframe-wrapper {
@@ -92,9 +98,19 @@
     padding-top: 56.25%; /* 16:9 Aspect Ratio */
 }
 
+.short-playback {
+    height: 100%;
+    width: 100%;
+}
+
 .short-playback .video-iframe-wrapper {
-    padding-top: 177.77%; /* 9:16 Aspect Ratio */
-    max-width: 450px;
+    /* Limit width based on height to preserve 9:16 aspect ratio within viewport */
+    /* 9:16 is 0.5625 aspect ratio. 
+       If height is H, max width should be H * 0.5625.
+       We want H to be around 75vh (leaving space for header).
+    */
+    width: min(90%, 450px, 45vh); 
+    padding-top: min(160%, 80vh); /* Scaling to fit 9:16 */
     margin: 0 auto;
 }
 
@@ -115,6 +131,20 @@
 }
 
 @media (max-width: 768px) {
+    .video-player-modal-content {
+        width: 95%;
+        max-height: 85vh;
+    }
+    .video-player-header-branded {
+        padding: 10px 15px;
+    }
+    .modal-favicon {
+        width: 30px;
+        height: 30px;
+    }
+    .modal-video-title {
+        font-size: 1rem;
+    }
     .video-modal-close {
         top: 10px;
         right: 15px;
