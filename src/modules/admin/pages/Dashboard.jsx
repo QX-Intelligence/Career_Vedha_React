@@ -39,6 +39,7 @@ import RoleManagement from './RoleManagement';
 import PermissionManagement from './PermissionManagement';
 import QuizManagement from './QuizManagement';
 import MediaManagement from './MediaManagement';
+import YoutubeManagement from './YoutubeManagement';
 import NotificationItem from '../components/NotificationItem';
 
 
@@ -318,6 +319,11 @@ const Dashboard = () => {
         }
         if (section === 'taxonomy') {
             navigate('/cms/taxonomy');
+            return;
+        }
+        if (section === 'youtube') {
+            setActiveSectionState(section);
+            setSearchParams({ tab: section });
             return;
         }
 
@@ -1229,6 +1235,11 @@ const Dashboard = () => {
                     {/* Render Article Management Section */}
                     {activeSection === 'articles' && checkAccess(MODULES.ARTICLE_MANAGEMENT) && (
                         <ArticleManagement activeLanguage={localStorage.getItem('preferredLanguage') || 'telugu'} />
+                    )}
+
+                    {/* Render Youtube Management Section */}
+                    {activeSection === 'youtube' && (
+                        <YoutubeManagement />
                     )}
 
             {/* REJECT MODAL */}

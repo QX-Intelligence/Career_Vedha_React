@@ -1,0 +1,139 @@
+.videos-page .main-content {
+  min-height: 70vh;
+}
+
+.videos-grid {
+  display: grid;
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.videos-grid.shorts-layout {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.videos-grid.long-layout {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.video-item {
+  cursor: pointer;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.video-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.video-thumbnail-wrapper {
+  position: relative;
+  aspect-ratio: 9/16;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.long-layout .video-thumbnail-wrapper {
+  aspect-ratio: 16/9;
+}
+
+.video-thumbnail-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.video-item:hover .play-overlay {
+  opacity: 1;
+}
+
+.play-overlay i {
+  color: white;
+  font-size: 3rem;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+}
+
+.video-info {
+  padding: 1rem;
+}
+
+.video-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #333;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.load-more-btn {
+  padding: 0.8rem 2.5rem;
+  border-radius: 30px;
+  background: var(
+    --primary-gradient,
+    linear-gradient(135deg, #ff7043, #ffca28)
+  );
+  color: white;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 4px 15px rgba(255, 112, 67, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.load-more-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 112, 67, 0.4);
+}
+
+.load-more-btn:disabled {
+  background: #ccc;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.back-link {
+  color: #666;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--primary-color, #ff7043);
+}
+
+@media (max-width: 768px) {
+  .videos-grid.shorts-layout {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .videos-grid.long-layout {
+    grid-template-columns: 1fr;
+  }
+}

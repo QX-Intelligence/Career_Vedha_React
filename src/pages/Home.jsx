@@ -20,6 +20,7 @@ const ExploreMore = lazy(() => import('../components/home/ExploreMore'));
 const PreviousPapers = lazy(() => import('../components/home/PreviousPapers'));
 const MultiWidgets = lazy(() => import('../components/home/MultiWidgets'));
 const Shorts = lazy(() => import('../components/home/Shorts'));
+const LongVideos = lazy(() => import('../components/home/LongVideos'));
 
 // Loading Placeholder for Lazy Components
 const SectionSkeleton = () => (
@@ -122,9 +123,13 @@ const Home = () => {
                 <MultiWidgets activeLanguage={activeLanguage} />
             </Suspense> */}
             
-            {/* <Suspense fallback={<SectionSkeleton />}>
+            <Suspense fallback={<SectionSkeleton />}>
+                <LongVideos activeLanguage={activeLanguage} />
+            </Suspense>
+
+            <Suspense fallback={<SectionSkeleton />}>
                 <Shorts activeLanguage={activeLanguage} />
-            </Suspense> */}
+            </Suspense>
             
             <Footer />
         </div>

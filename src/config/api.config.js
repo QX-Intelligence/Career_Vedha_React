@@ -36,6 +36,10 @@ const API_CONFIG = {
         // Videos
         VIDEOS: 'videos',
         SHORTS: 'videos/shorts',
+        CREATE_YT_URLS: 'create-yt-urls',
+        GET_YT_URLS_BY_CATEGORY: 'get-yt-urls-by-category',
+        DELETE_YT_URLS: 'delete-yt-urls',
+        EDIT_YT_URLS: 'edit-yt-urls',
 
         // User
         NEWSLETTER_SUBSCRIBE: 'newsletter/subscribe',

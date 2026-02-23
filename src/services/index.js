@@ -803,6 +803,61 @@ export const videosService = {
     }
 };
 
+// Youtube Service (Spring Boot)
+export const youtubeService = {
+    // Categories
+    CATEGORIES: {
+        SHORTS: 'SHORTS',
+        LONG_VIDEO: 'LONG_VIDEO'
+    },
+
+    // Get YouTube URLs by category
+    getYoutubeUrls: async (category, cursorId = null) => {
+        try {
+            const params = { category };
+            if (cursorId) params.cursorId = cursorId;
+            const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_YT_URLS_BY_CATEGORY, { params });
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching YouTube URLs for category ${category}:`, error);
+            return [];
+        }
+    },
+
+    // Create YouTube URLs
+    createYoutubeUrls: async (youtubeUrls) => {
+        try {
+            const response = await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_YT_URLS, youtubeUrls);
+            return response.data;
+        } catch (error) {
+            console.error('Error creating YouTube URLs:', error);
+            throw error;
+        }
+    },
+
+    // Update YouTube URL
+    updateYoutubeUrl: async (youtubeUrl) => {
+        try {
+            const response = await apiClient.put(API_CONFIG.ENDPOINTS.EDIT_YT_URLS, youtubeUrl);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating YouTube URL:', error);
+            throw error;
+        }
+    },
+
+    // Delete YouTube URLs
+    deleteYoutubeUrls: async (ids) => {
+        try {
+            const response = await apiClient.delete(API_CONFIG.ENDPOINTS.DELETE_YT_URLS, { data: ids });
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting YouTube URLs:', error);
+            throw error;
+        }
+    }
+};
+
 // Newsletter Service
 export const newsletterService = {
     // Subscribe to newsletter

@@ -34,6 +34,7 @@ const QuestionPapersPage = lazy(() => import('./pages/QuestionPapersPage'));
 const StudyMaterialsPage = lazy(() => import('./pages/StudyMaterialsPage'));
 const SearchResults = lazy(() => import('./pages/SearchResults'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const VideosPage = lazy(() => import('./pages/VideosPage'));
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import api, { setUserContext } from './services/api';
@@ -167,6 +168,7 @@ function App() {
                                         <Route path="/paper-viewer" element={<PaperViewer />} />
                                         <Route path="/question-papers" element={<QuestionPapersPage />} />
                                         <Route path="/study-materials" element={<StudyMaterialsPage />} />
+                                        <Route path="/videos/:category" element={<VideosPage />} />
                                         
                                         {/* Public Job Board */}
                                         <Route path="/jobs" element={<JobsList />} />

@@ -199,6 +199,15 @@ const CMSSidebar = ({
                                 <span>Previous Papers</span>
                             </button>
                         )}
+
+                        <button
+                            className={`menu-item ${activeSection === 'youtube' ? 'active' : ''}`}
+                            onClick={() => handleMenuClick('youtube')}
+                            style={{ paddingLeft: '40px' }}
+                        >
+                            <i className="fab fa-youtube"></i>
+                            <span>YouTube</span>
+                        </button>
                     </>
                 )}
             </nav>
