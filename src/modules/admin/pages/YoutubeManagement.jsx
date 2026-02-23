@@ -65,7 +65,8 @@ const YoutubeManagement = () => {
             fetchVideos();
             handleCloseModal();
         } catch (error) {
-            showSnackbar(`Failed to ${isEditing ? 'update' : 'create'} YouTube URL`, 'error');
+            const errorMessage = error.response?.data?.message || error.response?.data?.error || `Failed to ${isEditing ? 'update' : 'create'} YouTube URL`;
+            showSnackbar(errorMessage, 'error');
         }
     };
 
@@ -77,7 +78,8 @@ const YoutubeManagement = () => {
             setSelectedIds([]);
             fetchVideos();
         } catch (error) {
-            showSnackbar('Failed to delete YouTube URL(s)', 'error');
+            const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to delete YouTube URL(s)';
+            showSnackbar(errorMessage, 'error');
         }
     };
 
@@ -229,8 +231,8 @@ const YoutubeManagement = () => {
                                     value={currentVideo.category} 
                                     onChange={handleInputChange}
                                 >
-                                    <option value={youtubeService.CATEGORIES.SHORTS}>Shorts</option>
-                                    <option value={youtubeService.CATEGORIES.LONG_VIDEO}>Long Video</option>
+                                    <option value="SHORTS">Shorts</option>
+                                    <option value="LONG_VIDEO">Long Video</option>
                                 </select>
                             </div>
                             <div className="modal-footer">
