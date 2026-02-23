@@ -169,12 +169,11 @@ const LongVideos = () => {
                     flex: 1;
                 }
                 .brand-name-text {
-                    color: #fff;
-                    font-size: 0.85rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    opacity: 0.9;
+                    color: #ff9800;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                    opacity: 0.95;
                 }
                 .card-branded-title {
                     font-size: 1.1rem;

@@ -172,12 +172,11 @@ const Shorts = ({ activeLanguage }) => {
                     flex: 1;
                 }
                 .brand-name-text {
-                    color: #fff;
+                    color: #ff9800;
                     font-size: 0.65rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    opacity: 0.9;
+                    font-weight: 600;
+                    letter-spacing: 0.3px;
+                    opacity: 0.95;
                 }
                 .card-branded-title {
                     font-size: 0.85rem;
