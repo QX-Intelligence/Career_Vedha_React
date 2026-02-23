@@ -179,13 +179,25 @@ const QuizManagement = () => {
         }
 
         try {
+            // Clean payload: remove UI helpers like _levelId, _subjectId and trim strings
+            const cleanedPayload = questionList.map(q => ({
+                question: (q.question || '').trim(),
+                option1: (q.option1 || '').trim(),
+                option2: (q.option2 || '').trim(),
+                option3: (q.option3 || '').trim(),
+                option4: (q.option4 || '').trim(),
+                correctAnswer: (q.correctAnswer || '').trim().toUpperCase(),
+                category: (q.category || '').trim(),
+                chapterId: q.chapterId ? Number(q.chapterId) : null
+            }));
+
             if (isEditingQuestion && editingQuestionId) {
                 // Edit Mode - backend edit takes single object
-                await updateMutation.mutateAsync({ id: editingQuestionId, data: questionList[0] });
+                await updateMutation.mutateAsync({ id: editingQuestionId, data: cleanedPayload[0] });
                 showSnackbar("Question updated successfully", "success");
             } else {
                 // Create Mode (Bulk)
-                await createMutation.mutateAsync(questionList);
+                await createMutation.mutateAsync(cleanedPayload);
                 showSnackbar(`Successfully published ${questionList.length} question(s)!`, "success");
             }
 
