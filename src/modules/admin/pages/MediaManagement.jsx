@@ -134,6 +134,9 @@ const MediaManagement = () => {
                 return [...prev, ...uniqueNew];
             });
             setHasNext(mediaResponse.has_next);
+            if (mediaResponse.count !== undefined) {
+                setTotalCount(mediaResponse.count);
+            }
         }
     }, [mediaResponse, cursor]);
 

@@ -58,6 +58,16 @@ const notifyListeners = () => {
     listeners.forEach(cb => cb(context));
 };
 
+// Expose setUserContext for E2E tests in dev/test mode only
+if (import.meta.env.DEV || import.meta.env.MODE === 'test') {
+    window.__e2eSetAuth = (token, role, email, firstName, lastName, status, id) => {
+        setUserContext(token, role, email, firstName, lastName, status, id);
+    };
+    window.__e2eClearAuth = () => {
+        setUserContext(null, null, null, null, null, null, null);
+    };
+}
+
 export const updateUserNames = (firstName, lastName) => {
     _firstName = firstName;
     _lastName = lastName;

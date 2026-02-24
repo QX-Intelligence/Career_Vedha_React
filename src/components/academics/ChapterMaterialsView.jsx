@@ -199,15 +199,12 @@ const ChapterMaterialsView = ({ materials: inputMaterials, language, onStartExam
 
 
 
-                {/* Conditional Start Exam Button - Only show if materials exist */}
-                {studyMaterialsList.length > 0 && (
-                    <div className="exam-action-section">
-                        <button className="start-exam-btn" onClick={onStartExam}>
-                            <i className="fas fa-pen-fancy"></i>
-                            Start Practice Test
-                        </button>
-                    </div>
-                )}
+                <div className="exam-action-section">
+                    <button className="start-exam-btn" onClick={onStartExam}>
+                        <i className="fas fa-pen-fancy"></i>
+                        Start Practice Test
+                    </button>
+                </div>
             </div>
         </div>
     );

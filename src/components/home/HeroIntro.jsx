@@ -8,7 +8,7 @@ const HeroIntro = () => {
             title: "Boost Your Exam Preparation",
             subtitle: "Comprehensive study materials and quizzes for all competitive exams.",
             ctaText: "Start Learning",
-            link: "/exam",
+            link: "/academic-exams",
             image: "/hero_illustration.png", // Keeping the existing one for Exams
             color: "var(--primary-yellow)",
             icon: "fas fa-graduation-cap"
@@ -18,7 +18,7 @@ const HeroIntro = () => {
             title: "Latest Educational News",
             subtitle: "Stay updated with the most recent notifications and educational announcements.",
             ctaText: "Read News",
-            link: "/category/education-news",
+            link: "/news",
             image: "/assets/hero_news.png", // New generated image
             color: "#e11d48",
             icon: "fas fa-newspaper"
@@ -38,7 +38,7 @@ const HeroIntro = () => {
             title: "Academic Resources",
             subtitle: "Syllabus, previous papers, and study guides for schools and colleges.",
             ctaText: "Explore Resources",
-            link: "/category/academics",
+            link: "/academics",
             image: "/assets/hero_academics.png", // New generated image
             color: "#7c3aed",
             icon: "fas fa-book-reader"

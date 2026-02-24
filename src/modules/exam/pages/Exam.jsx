@@ -133,6 +133,12 @@ const Exam = () => {
 
     // Auto-start validation effect
     useEffect(() => {
+        // Redirection logic: If no config is passed in state, go back to the explorer
+        if (!location.state?.examConfig && !location.state?.fromAdmin) {
+            navigate('/academic-exams', { replace: true });
+            return;
+        }
+
         if (location.state?.examConfig) {
             const config = location.state.examConfig;
             setCustomConfig(config);
@@ -141,11 +147,9 @@ const Exam = () => {
             if (location.state.level) setSelectedLevelId(location.state.level.id.toString());
             if (location.state.subject) setSelectedSubjectId(location.state.subject.id.toString());
 
-            // Small timeout to allow state to settle, though direct call is safer.
-            // We'll call the internal logic directly.
             startCustomExam(config);
         }
-    }, [location.state]);
+    }, [location.state, navigate]);
 
     const startCustomExam = async (directConfig = null) => {
         const config = directConfig || customConfig;
@@ -574,7 +578,7 @@ const Exam = () => {
         );
     }
 
-    // ---------------- START SCREEN (INTERSTITIAL) ----------------
+    // ---------------- START SCREEN (INTERSTITIAL / PREPARING) ----------------
     if (!examStarted) {
         return (
             <div className="exam-portal-wrapper">
@@ -594,7 +598,7 @@ const Exam = () => {
                             onClick={() => setShowCreateForm(!showCreateForm)}
                             style={{ color: '#64748b', fontSize: '0.9rem' }}
                         >
-                            {showCreateForm ? 'Close Question Form' : 'Create Questions'}
+                            {showCreateForm ? 'Close Question Form' : 'Create Questions (Admin)'}
                         </button>
                     </div>
 
@@ -614,7 +618,7 @@ const Exam = () => {
                                     <input 
                                         type="text" 
                                         placeholder="Question Text"
-                                        className="form-control" // Assuming global CSS or inline
+                                        className="form-control"
                                         value={q.question} 
                                         onChange={e => updateQuestionField(idx, 'question', e.target.value)}
                                         style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
@@ -667,129 +671,15 @@ const Exam = () => {
                         </div>
                     ) : (
                         <div className="stage-card" style={{ maxWidth: '600px', textAlign: 'center' }}>
-                            <div style={{
-                                width: '80px', height: '80px', background: 'var(--portal-bg)',
-                                borderRadius: '50%', margin: '0 auto 1.5rem', display: 'flex',
-                                alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
-                                color: 'var(--portal-dark)'
-                            }}>
-                                <i className="fas fa-file-contract"></i>
+                            <div className="loader-icon" style={{ fontSize: '3rem', color: 'var(--portal-primary)', marginBottom: '1rem' }}>
+                                <i className="fas fa-circle-notch fa-spin"></i>
                             </div>
-
                             <h2 style={{ fontSize: '1.8rem', color: 'var(--portal-dark)', marginBottom: '0.5rem', fontWeight: 800 }}>
-                                Select Your Exam Subject
+                                Preparing Your Assessment
                             </h2>
                             <p style={{ color: '#64748b', marginBottom: '2rem' }}>
-                                Choose a category from the list below to begin your assessment.
+                                Please wait while we secure your exam session and load the questions for <strong>{customConfig.label || "your selected topic"}</strong>.
                             </p>
-                            
-                            {/* HIERARCHICAL CONFIGURATION UI */}
-                            <div style={{ marginBottom: '2rem', textAlign: 'left', background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.4rem', color: '#64748b', textTransform: 'uppercase' }}>
-                                            Academic Level
-                                        </label>
-                                        <select 
-                                            value={selectedLevelId}
-                                            onChange={e => {
-                                                setSelectedLevelId(e.target.value);
-                                                setSelectedSubjectId('');
-                                                setCustomConfig({ type: 'category', value: '', label: '' });
-                                            }}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                        >
-                                            <option value="">Select Level</option>
-                                            {hierarchy.map(level => (
-                                                <option key={level.id} value={level.id}>{level.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.4rem', color: '#64748b', textTransform: 'uppercase' }}>
-                                            Subject
-                                        </label>
-                                        <select 
-                                            value={selectedSubjectId}
-                                            disabled={!selectedLevelId}
-                                            onChange={e => {
-                                                const subId = e.target.value;
-                                                setSelectedSubjectId(subId);
-                                                const sub = hierarchy.find(l => String(l.id) === String(selectedLevelId))?.subjects?.find(s => String(s.id) === String(subId));
-                                                if (sub) {
-                                                    setCustomConfig({ type: 'category', value: sub.name, label: sub.name });
-                                                } else {
-                                                    setCustomConfig({ type: 'category', value: '', label: '' });
-                                                }
-                                            }}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                        >
-                                            <option value="">Select Subject</option>
-                                            {hierarchy.find(l => String(l.id) === String(selectedLevelId))?.subjects?.map(sub => (
-                                                <option key={sub.id} value={sub.id}>{sub.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '1.5rem' }}>
-                                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, marginBottom: '0.4rem', color: '#64748b', textTransform: 'uppercase' }}>
-                                        Focused Chapter (Optional Practice)
-                                    </label>
-                                    <select 
-                                        value={customConfig.type === 'chapter' ? customConfig.value : ''}
-                                        disabled={!selectedSubjectId}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            if (val) {
-                                                const chap = hierarchy.find(l => String(l.id) === String(selectedLevelId))
-                                                    ?.subjects?.find(s => String(s.id) === String(selectedSubjectId))
-                                                    ?.chapters?.find(c => String(c.id) === String(val));
-                                                setCustomConfig({ type: 'chapter', value: val, label: chap?.name || val });
-                                            } else {
-                                                const sub = hierarchy.find(l => String(l.id) === String(selectedLevelId))?.subjects?.find(s => String(s.id) === String(selectedSubjectId));
-                                                setCustomConfig({ type: 'category', value: sub?.name || '', label: sub?.name || '' });
-                                            }
-                                        }}
-                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                    >
-                                        <option value="">Full Subject Exam (Random Chapters)</option>
-                                        {hierarchy.find(l => String(l.id) === String(selectedLevelId))
-                                            ?.subjects?.find(s => String(s.id) === String(selectedSubjectId))
-                                            ?.chapters?.map(chap => (
-                                                <option key={chap.id} value={chap.id}>{chap.name}</option>
-                                            ))}
-                                    </select>
-                                    <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                                        {customConfig.type === 'chapter' ? 'Switching to fixed 10-question practice mode for this chapter.' : 'Standard exam mode with questions from all chapters of the subject.'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button
-                                    className="btn-hero-secondary"
-                                    onClick={() => navigate(-1)}
-                                    style={{ padding: '0.8rem 1.5rem' }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className="btn-hero-primary"
-                                    disabled={!customConfig.value || loading}
-                                    onClick={() => {
-                                        if (customConfig.type === 'chapter' || examMode === 'custom') {
-                                             startCustomExam();
-                                        } else {
-                                             // We just use the 'standard' flow which now fetches 50 random from selected cat
-                                             setExamStarted(true);
-                                        }
-                                    }}
-                                    style={{ padding: '0.8rem 2rem', opacity: customConfig.value ? 1 : 0.6 }}
-                                >
-                                    {loading ? <i className="fas fa-spinner fa-spin"></i> : 'Start Assessment'} <i className="fas fa-arrow-right" style={{ marginLeft: '8px' }}></i>
-                                </button>
-                            </div>
                         </div>
                     )}
                 </div>
