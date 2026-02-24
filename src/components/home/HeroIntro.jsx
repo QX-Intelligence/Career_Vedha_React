@@ -38,7 +38,7 @@ const HeroIntro = () => {
             title: "Academic Resources",
             subtitle: "Syllabus, previous papers, and study guides for schools and colleges.",
             ctaText: "Explore Resources",
-            link: "/study-materials",
+            link: "/question-papers",
             image: "/assets/hero_academics.png", // New generated image
             color: "#7c3aed",
             icon: "fas fa-book-reader"
