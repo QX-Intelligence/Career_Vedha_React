@@ -126,7 +126,7 @@ const QuizManagement = () => {
 
             const formattedQuestions = data.map((q) => {
                 // Determine correctOption letter if it's provided as text matching one of the options
-                let correct = q.correctOption || q.correctAnswer || '';
+                let correct = q.correctOption || '';
                 if (correct.length > 1) {
                     if (correct === q.option1) correct = 'A';
                     else if (correct === q.option2) correct = 'B';
@@ -240,7 +240,7 @@ const QuizManagement = () => {
             option2: q.option2 || q.opt2,
             option3: q.option3 || q.opt3,
             option4: q.option4 || q.opt4,
-            correctOption: q.correctOption || q.correctAnswer || '',
+            correctOption: q.correctOption || '',
             category: q.category || '',
             chapterId: q.chapterId || '',
             _levelId: foundLevelId,
@@ -623,7 +623,7 @@ const QuizManagement = () => {
                             <button className="close-btn" onClick={() => setShowBulkModal(false)}><i className="fas fa-times"></i></button>
                         </div>
                         <div className="modal-body">
-                            <p className="helper-text">Paste your array of questions in JSON format. Each object should have <code>question</code>, <code>option1-4</code>, and <code>correctAnswer</code>.</p>
+                            <p className="helper-text">Paste your array of questions in JSON format. Each object should have <code>question</code>, <code>opt1-4</code>, and <code>correctOption</code>.</p>
                             <textarea
                                 className="form-input bulk-textarea"
                                 placeholder='[{"question": "...", "option1": "...", ...}]'

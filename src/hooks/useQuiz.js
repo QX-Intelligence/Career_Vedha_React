@@ -4,16 +4,18 @@ import API_CONFIG from '../config/api.config';
 
 /**
  * Normalize question from backend response to a consistent shape.
- * Backend returns correctOption (with GET_ANSWERS authority), but some
- * legacy code may use correctAnswer. This normalizer ensures both fields exist.
+ * Backend now returns: { id, question, opt1, opt2, opt3, opt4, correctOption, category, chapterId }
  */
 const normalizeQuestion = (q) => ({
-    ...q,
-    option1: q.option1 || q.opt1,
-    option2: q.option2 || q.opt2,
-    option3: q.option3 || q.opt3,
-    option4: q.option4 || q.opt4,
-    correctOption: q.correctOption || q.correctAnswer || null,
+    id: q.id,
+    question: q.question,
+    option1: q.opt1 || q.option1,
+    option2: q.opt2 || q.option2,
+    option3: q.opt3 || q.option3,
+    option4: q.opt4 || q.option4,
+    correctOption: q.correctOption ?? null,
+    category: q.category ?? null,
+    chapterId: q.chapterId ?? null,
 });
 
 // Query key factory for quiz questions

@@ -7,13 +7,17 @@ import { getUserContext } from '../../../services/api';
 import '../styles/Exam.css';
 
 // Normalize backend question fields to a consistent shape
+// Backend now returns: { id, question, opt1, opt2, opt3, opt4, correctOption, category, chapterId }
 const normalizeQuestion = (q) => ({
-    ...q,
-    option1: q.option1 || q.opt1,
-    option2: q.option2 || q.opt2,
-    option3: q.option3 || q.opt3,
-    option4: q.option4 || q.opt4,
-    correctOption: q.correctOption || null,
+    id: q.id,
+    question: q.question,
+    option1: q.opt1 || q.option1,
+    option2: q.opt2 || q.option2,
+    option3: q.opt3 || q.option3,
+    option4: q.opt4 || q.option4,
+    correctOption: q.correctOption ?? null,
+    category: q.category ?? null,
+    chapterId: q.chapterId ?? null,
 });
 
 const Exam = () => {
@@ -449,7 +453,7 @@ const Exam = () => {
 
                             <div className="master-solution-list" style={{ marginTop: '2rem' }}>
                                 {questions.map((question, index) => {
-                                    const officialKey = correctMap[question.id] || question.correctOption || "";
+                                    const officialKey = correctMap[question.id] ?? "";
                                     const correctStr = officialKey.toUpperCase().split('').sort().join('');
                                     const studentStr = (answers[question.id] || "").toUpperCase().split('').sort().join('');
 
