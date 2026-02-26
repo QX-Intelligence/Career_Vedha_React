@@ -81,11 +81,124 @@ const PageLoader = () => (
     </div>
 );
 
+const SecurityWarning = ({ visible }) => {
+    if (!visible) return null;
+    return (
+        <div className="security-warning-overlay">
+            <div className="security-warning-card">
+                <div className="security-warning-icon">
+                    <i className="fas fa-exclamation-triangle"></i>
+                </div>
+                <div className="security-warning-text">ALERT: Content is protected !!</div>
+            </div>
+        </div>
+    );
+};
+
+const SecurityLayer = ({ children }) => {
+    const [warningVisible, setWarningVisible] = useState(false);
+    const warningTimerRef = React.useRef(null);
+
+    const triggerWarning = React.useCallback(() => {
+        setWarningVisible(true);
+        if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+        warningTimerRef.current = setTimeout(() => {
+            setWarningVisible(false);
+        }, 2000);
+    }, []);
+
+    useEffect(() => {
+        const isProduction = import.meta.env.PROD;
+
+        const handleContextMenu = (e) => {
+            e.preventDefault();
+            triggerWarning();
+        };
+
+        const handleKeyDown = (e) => {
+            // Block F12, Ctrl+Shift+I (DevTools), Ctrl+U (View Source)
+            if (
+                e.keyCode === 123 || 
+                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
+                (e.ctrlKey && e.keyCode === 85)
+            ) {
+                e.preventDefault();
+                triggerWarning();
+                return false;
+            }
+            
+            // Block Ctrl+S, Ctrl+P (Save/Print)
+            if (e.ctrlKey && (e.keyCode === 83 || e.keyCode === 80)) {
+                e.preventDefault();
+                triggerWarning();
+                return false;
+            }
+        };
+
+        const handleSelectStart = (e) => {
+            const target = e.target;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                return;
+            }
+            e.preventDefault();
+            triggerWarning();
+        };
+
+        const handleCopy = (e) => {
+            if (window.getSelection().toString() === "") return;
+            e.preventDefault();
+            triggerWarning();
+        };
+
+        document.addEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('selectstart', handleSelectStart);
+        document.addEventListener('copy', handleCopy);
+
+        let interval;
+        if (isProduction) {
+            interval = setInterval(() => {
+                console.clear();
+                console.log("%cSecurity: This portal is protected.", "color: red; font-size: 20px; font-weight: bold;");
+            }, 5000);
+        }
+
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('selectstart', handleSelectStart);
+            document.removeEventListener('copy', handleCopy);
+            if (interval) clearInterval(interval);
+        };
+    }, [triggerWarning]);
+
+    return (
+        <>
+            {children}
+            <SecurityWarning visible={warningVisible} />
+        </>
+    );
+};
+
 function App() {
     const [isInitializing, setIsInitializing] = useState(true);
 
     useEffect(() => {
         const initializeAuth = async () => {
+            // E2E test mock: window.__e2eMockAuth provides persistent state across reloads
+            // This is safer than window.__e2eSkipInit as it actually populates the auth context.
+            if ((import.meta.env.DEV || import.meta.env.MODE === 'test') && window.__e2eMockAuth) {
+                const { accessToken, role, email, firstName, lastName, status, id } = window.__e2eMockAuth;
+                setUserContext(accessToken, role, email, firstName, lastName, status, id);
+                setIsInitializing(false);
+                return;
+            }
+
+            // E2E test skip legacy support
+            if ((import.meta.env.DEV || import.meta.env.MODE === 'test') && window.__e2eSkipInit) {
+                setIsInitializing(false);
+                return;
+            }
             try {
                 // Always attempt to refresh on startup to restore in-memory context
                 const response = await api.post('/refresh', {});
@@ -130,11 +243,12 @@ function App() {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <ReactQueryDevtools initialIsOpen={false} />
+            {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
             <HelmetProvider>
                 <SnackbarProvider>
-                    <TooltipManager />
-                    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                    <SecurityLayer>
+                        <TooltipManager />
+                        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                         <ScrollRestoration />
                         <ScrollToHashElement />
                         <div className="App">
@@ -254,7 +368,8 @@ function App() {
                             </MobileLayout>
                         </div>
                     </Router>
-                </SnackbarProvider>
+                </SecurityLayer>
+            </SnackbarProvider>
             </HelmetProvider>
         </QueryClientProvider>
     );
