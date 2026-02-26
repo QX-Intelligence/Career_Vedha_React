@@ -43,10 +43,7 @@ body {
     scroll-behavior: smooth;
     /* Global smooth scroll */
     -webkit-tap-highlight-color: transparent; /* Remove mobile tap highlight */
-    user-select: none; /* Prevent text selection */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+    scroll-behavior: smooth;
 }
 
 .container,
@@ -4961,7 +4958,7 @@ section {
     background: rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(2px);
     pointer-events: none;
-    animation: fadeIn SecurityFade 0.2s ease;
+    animation: SecurityFade 0.2s ease;
 }
 
 .security-warning-card {

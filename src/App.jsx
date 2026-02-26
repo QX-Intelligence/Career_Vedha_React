@@ -145,7 +145,11 @@ const SecurityLayer = ({ children }) => {
         };
 
         const handleCopy = (e) => {
-            if (window.getSelection().toString() === "") return;
+            if (window.getSelection().toString() === "") {
+                triggerWarning();
+                e.preventDefault();
+                return;
+            }
             e.preventDefault();
             triggerWarning();
         };
