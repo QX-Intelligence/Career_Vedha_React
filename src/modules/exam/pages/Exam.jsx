@@ -6,6 +6,16 @@ import { useSnackbar } from '../../../context/SnackbarContext';
 import { getUserContext } from '../../../services/api';
 import '../styles/Exam.css';
 
+// Normalize backend question fields to a consistent shape
+const normalizeQuestion = (q) => ({
+    ...q,
+    option1: q.option1 || q.opt1,
+    option2: q.option2 || q.opt2,
+    option3: q.option3 || q.opt3,
+    option4: q.option4 || q.opt4,
+    correctOption: q.correctOption || null,
+});
+
 const Exam = () => {
     const { showSnackbar } = useSnackbar();
     const { email } = getUserContext();
@@ -40,7 +50,7 @@ const Exam = () => {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [questionsToCreate, setQuestionsToCreate] = useState([{
         question: '', option1: '', option2: '', option3: '', option4: '',
-        correctAnswer: '', chapterId: '', category: ''
+        correctOption: '', chapterId: '', category: ''
     }]);
     const [creationError, setCreationError] = useState(null);
     const [noQuestions, setNoQuestions] = useState(false);
@@ -102,9 +112,9 @@ const Exam = () => {
         try {
             // We use the 'custom' fetch logic even for 'standard' if we have no questions, 
             // but we fetch a larger batch (e.g. 50) to simulate a standard assessment.
-            
+
             const categoryToUse = customConfig.value;
-            
+
             if (!categoryToUse) {
                 setLoading(false);
                 return;
@@ -116,11 +126,11 @@ const Exam = () => {
             );
 
             const data = response.data || [];
-            
-            setQuestions(data);
+
+            setQuestions(data.map(normalizeQuestion));
             setTotalQuestions(data.length);
             setTotalPages(Math.ceil(data.length / questionsPerPage));
-            
+
             if (!examReady) setExamReady(true);
             setLoading(false);
             retryCountRef.current = 0;
@@ -142,7 +152,7 @@ const Exam = () => {
         if (location.state?.examConfig) {
             const config = location.state.examConfig;
             setCustomConfig(config);
-            
+
             // Pre-populate selections if provided in state
             if (location.state.level) setSelectedLevelId(location.state.level.id.toString());
             if (location.state.subject) setSelectedSubjectId(location.state.subject.id.toString());
@@ -153,12 +163,12 @@ const Exam = () => {
 
     const startCustomExam = async (directConfig = null) => {
         const config = directConfig || customConfig;
-        
+
         if (config.type === 'chapter') {
-             if (!config.value || isNaN(Number(config.value)) || Number(config.value) <= 0) {
-                 showSnackbar("Please enter a valid Chapter ID", 'error');
-                 return;
-             }
+            if (!config.value || isNaN(Number(config.value)) || Number(config.value) <= 0) {
+                showSnackbar("Please enter a valid Chapter ID", 'error');
+                return;
+            }
         } else if (!config.value) {
             showSnackbar("Please select a Category", 'error');
             return;
@@ -186,7 +196,7 @@ const Exam = () => {
                 return;
             }
 
-            setQuestions(data);
+            setQuestions(data.map(normalizeQuestion));
             setTotalQuestions(data.length);
             setTotalPages(Math.ceil(data.length / questionsPerPage));
             setExamReady(true);
@@ -204,7 +214,7 @@ const Exam = () => {
     /* ===== CREATE QUESTION LOGIC ===== */
     const addQuestionField = () => {
         setQuestionsToCreate([...questionsToCreate, {
-            question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '', chapterId: '', category: ''
+            question: '', option1: '', option2: '', option3: '', option4: '', correctOption: '', chapterId: '', category: ''
         }]);
     };
 
@@ -224,7 +234,7 @@ const Exam = () => {
             // Validation
             for (let i = 0; i < questionsToCreate.length; i++) {
                 const q = questionsToCreate[i];
-                if (!q.question.trim() || !q.option1.trim() || !q.correctAnswer.trim()) {
+                if (!q.question.trim() || !q.option1.trim() || !q.correctOption.trim()) {
                     showSnackbar(`Question ${i + 1}: Missing required fields`, 'error');
                     setLoading(false);
                     return;
@@ -237,7 +247,7 @@ const Exam = () => {
                 option2: q.option2.trim(),
                 option3: q.option3.trim(),
                 option4: q.option4.trim(),
-                correctAnswer: q.correctAnswer.trim(),
+                correctAnswer: q.correctOption.trim(),
                 ...(q.chapterId && { chapterId: Number(q.chapterId) }),
                 ...(q.category && { category: q.category.trim() })
             }));
@@ -245,7 +255,7 @@ const Exam = () => {
             await apiClient.post(API_CONFIG.ENDPOINTS.CREATE_QUESTION, payload);
             showSnackbar(`${questionsToCreate.length} questions created!`, 'success');
             setShowCreateForm(false);
-            setQuestionsToCreate([{ question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '', chapterId: '', category: '' }]);
+            setQuestionsToCreate([{ question: '', option1: '', option2: '', option3: '', option4: '', correctOption: '', chapterId: '', category: '' }]);
         } catch (err) {
             handleApiError(err, 'Failed to create questions');
         } finally {
@@ -330,7 +340,7 @@ const Exam = () => {
             }
 
             setScore(parsedScore);
-            
+
             // Map correct options for audit portal
             if (resData?.correctOptions) {
                 const map = {};
@@ -391,7 +401,7 @@ const Exam = () => {
                         <div className="navigator-title">Navigator</div>
                         <div className="question-grid">
                             {questions.map((q, i) => {
-                                const qKey = (q.correctOption || q.correctAnswer || "").toUpperCase().split('').sort().join('');
+                                const qKey = (q.correctOption || "").toUpperCase().split('').sort().join('');
                                 const sKey = (answers[q.id] || "").toUpperCase().split('').sort().join('');
                                 const isCorrect = sKey !== "" && sKey === qKey;
                                 const isSkipped = sKey === "";
@@ -439,7 +449,7 @@ const Exam = () => {
 
                             <div className="master-solution-list" style={{ marginTop: '2rem' }}>
                                 {questions.map((question, index) => {
-                                    const officialKey = correctMap[question.id] || question.correctOption || question.correctAnswer || "";
+                                    const officialKey = correctMap[question.id] || question.correctOption || "";
                                     const correctStr = officialKey.toUpperCase().split('').sort().join('');
                                     const studentStr = (answers[question.id] || "").toUpperCase().split('').sort().join('');
 
@@ -524,7 +534,7 @@ const Exam = () => {
         return (
             <div className="exam-portal-wrapper empty-state-wrapper">
                 <div className="mesh-gradient-bg"></div>
-                
+
                 <header className="exam-portal-header glass-header">
                     <div className="portal-brand">
                         <div className="logo-icon"><i className="fas fa-graduation-cap"></i></div>
@@ -558,11 +568,11 @@ const Exam = () => {
                             <span className="badge-coming-soon">Content in Progress</span>
                             <h2>Building Your Question Bank</h2>
                             <p>
-                                Our educators are currently hand-picking the best practice questions for 
-                                <strong> {customConfig.label || "this topic"}</strong>. 
+                                Our educators are currently hand-picking the best practice questions for
+                                <strong> {customConfig.label || "this topic"}</strong>.
                                 We'll have it ready for you in no time!
                             </p>
-                            
+
                             <div className="actions-row">
                                 <button className="btn-creative-primary" onClick={() => navigate(-1)}>
                                     <i className="fas fa-compass"></i> Explore Other Subjects
@@ -590,11 +600,11 @@ const Exam = () => {
                 </header>
 
                 <div className="exam-stage" style={{ justifyContent: 'center', overflowY: 'auto' }}>
-                    
+
                     {/* TOGGLE CREATE FORM (Hidden by default, or for admins) */}
                     <div style={{ position: 'absolute', top: 20, right: 20 }}>
-                        <button 
-                            className="btn-text" 
+                        <button
+                            className="btn-text"
                             onClick={() => setShowCreateForm(!showCreateForm)}
                             style={{ color: '#64748b', fontSize: '0.9rem' }}
                         >
@@ -615,17 +625,17 @@ const Exam = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         placeholder="Question Text"
                                         className="form-control"
-                                        value={q.question} 
+                                        value={q.question}
                                         onChange={e => updateQuestionField(idx, 'question', e.target.value)}
                                         style={{ width: '100%', padding: '8px', marginBottom: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                                     />
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                                         {['option1', 'option2', 'option3', 'option4'].map((opt, oIdx) => (
-                                            <input 
+                                            <input
                                                 key={opt}
                                                 placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
                                                 value={q[opt]}
@@ -635,9 +645,9 @@ const Exam = () => {
                                         ))}
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px' }}>
-                                        <select 
-                                            value={q.correctAnswer} 
-                                            onChange={e => updateQuestionField(idx, 'correctAnswer', e.target.value)}
+                                        <select
+                                            value={q.correctOption}
+                                            onChange={e => updateQuestionField(idx, 'correctOption', e.target.value)}
                                             style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                                         >
                                             <option value="">Correct Answer</option>
@@ -646,14 +656,14 @@ const Exam = () => {
                                             <option value="C">Option C</option>
                                             <option value="D">Option D</option>
                                         </select>
-                                        <input 
+                                        <input
                                             placeholder="Chapter ID (Optional)"
                                             type="number"
                                             value={q.chapterId}
                                             onChange={e => updateQuestionField(idx, 'chapterId', e.target.value)}
                                             style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                                         />
-                                        <input 
+                                        <input
                                             placeholder="Category (Optional)"
                                             value={q.category}
                                             onChange={e => updateQuestionField(idx, 'category', e.target.value)}
@@ -784,7 +794,7 @@ const Exam = () => {
                         ) : (
                             currentQuestions.map((question, idx) => {
                                 if (!question) return null;
-                                const officialKey = question.correctOption || question.correctAnswer || "";
+                                const officialKey = question.correctOption || "";
                                 const isMulti = officialKey.length > 1;
                                 const currentAnswer = answers[question.id] || "";
 
@@ -794,24 +804,24 @@ const Exam = () => {
                                         <span className="type-hint-badge">{isMulti ? "Multiple Choice" : "Single Choice"}</span>
 
                                         <div className="premium-options">
-                                                {['option1', 'option2', 'option3', 'option4'].map((opt, i) => {
-                                                    const letter = String.fromCharCode(65 + i);
-                                                    const isSelected = currentAnswer.includes(letter);
-                                                    const optText = question[opt] || question[`opt${i + 1}`];
-                                                    
-                                                    return (
-                                                        <label key={opt} className={`premium-opt-label ${isSelected ? 'selected' : ''}`}>
-                                                            <input
-                                                                type={isMulti ? "checkbox" : "radio"}
-                                                                name={`q-${question.id}`}
-                                                                checked={isSelected}
-                                                                onChange={() => handleOptionChange(question.id, letter, isMulti)}
-                                                            />
-                                                            <div className="opt-letter">{letter}</div>
-                                                            <span>{optText || 'N/A'}</span>
-                                                        </label>
-                                                    );
-                                                })}
+                                            {['option1', 'option2', 'option3', 'option4'].map((opt, i) => {
+                                                const letter = String.fromCharCode(65 + i);
+                                                const isSelected = currentAnswer.includes(letter);
+                                                const optText = question[opt] || question[`opt${i + 1}`];
+
+                                                return (
+                                                    <label key={opt} className={`premium-opt-label ${isSelected ? 'selected' : ''}`}>
+                                                        <input
+                                                            type={isMulti ? "checkbox" : "radio"}
+                                                            name={`q-${question.id}`}
+                                                            checked={isSelected}
+                                                            onChange={() => handleOptionChange(question.id, letter, isMulti)}
+                                                        />
+                                                        <div className="opt-letter">{letter}</div>
+                                                        <span>{optText || 'N/A'}</span>
+                                                    </label>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 );

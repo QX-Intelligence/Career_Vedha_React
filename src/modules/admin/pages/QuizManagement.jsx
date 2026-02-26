@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useSnackbar } from '../../../context/SnackbarContext';
-import { 
-    useQuizQuestions, 
-    useCreateQuizQuestions, 
-    useUpdateQuizQuestion, 
+import {
+    useQuizQuestions,
+    useCreateQuizQuestions,
+    useUpdateQuizQuestion,
     useDeleteQuizQuestions,
     useExamCategories
 } from '../../../hooks/useQuiz';
 import { useAcademicsHierarchy } from '../../../hooks/useAcademics';
-import API_CONFIG from '../../../config/api.config'; 
+import API_CONFIG from '../../../config/api.config';
 import Skeleton, { SkeletonTable } from '../../../components/ui/Skeleton';
 import CustomSelect from '../../../components/ui/CustomSelect';
 import '../../../styles/Dashboard.css';
@@ -16,17 +16,17 @@ import './QuizManagement.css';
 
 const QuizManagement = () => {
     const { showSnackbar } = useSnackbar();
-    
+
     // Filter/Search parameters
     const [selectedLevelId, setSelectedLevelId] = useState('');
     const [selectedSubjectId, setSelectedSubjectId] = useState('');
     const [selectedChapterId, setSelectedChapterId] = useState('');
     const [fetchCount, setFetchCount] = useState(50);
-    
+
     // Data Hooks
     const { data: categories } = useExamCategories();
     const { data: hierarchy, isLoading: hierarchyLoading } = useAcademicsHierarchy();
-    
+
     // Find category name from selected subject if needed
     const getCategoryName = (levelId, subjectId) => {
         if (!hierarchy || !levelId || !subjectId) return '';
@@ -36,20 +36,20 @@ const QuizManagement = () => {
     };
 
     const selectedCategory = getCategoryName(selectedLevelId, selectedSubjectId);
-    
-    const { 
-        data: quizData, 
-        isLoading: isLoadingQuiz, 
-        error: quizError 
-    } = useQuizQuestions({ 
-        category: selectedCategory, 
+
+    const {
+        data: quizData,
+        isLoading: isLoadingQuiz,
+        error: quizError
+    } = useQuizQuestions({
+        category: selectedCategory,
         chapterId: selectedChapterId,
         count: fetchCount
     });
-    
+
     const quizQuestions = quizData?.content || [];
     const quizTotalElements = quizData?.totalElements || 0;
-    
+
     // Mutations
     const createMutation = useCreateQuizQuestions();
     const updateMutation = useUpdateQuizQuestion();
@@ -66,7 +66,7 @@ const QuizManagement = () => {
             option2: '',
             option3: '',
             option4: '',
-            correctAnswer: '',
+            correctOption: '',
             category: '',
             chapterId: '',
             // UI helper state for hierarchical selection in modal
@@ -90,11 +90,11 @@ const QuizManagement = () => {
     };
 
     const addQuestionField = () => {
-        if (isEditingQuestion) return; 
+        if (isEditingQuestion) return;
         setQuestionList(prev => [
             ...prev,
-            { 
-                question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '',
+            {
+                question: '', option1: '', option2: '', option3: '', option4: '', correctOption: '',
                 category: selectedCategory || '',
                 chapterId: selectedChapterId || '',
                 _levelId: selectedLevelId || '',
@@ -112,7 +112,7 @@ const QuizManagement = () => {
     const toggleCorrectOption = (index, key) => {
         setQuestionList(prev => {
             const newList = [...prev];
-            newList[index] = { ...newList[index], correctAnswer: key }; // Backend expects A, B, C, or D
+            newList[index] = { ...newList[index], correctOption: key };
             return newList;
         });
     };
@@ -125,8 +125,8 @@ const QuizManagement = () => {
             }
 
             const formattedQuestions = data.map((q) => {
-                // Determine correctAnswer letter if it's provided as text matching one of the options
-                let correct = q.correctAnswer || '';
+                // Determine correctOption letter if it's provided as text matching one of the options
+                let correct = q.correctOption || q.correctAnswer || '';
                 if (correct.length > 1) {
                     if (correct === q.option1) correct = 'A';
                     else if (correct === q.option2) correct = 'B';
@@ -140,7 +140,7 @@ const QuizManagement = () => {
                     option2: q.option2 || '',
                     option3: q.option3 || '',
                     option4: q.option4 || '',
-                    correctAnswer: correct,
+                    correctOption: correct,
                     category: q.category || selectedCategory || '',
                     chapterId: q.chapterId || selectedChapterId || '',
                     _levelId: selectedLevelId || '',
@@ -167,8 +167,8 @@ const QuizManagement = () => {
             if (!q.option2) missing.push("Option B");
             if (!q.option3) missing.push("Option C");
             if (!q.option4) missing.push("Option D");
-            if (!q.correctAnswer) missing.push("Correct Answer");
-            
+            if (!q.correctOption) missing.push("Correct Answer");
+
             if (missing.length > 0) {
                 return showSnackbar(`Filling ${missing.join(', ')} for question #${i + 1}`, "warning");
             }
@@ -186,7 +186,7 @@ const QuizManagement = () => {
                 option2: (q.option2 || '').trim(),
                 option3: (q.option3 || '').trim(),
                 option4: (q.option4 || '').trim(),
-                correctAnswer: (q.correctAnswer || '').trim().toUpperCase(),
+                correctAnswer: (q.correctOption || '').trim().toUpperCase(),
                 category: (q.category || '').trim(),
                 chapterId: q.chapterId ? Number(q.chapterId) : null
             }));
@@ -202,14 +202,14 @@ const QuizManagement = () => {
             }
 
             setShowQuestionModal(false);
-            setQuestionList([{ 
-                question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '',
+            setQuestionList([{
+                question: '', option1: '', option2: '', option3: '', option4: '', correctOption: '',
                 category: selectedCategory || '',
                 chapterId: selectedChapterId || ''
             }]);
             setIsEditingQuestion(false);
             setEditingQuestionId(null);
-            
+
         } catch (err) {
             showSnackbar(err.response?.data?.message || (isEditingQuestion ? "Failed to update question" : "Failed to publish questions"), "error");
         }
@@ -218,7 +218,7 @@ const QuizManagement = () => {
     const handleEditQuestion = (q) => {
         setIsEditingQuestion(true);
         setEditingQuestionId(q.id);
-        
+
         // Try to reverse-engineer Level/Subject from chapterId if possible
         let foundLevelId = '';
         let foundSubjectId = '';
@@ -240,7 +240,7 @@ const QuizManagement = () => {
             option2: q.option2 || q.opt2,
             option3: q.option3 || q.opt3,
             option4: q.option4 || q.opt4,
-            correctAnswer: q.correctAnswer || '',
+            correctOption: q.correctOption || q.correctAnswer || '',
             category: q.category || '',
             chapterId: q.chapterId || '',
             _levelId: foundLevelId,
@@ -272,7 +272,7 @@ const QuizManagement = () => {
         }
     };
 
-     const handleToggleSelectAll = (e) => {
+    const handleToggleSelectAll = (e) => {
         if (e.target.checked) {
             setSelectedQuizIds(quizQuestions.map(q => q.id));
         } else {
@@ -288,51 +288,51 @@ const QuizManagement = () => {
 
     return (
         <div className="quiz-management-container section-fade-in">
-                <div className="page-header-row">
+            <div className="page-header-row">
                 <div>
                     <h1>Quiz Manager</h1>
                     <p className="subtitle">Create, edit, and manage question bank.</p>
                 </div>
                 <div className="admin-header-actions">
-                <button 
-                    className="btn-secondary" 
-                    onClick={() => {
+                    <button
+                        className="btn-secondary"
+                        onClick={() => {
+                            setIsEditingQuestion(false);
+                            setEditingQuestionId(null);
+                            setQuestionList([{
+                                question: '', option1: '', option2: '', option3: '', option4: '', correctOption: '',
+                                category: selectedCategory || '',
+                                chapterId: selectedChapterId || '',
+                                _levelId: selectedLevelId || '',
+                                _subjectId: selectedSubjectId || ''
+                            }]);
+                            setShowBulkModal(true);
+                        }}
+                    >
+                        <i className="fas fa-file-import"></i> Bulk Import (JSON)
+                    </button>
+                    <button className="btn-primary" onClick={() => {
                         setIsEditingQuestion(false);
                         setEditingQuestionId(null);
-                        setQuestionList([{ 
-                            question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '',
+                        setQuestionList([{
+                            question: '', option1: '', option2: '', option3: '', option4: '', correctOption: '',
                             category: selectedCategory || '',
                             chapterId: selectedChapterId || '',
                             _levelId: selectedLevelId || '',
                             _subjectId: selectedSubjectId || ''
                         }]);
-                        setShowBulkModal(true);
-                    }}
-                >
-                    <i className="fas fa-file-import"></i> Bulk Import (JSON)
-                </button>
-                <button className="btn-primary" onClick={() => {
-                    setIsEditingQuestion(false);
-                    setEditingQuestionId(null);
-                    setQuestionList([{ 
-                        question: '', option1: '', option2: '', option3: '', option4: '', correctAnswer: '',
-                        category: selectedCategory || '',
-                        chapterId: selectedChapterId || '',
-                        _levelId: selectedLevelId || '',
-                        _subjectId: selectedSubjectId || ''
-                    }]);
-                    setShowQuestionModal(true);
-                }}>
-                    <i className="fas fa-plus"></i> Add New Questions
-                </button>
+                        setShowQuestionModal(true);
+                    }}>
+                        <i className="fas fa-plus"></i> Add New Questions
+                    </button>
+                </div>
             </div>
-        </div>
 
             {/* Filters Row */}
             <div className="dashboard-section filters-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
-                <CustomSelect 
+                <CustomSelect
                     label="Level"
-                    value={selectedLevelId} 
+                    value={selectedLevelId}
                     onChange={(val) => {
                         setSelectedLevelId(val);
                         setSelectedSubjectId('');
@@ -343,10 +343,10 @@ const QuizManagement = () => {
                         ...(hierarchy?.map(level => ({ value: level.id, label: level.name })) || [])
                     ]}
                 />
-                <CustomSelect 
+                <CustomSelect
                     label="Subject"
                     disabled={!selectedLevelId}
-                    value={selectedSubjectId} 
+                    value={selectedSubjectId}
                     onChange={(val) => {
                         setSelectedSubjectId(val);
                         setSelectedChapterId('');
@@ -357,10 +357,10 @@ const QuizManagement = () => {
                         ...(hierarchy?.find(l => String(l.id) === String(selectedLevelId))?.subjects?.map(sub => ({ value: sub.id, label: sub.name })) || [])
                     ]}
                 />
-                <CustomSelect 
+                <CustomSelect
                     label="Chapter"
                     disabled={!selectedSubjectId}
-                    value={selectedChapterId} 
+                    value={selectedChapterId}
                     onChange={(val) => setSelectedChapterId(val)}
                     placeholder={selectedSubjectId ? '-- All Chapters --' : 'Select Subject First'}
                     options={[
@@ -370,9 +370,9 @@ const QuizManagement = () => {
                             ?.chapters?.map(chap => ({ value: chap.id, label: chap.name })) || [])
                     ]}
                 />
-                <CustomSelect 
+                <CustomSelect
                     label="Show count"
-                    value={fetchCount} 
+                    value={fetchCount}
                     onChange={(val) => setFetchCount(Number(val))}
                     options={[
                         { value: 10, label: '10 questions' },
@@ -408,8 +408,8 @@ const QuizManagement = () => {
                             <thead>
                                 <tr>
                                     <th style={{ width: '40px' }}>
-                                        <input 
-                                            type="checkbox" 
+                                        <input
+                                            type="checkbox"
                                             onChange={handleToggleSelectAll}
                                             checked={quizQuestions.length > 0 && selectedQuizIds.length === quizQuestions.length}
                                         />
@@ -425,8 +425,8 @@ const QuizManagement = () => {
                                 {quizQuestions.map(q => (
                                     <tr key={q.id}>
                                         <td>
-                                            <input 
-                                                type="checkbox" 
+                                            <input
+                                                type="checkbox"
                                                 checked={selectedQuizIds.includes(q.id)}
                                                 onChange={() => handleToggleSelectOne(q.id)}
                                             />
@@ -444,8 +444,8 @@ const QuizManagement = () => {
                                             </div>
                                         </td>
                                         <td>
-                                            {q.correctAnswer ? (
-                                                <span className="badge-correct">{q.correctAnswer}</span>
+                                            {q.correctOption ? (
+                                                <span className="badge-correct">{q.correctOption}</span>
                                             ) : (
                                                 <span className="badge-na" title="Not returned by student-facing endpoint">N/A</span>
                                             )}
@@ -473,7 +473,7 @@ const QuizManagement = () => {
                         <p>No questions found for the selected criteria. Try selecting a different chapter or subject.</p>
                     </div>
                 )}
-                
+
                 <div className="table-footer-info">
                     Showing {quizQuestions.length} questions
                 </div>
@@ -499,46 +499,46 @@ const QuizManagement = () => {
                                         )}
                                     </div>
                                     <div className="form-group full">
-                                        <textarea 
+                                        <textarea
                                             className="form-input"
-                                            placeholder="Type question here..." 
-                                            name="question" 
-                                            value={q.question} 
+                                            placeholder="Type question here..."
+                                            name="question"
+                                            value={q.question}
                                             onChange={(e) => handleQuestionChange(idx, e)}
                                         />
                                     </div>
                                     <div className="options-grid">
                                         <div className="form-group">
                                             <input className="form-input" placeholder="Option A" name="option1" value={q.option1} onChange={e => handleQuestionChange(idx, e)} />
-                                            <div 
-                                                className={`option-tag ${q.correctAnswer === 'A' ? 'active' : ''}`}
+                                            <div
+                                                className={`option-tag ${q.correctOption === 'A' ? 'active' : ''}`}
                                                 onClick={() => toggleCorrectOption(idx, 'A')}
                                             >A</div>
                                         </div>
                                         <div className="form-group">
                                             <input className="form-input" placeholder="Option B" name="option2" value={q.option2} onChange={e => handleQuestionChange(idx, e)} />
-                                            <div 
-                                                className={`option-tag ${q.correctAnswer === 'B' ? 'active' : ''}`}
+                                            <div
+                                                className={`option-tag ${q.correctOption === 'B' ? 'active' : ''}`}
                                                 onClick={() => toggleCorrectOption(idx, 'B')}
                                             >B</div>
                                         </div>
                                         <div className="form-group">
                                             <input className="form-input" placeholder="Option C" name="option3" value={q.option3} onChange={e => handleQuestionChange(idx, e)} />
-                                            <div 
-                                                className={`option-tag ${q.correctAnswer === 'C' ? 'active' : ''}`}
+                                            <div
+                                                className={`option-tag ${q.correctOption === 'C' ? 'active' : ''}`}
                                                 onClick={() => toggleCorrectOption(idx, 'C')}
                                             >C</div>
                                         </div>
                                         <div className="form-group">
                                             <input className="form-input" placeholder="Option D" name="option4" value={q.option4} onChange={e => handleQuestionChange(idx, e)} />
-                                            <div 
-                                                className={`option-tag ${q.correctAnswer === 'D' ? 'active' : ''}`}
+                                            <div
+                                                className={`option-tag ${q.correctOption === 'D' ? 'active' : ''}`}
                                                 onClick={() => toggleCorrectOption(idx, 'D')}
                                             >D</div>
                                         </div>
                                     </div>
                                     <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                                        <CustomSelect 
+                                        <CustomSelect
                                             label="Level"
                                             value={q._levelId}
                                             onChange={val => {
@@ -553,7 +553,7 @@ const QuizManagement = () => {
                                                 ...(hierarchy?.map(l => ({ value: l.id, label: l.name })) || [])
                                             ]}
                                         />
-                                        <CustomSelect 
+                                        <CustomSelect
                                             label="Subject (Category)"
                                             disabled={!q._levelId}
                                             value={q._subjectId}
@@ -561,22 +561,22 @@ const QuizManagement = () => {
                                                 const sub = hierarchy.find(l => String(l.id) === String(q._levelId))?.subjects?.find(s => String(s.id) === String(val));
                                                 setQuestionList(prev => {
                                                     const newList = [...prev];
-                                                    newList[idx] = { 
-                                                        ...newList[idx], 
-                                                        _subjectId: val, 
+                                                    newList[idx] = {
+                                                        ...newList[idx],
+                                                        _subjectId: val,
                                                         category: sub?.name || '',
-                                                        chapterId: '' 
-                                                        };
-                                                        return newList;
-                                                    });
-                                                }}
-                                                placeholder="Select Subject"
-                                                options={[
-                                                    { value: '', label: 'Select Subject' },
-                                                    ...(hierarchy?.find(l => String(l.id) === String(q._levelId))?.subjects?.map(s => ({ value: s.id, label: s.name })) || [])
-                                                ]}
-                                            />
-                                        <CustomSelect 
+                                                        chapterId: ''
+                                                    };
+                                                    return newList;
+                                                });
+                                            }}
+                                            placeholder="Select Subject"
+                                            options={[
+                                                { value: '', label: 'Select Subject' },
+                                                ...(hierarchy?.find(l => String(l.id) === String(q._levelId))?.subjects?.map(s => ({ value: s.id, label: s.name })) || [])
+                                            ]}
+                                        />
+                                        <CustomSelect
                                             label="Chapter"
                                             disabled={!q._subjectId}
                                             value={q.chapterId}
@@ -624,7 +624,7 @@ const QuizManagement = () => {
                         </div>
                         <div className="modal-body">
                             <p className="helper-text">Paste your array of questions in JSON format. Each object should have <code>question</code>, <code>option1-4</code>, and <code>correctAnswer</code>.</p>
-                            <textarea 
+                            <textarea
                                 className="form-input bulk-textarea"
                                 placeholder='[{"question": "...", "option1": "...", ...}]'
                                 value={bulkJson}
@@ -634,8 +634,8 @@ const QuizManagement = () => {
                         </div>
                         <div className="modal-footer">
                             <button className="btn-secondary" onClick={() => setShowBulkModal(false)}>Cancel</button>
-                            <button 
-                                className="btn-primary" 
+                            <button
+                                className="btn-primary"
                                 onClick={() => {
                                     handleBulkImport();
                                     setShowQuestionModal(true);

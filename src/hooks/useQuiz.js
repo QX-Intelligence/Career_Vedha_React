@@ -2,6 +2,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import API_CONFIG from '../config/api.config';
 
+/**
+ * Normalize question from backend response to a consistent shape.
+ * Backend returns correctOption (with GET_ANSWERS authority), but some
+ * legacy code may use correctAnswer. This normalizer ensures both fields exist.
+ */
+const normalizeQuestion = (q) => ({
+    ...q,
+    option1: q.option1 || q.opt1,
+    option2: q.option2 || q.opt2,
+    option3: q.option3 || q.opt3,
+    option4: q.option4 || q.opt4,
+    correctOption: q.correctOption || q.correctAnswer || null,
+});
+
 // Query key factory for quiz questions
 export const quizKeys = {
     all: ['quiz'],
@@ -31,26 +45,26 @@ export function useExamCategories() {
  */
 export function useQuizQuestions(params = {}) {
     const { category, chapterId, count = 20 } = params;
-    
+
     return useQuery({
         queryKey: quizKeys.questionList(params),
         queryFn: async () => {
             if (!category && !chapterId) return { content: [] };
 
-            const endpoint = category 
-                ? API_CONFIG.ENDPOINTS.GET_RANDOM_QUESTIONS_BY_CATEGORY 
+            const endpoint = category
+                ? API_CONFIG.ENDPOINTS.GET_RANDOM_QUESTIONS_BY_CATEGORY
                 : API_CONFIG.ENDPOINTS.GET_RANDOM_QUESTIONS_BY_CHAPTER;
-            
-            const queryParams = category 
-                ? { category, count } 
+
+            const queryParams = category
+                ? { category, count }
                 : { chapterId, count };
 
             const res = await api.get(endpoint, { params: queryParams });
             const data = res.data || [];
-            
-            // Sort by ID Ascending
-            const content = [...data].sort((a, b) => a.id - b.id);
-            
+
+            // Normalize and sort by ID Ascending
+            const content = [...data].map(normalizeQuestion).sort((a, b) => a.id - b.id);
+
             return {
                 content,
                 totalElements: content.length,
@@ -67,7 +81,7 @@ export function useQuizQuestions(params = {}) {
  */
 export function useCreateQuizQuestions() {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: (questionList) => api.post(API_CONFIG.ENDPOINTS.CREATE_QUESTION, questionList),
         onSuccess: () => {
@@ -82,7 +96,7 @@ export function useCreateQuizQuestions() {
  */
 export function useUpdateQuizQuestion() {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: ({ id, data }) => api.put(`${API_CONFIG.ENDPOINTS.EDIT_QUESTION}/${id}`, data),
         onSuccess: (data, variables) => {
@@ -97,7 +111,7 @@ export function useUpdateQuizQuestion() {
  */
 export function useDeleteQuizQuestions() {
     const queryClient = useQueryClient();
-    
+
     return useMutation({
         mutationFn: async (ids) => {
             // Backend only supports DELETE /api/delete-question/{id}
