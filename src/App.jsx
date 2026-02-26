@@ -135,21 +135,42 @@ const SecurityLayer = ({ children }) => {
             }
         };
 
+        const dragRef = { x: 0, y: 0, active: false };
+
+        const handleMouseDown = (e) => {
+            dragRef.x = e.clientX;
+            dragRef.y = e.clientY;
+            dragRef.active = true;
+        };
+
+        const handleMouseMove = (e) => {
+            if (!dragRef.active) return;
+            const dist = Math.sqrt(Math.pow(e.clientX - dragRef.x, 2) + Math.pow(e.clientY - dragRef.y, 2));
+            
+            // If dragging more than 10 pixels, trigger the warning
+            if (dist > 10) {
+                const target = e.target;
+                if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+                    triggerWarning();
+                    dragRef.active = false; // Trigger once per drag
+                }
+            }
+        };
+
+        const handleMouseUp = () => {
+            dragRef.active = false;
+        };
+
         const handleSelectStart = (e) => {
             const target = e.target;
             if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
                 return;
             }
             e.preventDefault();
-            triggerWarning();
+            // Don't trigger warning here anymore - let handleMouseMove handle it for real drags
         };
 
         const handleCopy = (e) => {
-            if (window.getSelection().toString() === "") {
-                triggerWarning();
-                e.preventDefault();
-                return;
-            }
             e.preventDefault();
             triggerWarning();
         };
@@ -157,6 +178,9 @@ const SecurityLayer = ({ children }) => {
         document.addEventListener('contextmenu', handleContextMenu);
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('selectstart', handleSelectStart);
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
         document.addEventListener('copy', handleCopy);
 
         let interval;
@@ -171,6 +195,9 @@ const SecurityLayer = ({ children }) => {
             document.removeEventListener('contextmenu', handleContextMenu);
             document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('selectstart', handleSelectStart);
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
             document.removeEventListener('copy', handleCopy);
             if (interval) clearInterval(interval);
         };
