@@ -123,7 +123,7 @@ const SecurityLayer = ({ children }) => {
                 (e.ctrlKey && e.keyCode === 85)
             ) {
                 e.preventDefault();
-                triggerWarning();
+                // Silent block for dev tools as per user preference
                 return false;
             }
             
