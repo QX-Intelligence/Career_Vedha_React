@@ -116,19 +116,23 @@ const SecurityLayer = ({ children }) => {
         };
 
         const handleKeyDown = (e) => {
-            // Block F12, Ctrl+Shift+I (DevTools), Ctrl+U (View Source)
-            if (
-                e.keyCode === 123 || 
-                (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
-                (e.ctrlKey && e.keyCode === 85)
-            ) {
+            // Block F12, Ctrl+Shift+I/J/C (Windows/Linux DevTools), Cmd+Option+I/J/C (macOS DevTools)
+            // Block Ctrl+U (Windows/Linux View Source), Cmd+Option+U or Cmd+U (macOS View Source)
+            const isDevTools = 
+                e.keyCode === 123 || // F12
+                ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || // Ctrl+Shift+I/J/C or Cmd+Shift+I/J/C
+                (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || // Cmd+Option+I/J/C (Standard Mac)
+                ((e.ctrlKey || e.metaKey) && e.keyCode === 85) || // Ctrl+U or Cmd+U
+                (e.metaKey && e.altKey && e.keyCode === 85); // Cmd+Option+U (Some Firefox/Tor versions)
+
+            if (isDevTools) {
                 e.preventDefault();
                 // Silent block for dev tools as per user preference
                 return false;
             }
             
-            // Block Ctrl+S, Ctrl+P (Save/Print)
-            if (e.ctrlKey && (e.keyCode === 83 || e.keyCode === 80)) {
+            // Block Ctrl+S, Ctrl+P (Windows/Linux) or Cmd+S, Cmd+P (macOS)
+            if ((e.ctrlKey || e.metaKey) && (e.keyCode === 83 || e.keyCode === 80)) {
                 e.preventDefault();
                 triggerWarning();
                 return false;
