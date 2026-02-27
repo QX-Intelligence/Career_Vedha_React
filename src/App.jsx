@@ -188,7 +188,7 @@ const SecurityLayer = ({ children }) => {
         // --- STANDARD EVENT LISTENERS (Shared) ---
         const handleContextMenu = (e) => {
             e.preventDefault();
-            triggerWarning();
+            // Removed triggerWarning() - per user request, right-click should be silently blocked
         };
 
         const handleKeyDown = (e) => {
