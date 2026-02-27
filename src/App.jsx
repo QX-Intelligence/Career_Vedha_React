@@ -111,23 +111,35 @@ const SecurityLayer = ({ children }) => {
         const isProduction = import.meta.env.PROD;
         let trapInterval, detectInterval, logInterval;
 
+        const lockUI = () => {
+            if (document.getElementById('security-lock')) return;
+            document.body.innerHTML = `
+                <div id="security-lock" style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:20px;font-family:sans-serif;background:#fff8f8;color:#d32f2f;text-align:center;padding:20px;position:fixed;top:0;left:0;width:100%;z-index:9999999;">
+                    <h1 style="font-size:32px;">⚠️ Security Protection Active</h1>
+                    <p style="font-size:18px;">Developer Tools are restricted. Please close the console to continue.</p>
+                    <button onclick="window.location.reload()" style="padding:12px 30px;cursor:pointer;background:#d32f2f;color:white;border:none;border-radius:8px;font-weight:bold;font-size:16px;">Refresh & Retry</button>
+                </div>`;
+            // Attempt to break any subsequent script execution
+            throw new Error("Security Lock Activated");
+        };
+
         const checkDevTools = () => {
+            // 1. Dimension Check (Docked)
             const widthThreshold = window.outerWidth - window.innerWidth > 160;
             const heightThreshold = window.outerHeight - window.innerHeight > 160;
-            if (widthThreshold || heightThreshold) {
-                document.body.innerHTML = `
-                    <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:20px;font-family:sans-serif;background:#fff8f8;color:#d32f2f;text-align:center;padding:20px;">
-                        <h1 style="font-size:32px;">⚠️ Security Protection Active</h1>
-                        <p style="font-size:18px;">Developer Tools are restricted. Please close the console to continue.</p>
-                        <button onclick="window.location.reload()" style="padding:12px 30px;cursor:pointer;background:#d32f2f;color:white;border:none;border-radius:8px;font-weight:bold;font-size:16px;">Refresh & Retry</button>
-                    </div>`;
-            }
+            if (widthThreshold || heightThreshold) lockUI();
+
+            // 2. Timing Check
+            const start = performance.now();
+            debugger;
+            if (performance.now() - start > 100) lockUI();
         };
 
         // --- AGGRESSIVE PRODUCTION-ONLY TRAPS ---
         if (isProduction) {
-            // 1. Continuous Debugger Trap
+            // 1. Continuous Debugger & Timing Trap
             trapInterval = setInterval(() => {
+                checkDevTools();
                 (function() {
                     (function a() {
                         try {
@@ -146,13 +158,23 @@ const SecurityLayer = ({ children }) => {
                 })();
             }, 1000);
 
-            // 2. DevTools Open Detection
-            window.addEventListener('resize', checkDevTools);
-            detectInterval = setInterval(checkDevTools, 1500);
+            // 2. Object-Getter Detection (Undocked)
+            const detector = {
+                get id() {
+                    lockUI();
+                    return "detected";
+                }
+            };
 
-            // 3. Console Clearing
-            logInterval = setInterval(() => {
+            detectInterval = setInterval(() => {
+                console.log(detector);
                 console.clear();
+            }, 1500);
+
+            window.addEventListener('resize', checkDevTools);
+
+            // 3. Console Protection
+            logInterval = setInterval(() => {
                 console.log("%cSecurity: This portal is protected.", "color: red; font-size: 20px; font-weight: bold;");
             }, 5000);
         }
