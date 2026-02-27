@@ -109,29 +109,74 @@ const SecurityLayer = ({ children }) => {
 
     useEffect(() => {
         const isProduction = import.meta.env.PROD;
+        let trapInterval, detectInterval, logInterval;
 
+        const checkDevTools = () => {
+            const widthThreshold = window.outerWidth - window.innerWidth > 160;
+            const heightThreshold = window.outerHeight - window.innerHeight > 160;
+            if (widthThreshold || heightThreshold) {
+                document.body.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:20px;font-family:sans-serif;background:#fff8f8;color:#d32f2f;text-align:center;padding:20px;">
+                        <h1 style="font-size:32px;">⚠️ Security Protection Active</h1>
+                        <p style="font-size:18px;">Developer Tools are restricted. Please close the console to continue.</p>
+                        <button onclick="window.location.reload()" style="padding:12px 30px;cursor:pointer;background:#d32f2f;color:white;border:none;border-radius:8px;font-weight:bold;font-size:16px;">Refresh & Retry</button>
+                    </div>`;
+            }
+        };
+
+        // --- AGGRESSIVE PRODUCTION-ONLY TRAPS ---
+        if (isProduction) {
+            // 1. Continuous Debugger Trap
+            trapInterval = setInterval(() => {
+                (function() {
+                    (function a() {
+                        try {
+                            (function b(i) {
+                                if (("" + i / i).length !== 1 || i % 20 === 0) {
+                                    (function() {}).constructor("debugger")();
+                                } else {
+                                    debugger;
+                                }
+                                b(++i);
+                            })(0);
+                        } catch (e) {
+                            setTimeout(a, 50);
+                        }
+                    })();
+                })();
+            }, 1000);
+
+            // 2. DevTools Open Detection
+            window.addEventListener('resize', checkDevTools);
+            detectInterval = setInterval(checkDevTools, 1500);
+
+            // 3. Console Clearing
+            logInterval = setInterval(() => {
+                console.clear();
+                console.log("%cSecurity: This portal is protected.", "color: red; font-size: 20px; font-weight: bold;");
+            }, 5000);
+        }
+
+        // --- STANDARD EVENT LISTENERS (Shared) ---
         const handleContextMenu = (e) => {
             e.preventDefault();
             triggerWarning();
         };
 
         const handleKeyDown = (e) => {
-            // Block F12, Ctrl+Shift+I/J/C (Windows/Linux DevTools), Cmd+Option+I/J/C (macOS DevTools)
-            // Block Ctrl+U (Windows/Linux View Source), Cmd+Option+U or Cmd+U (macOS View Source)
+            // Windows/Linux/Mac DevTools, View Source, Save, Print
             const isDevTools = 
-                e.keyCode === 123 || // F12
-                ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || // Ctrl+Shift+I/J/C or Cmd+Shift+I/J/C
-                (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || // Cmd+Option+I/J/C (Standard Mac)
-                ((e.ctrlKey || e.metaKey) && e.keyCode === 85) || // Ctrl+U or Cmd+U
-                (e.metaKey && e.altKey && e.keyCode === 85); // Cmd+Option+U (Some Firefox/Tor versions)
+                e.keyCode === 123 || 
+                ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+                (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+                ((e.ctrlKey || e.metaKey) && e.keyCode === 85) || 
+                (e.metaKey && e.altKey && e.keyCode === 85);
 
             if (isDevTools) {
                 e.preventDefault();
-                // Silent block for dev tools as per user preference
                 return false;
             }
             
-            // Block Ctrl+S, Ctrl+P (Windows/Linux) or Cmd+S, Cmd+P (macOS)
             if ((e.ctrlKey || e.metaKey) && (e.keyCode === 83 || e.keyCode === 80)) {
                 e.preventDefault();
                 triggerWarning();
@@ -140,44 +185,21 @@ const SecurityLayer = ({ children }) => {
         };
 
         const dragRef = { x: 0, y: 0, active: false };
-
-        const handleMouseDown = (e) => {
-            dragRef.x = e.clientX;
-            dragRef.y = e.clientY;
-            dragRef.active = true;
-        };
-
+        const handleMouseDown = (e) => { dragRef.x = e.clientX; dragRef.y = e.clientY; dragRef.active = true; };
         const handleMouseMove = (e) => {
             if (!dragRef.active) return;
-            const dist = Math.sqrt(Math.pow(e.clientX - dragRef.x, 2) + Math.pow(e.clientY - dragRef.y, 2));
-            
-            // If dragging more than 10 pixels, trigger the warning
-            if (dist > 10) {
-                const target = e.target;
-                if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+            if (Math.sqrt(Math.pow(e.clientX - dragRef.x, 2) + Math.pow(e.clientY - dragRef.y, 2)) > 10) {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
                     triggerWarning();
-                    dragRef.active = false; // Trigger once per drag
+                    dragRef.active = false;
                 }
             }
         };
-
-        const handleMouseUp = () => {
-            dragRef.active = false;
-        };
-
+        const handleMouseUp = () => { dragRef.active = false; };
         const handleSelectStart = (e) => {
-            const target = e.target;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-                return;
-            }
-            e.preventDefault();
-            // Don't trigger warning here anymore - let handleMouseMove handle it for real drags
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) e.preventDefault();
         };
-
-        const handleCopy = (e) => {
-            e.preventDefault();
-            triggerWarning();
-        };
+        const handleCopy = (e) => { e.preventDefault(); triggerWarning(); };
 
         document.addEventListener('contextmenu', handleContextMenu);
         document.addEventListener('keydown', handleKeyDown);
@@ -187,15 +209,11 @@ const SecurityLayer = ({ children }) => {
         document.addEventListener('mouseup', handleMouseUp);
         document.addEventListener('copy', handleCopy);
 
-        let interval;
-        if (isProduction) {
-            interval = setInterval(() => {
-                console.clear();
-                console.log("%cSecurity: This portal is protected.", "color: red; font-size: 20px; font-weight: bold;");
-            }, 5000);
-        }
-
         return () => {
+            if (trapInterval) clearInterval(trapInterval);
+            if (detectInterval) clearInterval(detectInterval);
+            if (logInterval) clearInterval(logInterval);
+            window.removeEventListener('resize', checkDevTools);
             document.removeEventListener('contextmenu', handleContextMenu);
             document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('selectstart', handleSelectStart);
@@ -203,7 +221,6 @@ const SecurityLayer = ({ children }) => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             document.removeEventListener('copy', handleCopy);
-            if (interval) clearInterval(interval);
         };
     }, [triggerWarning]);
 
