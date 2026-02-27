@@ -109,30 +109,32 @@ const SecurityLayer = ({ children }) => {
 
     useEffect(() => {
         const isProduction = import.meta.env.PROD;
-        let trapInterval, detectInterval, logInterval;
+        let trapInterval, detectInterval, logInterval, bgInterval;
 
         const lockUI = () => {
-            if (document.getElementById('security-lock')) return;
-            document.body.innerHTML = `
-                <div id="security-lock" style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:20px;font-family:sans-serif;background:#fff8f8;color:#d32f2f;text-align:center;padding:20px;position:fixed;top:0;left:0;width:100%;z-index:9999999;">
-                    <h1 style="font-size:32px;">⚠️ Security Protection Active</h1>
-                    <p style="font-size:18px;">Developer Tools are restricted. Please close the console to continue.</p>
-                    <button onclick="window.location.reload()" style="padding:12px 30px;cursor:pointer;background:#d32f2f;color:white;border:none;border-radius:8px;font-weight:bold;font-size:16px;">Refresh & Retry</button>
-                </div>`;
-            // Attempt to break any subsequent script execution
-            throw new Error("Security Lock Activated");
+            if (!isProduction) return;
+            // NUCLEAR OPTION: Destroy all data and leave instantly
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                // Clear all cookies as a best effort
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    const name = cookie.split("=")[0];
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                }
+            } catch (e) {}
+            
+            // Immediate hard redirect to destroy the JS environment and clear Network tab context
+            window.location.replace('about:blank');
         };
 
         const checkDevTools = () => {
-            // 1. Dimension Check (Docked)
+            // 1. Dimension Check (Docked Console)
             const widthThreshold = window.outerWidth - window.innerWidth > 160;
             const heightThreshold = window.outerHeight - window.innerHeight > 160;
             if (widthThreshold || heightThreshold) lockUI();
-
-            // 2. Timing Check
-            const start = performance.now();
-            debugger;
-            if (performance.now() - start > 100) lockUI();
         };
 
         // --- AGGRESSIVE PRODUCTION-ONLY TRAPS ---
@@ -167,11 +169,15 @@ const SecurityLayer = ({ children }) => {
             };
 
             detectInterval = setInterval(() => {
+                // Timing check without explicit debugger to avoid forced pause window
+                // but still detecting active debugging via the getter
                 console.log(detector);
                 console.clear();
-            }, 1500);
+            }, 500);
 
             window.addEventListener('resize', checkDevTools);
+            // Constant background check for docked tools
+            const bgInterval = setInterval(checkDevTools, 500); 
 
             // 3. Console Protection
             logInterval = setInterval(() => {
@@ -235,6 +241,7 @@ const SecurityLayer = ({ children }) => {
             if (trapInterval) clearInterval(trapInterval);
             if (detectInterval) clearInterval(detectInterval);
             if (logInterval) clearInterval(logInterval);
+            if (bgInterval) clearInterval(bgInterval);
             window.removeEventListener('resize', checkDevTools);
             document.removeEventListener('contextmenu', handleContextMenu);
             document.removeEventListener('keydown', handleKeyDown);
