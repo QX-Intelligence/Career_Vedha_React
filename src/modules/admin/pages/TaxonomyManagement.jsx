@@ -39,7 +39,6 @@ const TaxonomyManagement = () => {
     const [treeData, setTreeData] = useState([]);
     const [activeSection, setActiveSection] = useState('academics');
     const [parentFilter, setParentFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
     const [expandedRows, setExpandedRows] = useState({}); // { id: isExpanded }
     const [childData, setChildData] = useState({}); // { parentId: [children] }
 
@@ -88,7 +87,7 @@ const TaxonomyManagement = () => {
             section: activeSection,
             cursor: currentCursor || undefined,
             parent_id: parentFilter || undefined,
-            active: statusFilter || undefined
+            parent_id: parentFilter || undefined
         } : { enabled: false }
     );
 
@@ -117,7 +116,7 @@ const TaxonomyManagement = () => {
     useEffect(() => {
         setCurrentCursor(null);
         setTaxonomies([]); // Reset list on filter change
-    }, [activeSection, parentFilter, statusFilter, viewMode]);
+    }, [activeSection, parentFilter, viewMode]);
 
     // Handle initial active section from dynamic data
     useEffect(() => {
@@ -292,7 +291,7 @@ const TaxonomyManagement = () => {
     };
 
     const navbarProps = {
-        title: "Taxonomy Management",
+        title: "Taxonomy Management (REFRESHED)",
         onProfileClick: () => navigate('/dashboard?tab=profile')
     };
 
@@ -302,7 +301,7 @@ const TaxonomyManagement = () => {
                 <div className="am-title-section">
                     <h1 className="am-title">
                         <i className="fas fa-tags"></i>
-                        Taxonomy Management
+                        Taxonomy Management (REFRESHED)
                     </h1>
                     <p className="am-subtitle">Manage categories and tags across the platform</p>
                 </div>
@@ -390,7 +389,7 @@ const TaxonomyManagement = () => {
                                 onChange={(e) => {
                                     const val = e.target.value.toLowerCase();
                                     if (!val) {
-                                        fetchTaxonomy(activeSection, null, parentFilter, statusFilter);
+                                        // Just let the filtered taxonomies return to normal
                                         return;
                                     }
                                     setTaxonomies(prev => prev.filter(t => 
@@ -515,7 +514,7 @@ const TaxonomyManagement = () => {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="6" className="am-empty-state">
+                                        <td colSpan="5" className="am-empty-state">
                                             <i className="fas fa-tags"></i>
                                             <h3>No taxonomy records found</h3>
                                         </td>
@@ -632,19 +631,6 @@ const TaxonomyManagement = () => {
                                             onChange={(e) => setCurrentCategory({...currentCategory, rank: e.target.value})}
                                             placeholder="0"
                                         />
-                                    </div>
-                                    <div className="am-form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1.5rem' }}>
-                                        <label className="am-switch">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={currentCategory.is_active}
-                                                onChange={(e) => setCurrentCategory({...currentCategory, is_active: e.target.checked})}
-                                            />
-                                            <span className="am-slider"></span>
-                                        </label>
-                                        <span className="am-toggle-label" style={{ fontWeight: '600', color: 'var(--slate-700)' }}>
-                                            {currentCategory.is_active ? 'Active' : 'Disabled'}
-                                        </span>
                                     </div>
                                 </div>
                             </div>
