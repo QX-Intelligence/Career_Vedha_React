@@ -5,16 +5,13 @@ import './TaxonomyTreeView.css';
 const NODE_WIDTH = 240;
 const NODE_HEIGHT = 140;
 
-const renderLuxuryNode = ({ nodeDatum, toggleNode, onEdit, onToggleStatus }) => {
-    const isActive = nodeDatum.attributes?.is_active !== false;
-    
+const renderLuxuryNode = ({ nodeDatum, toggleNode, onEdit }) => {
     return (
         <foreignObject width={NODE_WIDTH + 40} height={NODE_HEIGHT + 40} x={-NODE_WIDTH / 2} y={-40}>
-            <div className={`node-card-premium ${isActive ? 'active' : 'disabled'}`} onClick={toggleNode}>
+            <div className="node-card-premium active" onClick={toggleNode}>
                 <div className="node-accent-bar"></div>
                 <div className="node-header">
                     <span className="node-id-pill">#{nodeDatum.attributes?.id}</span>
-                    <div className="node-status-dot"></div>
                 </div>
                 
                 <div className="node-main">
@@ -38,26 +35,12 @@ const renderLuxuryNode = ({ nodeDatum, toggleNode, onEdit, onToggleStatus }) => 
                                 slug: nodeDatum.attributes?.slug,
                                 section: nodeDatum.attributes?.section,
                                 parent_id: nodeDatum.attributes?.parent_id,
-                                rank: nodeDatum.attributes?.rank,
-                                is_active: isActive
+                                rank: nodeDatum.attributes?.rank
                             });
                         }} 
                         title="Edit Category"
                     >
                         <i className="fas fa-edit"></i>
-                    </button>
-                    <button 
-                        className={`node-action-btn-p ${isActive ? 'disable' : 'enable'}`} 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleStatus({
-                                id: nodeDatum.attributes?.id,
-                                is_active: isActive
-                            });
-                        }} 
-                        title={isActive ? 'Disable' : 'Enable'}
-                    >
-                        <i className={`fas fa-${isActive ? 'eye-slash' : 'eye'}`}></i>
                     </button>
                 </div>
             </div>
@@ -65,7 +48,7 @@ const renderLuxuryNode = ({ nodeDatum, toggleNode, onEdit, onToggleStatus }) => 
     );
 };
 
-const TaxonomyTreeView = ({ data, onEdit, onToggleStatus }) => {
+const TaxonomyTreeView = ({ data, onEdit }) => {
     // Transform original hierarchy into D3-tree format
     const treeData = useMemo(() => {
         if (!data || data.length === 0) return null;
@@ -75,7 +58,6 @@ const TaxonomyTreeView = ({ data, onEdit, onToggleStatus }) => {
             attributes: {
                 id: node.id,
                 slug: node.slug,
-                is_active: node.is_active,
                 section: node.section,
                 parent_id: node.parent_id,
                 rank: node.rank
@@ -88,7 +70,7 @@ const TaxonomyTreeView = ({ data, onEdit, onToggleStatus }) => {
         if (data.length > 1) {
             return {
                 name: "Section Root",
-                attributes: { id: 'root', is_active: true, slug: 'root' },
+                attributes: { id: 'root', slug: 'root' },
                 children: data.map(transform)
             };
         }
@@ -117,7 +99,7 @@ const TaxonomyTreeView = ({ data, onEdit, onToggleStatus }) => {
                 orientation="vertical"
                 pathFunc="diagonal" // Smooth curved paths
                 renderCustomNodeElement={(rd3tProps) => 
-                    renderLuxuryNode({ ...rd3tProps, onEdit, onToggleStatus })
+                    renderLuxuryNode({ ...rd3tProps, onEdit })
                 }
                 separation={{ siblings: 1.2, nonSiblings: 2 }}
                 pathClassNames="tree-connector-path-premium"

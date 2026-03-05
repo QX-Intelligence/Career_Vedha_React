@@ -55,8 +55,7 @@ const TaxonomyManagement = () => {
         slug: '',
         section: 'academics',
         parent_id: '',
-        rank: 0,
-        is_active: true
+        rank: 0
     });
 
     const [isAddingNewSection, setIsAddingNewSection] = useState(false);
@@ -106,7 +105,6 @@ const TaxonomyManagement = () => {
     const createMutation = useCreateCategory();
     const updateMutation = useUpdateCategory();
     const deleteMutation = useDeleteCategory();
-    const toggleStatusMutation = useToggleCategoryStatus();
 
     // Sync Data to State
     const [localTaxonomies, setLocalTaxonomies] = useState([]);
@@ -180,18 +178,15 @@ const TaxonomyManagement = () => {
                 slug: category.slug,
                 section: category.section,
                 parent_id: category.parent_id || '',
-                rank: category.rank || 0,
-                is_active: category.is_active
+                rank: category.rank || 0
             });
         } else {
-            setIsEditing(false);
             setCurrentCategory({
                 name: '',
                 slug: '',
                 section: activeSection,
                 parent_id: '',
-                rank: 0,
-                is_active: true
+                rank: 0
             });
         }
         setIsModalOpen(true);
@@ -199,15 +194,12 @@ const TaxonomyManagement = () => {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setIsAddingNewSection(false);
-        setNewSectionName('');
         setCurrentCategory({
             name: '',
             slug: '',
             section: activeSection,
             parent_id: '',
-            rank: 0,
-            is_active: true
+            rank: 0
         });
     };
 
@@ -215,14 +207,6 @@ const TaxonomyManagement = () => {
 
 
      /* ================= HANDLERS ================= */
-    const handleToggleStatus = (category) => {
-        toggleStatusMutation.mutate(category, {
-             onSuccess: () => {
-                 showSnackbar(category.is_active ? 'Category disabled' : 'Category enabled', 'success');
-             },
-             onError: () => showSnackbar('Failed to update status', 'error')
-        });
-    };
 
     const handleDeleteCategory = (id) => {
         if (!window.confirm('Are you sure you want to delete this category? This cannot be undone if there are no children.')) return;
@@ -389,19 +373,9 @@ const TaxonomyManagement = () => {
                 </div>
                 
                 <div className="am-filter-controls" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <select 
-                        className="am-search-input" 
-                        style={{ width: 'auto', paddingLeft: '1rem' }}
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="">All Statuses</option>
-                        <option value="true">Active Only</option>
-                        <option value="false">Disabled Only</option>
-                    </select>
 
-                    {(parentFilter || statusFilter) && (
-                        <button className="am-btn-secondary" onClick={() => { setParentFilter(''); setStatusFilter(''); }}>
+                    {parentFilter && (
+                        <button className="am-btn-secondary" onClick={() => setParentFilter('')}>
                             <i className="fas fa-times"></i> Clear Filters
                         </button>
                     )}
@@ -452,7 +426,6 @@ const TaxonomyManagement = () => {
                         <TaxonomyTreeView 
                             data={treeData} 
                             onEdit={handleOpenModal}
-                            onToggleStatus={handleToggleStatus}
                         />
                     </div>
                 ) : (
@@ -464,7 +437,6 @@ const TaxonomyManagement = () => {
                                     <th>Name</th>
                                     <th>Slug</th>
                                     <th>Parent</th>
-                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -512,23 +484,10 @@ const TaxonomyManagement = () => {
                                                                 <span className="am-status-badge draft">ROOT</span>
                                                             )}
                                                         </td>
-                                                        <td>
-                                                            <span className={`am-status-badge ${item.is_active ? 'published' : 'draft'}`}>
-                                                                {item.is_active ? 'Active' : 'Disabled'}
-                                                            </span>
-                                                        </td>
                                                         <td className="am-actions-cell">
                                                             <LuxuryTooltip content="Edit Category">
                                                                 <button className="am-action-btn edit" onClick={() => handleOpenModal(item)}>
                                                                    <i className="fas fa-edit"></i>
-                                                                </button>
-                                                            </LuxuryTooltip>
-                                                            <LuxuryTooltip content={item.is_active ? "Disable Category" : "Enable Category"}>
-                                                                <button 
-                                                                    className={`am-action-btn ${item.is_active ? 'archive' : 'publish'}`}
-                                                                    onClick={() => handleToggleStatus(item)}
-                                                                >
-                                                                    <i className={`fas fa-${item.is_active ? 'eye-slash' : 'eye'}`}></i>
                                                                 </button>
                                                             </LuxuryTooltip>
                                                             {userRole === 'SUPER_ADMIN' && (
