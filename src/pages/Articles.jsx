@@ -109,17 +109,8 @@ const ArticlesPage = () => {
             />
             <PrimaryNav />
 
-            {/* Hero Section */}
-            <div className="articles-hero">
-                <div className="articles-hero-glow"></div>
-                <div className="container px-4 mx-auto text-center">
-                    <span className="articles-hero-badge">
-                        <i className="fas fa-newspaper"></i> Explore Articles
-                    </span>
-                    <h1>Knowledge Hub</h1>
-                    <p>Deep dives into academics, exams, career guidance, and latest educational news.</p>
-                </div>
-            </div>
+
+
 
             {/* Filters Bar */}
             <div className="articles-filters-bar">

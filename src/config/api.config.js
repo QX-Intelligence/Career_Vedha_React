@@ -1,7 +1,7 @@
 const API_CONFIG = {
     BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
     WS_URL: import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws',
-    DJANGO_BASE_URL: import.meta.env.VITE_API_URL_DJANGO || 'http://localhost:8000/api',
+    DJANGO_BASE_URL: import.meta.env.VITE_API_URL_DJANGO || 'http://localhost:8000/api/django',
 
     ENDPOINTS: {
         // News & Articles
@@ -88,7 +88,12 @@ const API_CONFIG = {
     DJANGO_ENDPOINTS: {
         HOME_ARTICLES: 'cms/articles/home/',
         PUBLISHED_ARTICLES: 'cms/articles/published/',
+        ARTICLE_CREATE: 'cms/articles/',
         TAXONOMY_SECTIONS: 'taxonomy/sections/',
+        TAXONOMY_SECTIONS_CREATE: 'taxonomy/sections/create/',
+        TAXONOMY_CATEGORIES_CREATE: 'taxonomy/categories/create/',
+        TOP_STORIES_CMS: 'cms/articles/top-stories-cms/',
+        TOP_STORIES_PUBLIC: 'cms/articles/top-stories/list/',
     },
 
     DJANGO_MEDIA_BASE_URL: import.meta.env.VITE_API_URL_DJANGO_MEDIA || 'http://localhost:8000/api',

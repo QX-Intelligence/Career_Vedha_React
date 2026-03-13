@@ -5,57 +5,7 @@
     background-color: var(--gray-50);
 }
 
-/* Hero Section */
-.articles-hero {
-    background-color: var(--gray-900);
-    padding: 60px 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    color: var(--white);
-}
 
-.articles-hero-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(255, 193, 7, 0.1) 0%, transparent 70%);
-    filter: blur(80px);
-    pointer-events: none;
-}
-
-.articles-hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
-    background: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.2);
-    color: var(--primary-yellow);
-    border-radius: 100px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 24px;
-}
-
-.articles-hero h1 {
-    font-size: 48px;
-    font-weight: 800;
-    margin-bottom: 16px;
-    line-height: 1.2;
-}
-
-.articles-hero p {
-    color: var(--gray-300);
-    font-size: 18px;
-    max-width: 600px;
-    margin: 0 auto;
-}
 
 /* Filters Bar */
 .articles-filters-bar {
@@ -90,12 +40,27 @@
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
+    padding-bottom: 8px; /* Slightly more padding for the new scrollbar */
+    /* Removed scrollbar-width: none to allow visible scrolling */
 }
 
+/* Add a sleek, custom scrollbar */
 .section-tabs::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+}
+
+.section-tabs::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 4px;
+}
+
+.section-tabs::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: 4px;
+}
+
+.section-tabs::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-400);
 }
 
 .section-tab {

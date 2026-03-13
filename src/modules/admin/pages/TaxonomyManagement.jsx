@@ -37,7 +37,7 @@ const TaxonomyManagement = () => {
     const [actionLoading, setActionLoading] = useState(false);
     const [taxonomies, setTaxonomies] = useState([]);
     const [treeData, setTreeData] = useState([]);
-    const [activeSection, setActiveSection] = useState('academics');
+    const [activeSection, setActiveSection] = useState('');
     const [parentFilter, setParentFilter] = useState('');
     const [expandedRows, setExpandedRows] = useState({}); // { id: isExpanded }
     const [childData, setChildData] = useState({}); // { parentId: [children] }
@@ -52,9 +52,13 @@ const TaxonomyManagement = () => {
     const [currentCategory, setCurrentCategory] = useState({
         name: '',
         slug: '',
-        section: 'academics',
+        section: '',
         parent_id: '',
-        rank: 0
+        rank: 0,
+        content: '',
+        image_id: null,
+        pdf_id: null,
+        isLevel4: false
     });
 
     const [isAddingNewSection, setIsAddingNewSection] = useState(false);
@@ -86,7 +90,6 @@ const TaxonomyManagement = () => {
         viewMode === 'list' ? {
             section: activeSection,
             cursor: currentCursor || undefined,
-            parent_id: parentFilter || undefined,
             parent_id: parentFilter || undefined
         } : { enabled: false }
     );
@@ -120,8 +123,11 @@ const TaxonomyManagement = () => {
 
     // Handle initial active section from dynamic data
     useEffect(() => {
-        if (sections.length > 0 && !sections.find(s => s.id === activeSection)) {
-            setActiveSection(sections[0].id);
+        if (sections.length > 0) {
+            const currentSection = sections.find(s => (s.slug || s.id) === activeSection);
+            if (!currentSection) {
+                setActiveSection(sections[0].slug || sections[0].id);
+            }
         }
     }, [sections, activeSection]);
 
@@ -177,7 +183,11 @@ const TaxonomyManagement = () => {
                 slug: category.slug,
                 section: category.section,
                 parent_id: category.parent_id || '',
-                rank: category.rank || 0
+                rank: category.rank || 0,
+                content: category.content || '',
+                image_id: category.image_id || null,
+                pdf_id: category.pdf_id || null,
+                isLevel4: !!(category.content || category.image_id || category.pdf_id)
             });
         } else {
             setCurrentCategory({
@@ -198,7 +208,11 @@ const TaxonomyManagement = () => {
             slug: '',
             section: activeSection,
             parent_id: '',
-            rank: 0
+            rank: 0,
+            content: '',
+            image_id: null,
+            pdf_id: null,
+            isLevel4: false
         });
     };
 
@@ -216,37 +230,56 @@ const TaxonomyManagement = () => {
         });
     };
 
-    const handleSaveCategory = (e) => {
+    const handleSaveCategory = async (e) => {
         e.preventDefault();
         
-        let sectionValue = currentCategory.section;
-        if (isAddingNewSection && newSectionName.trim()) {
-            sectionValue = newSectionName.trim().toLowerCase().replace(/\s+/g, '_');
-        }
+        setActionLoading(true);
+        try {
+            let sectionValue = currentCategory.section; // This should be the ID
+            
+            // If section is a slug (from activeSection), convert to ID
+            const sectionObj = sections.find(s => s.slug === sectionValue || s.id === sectionValue);
+            if (sectionObj) {
+                sectionValue = sectionObj.id;
+            }
 
-        const payload = { 
-            ...currentCategory,
-            section: sectionValue
-        };
-        
-        if (payload.parent_id === '') delete payload.parent_id;
+            if (isAddingNewSection && newSectionName.trim()) {
+                const secPayload = {
+                    name: newSectionName.trim(),
+                    slug: newSectionName.trim().toLowerCase().replace(/\s+/g, '-'),
+                    rank: 1
+                };
+                const newSec = await djangoApi.post(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_SECTIONS_CREATE, secPayload);
+                sectionValue = newSec.data?.id || sectionValue;
+            }
 
-        if (isEditing) {
-            updateMutation.mutate({ id: payload.id, data: payload }, {
-                onSuccess: () => {
-                    showSnackbar('Category updated successfully', 'success');
-                    handleCloseModal();
-                },
-                onError: (err) => showSnackbar(err.response?.data?.error || 'Failed to update category', 'error')
-            });
-        } else {
-            createMutation.mutate(payload, {
-                onSuccess: () => {
-                    showSnackbar('Category created successfully', 'success');
-                    handleCloseModal();
-                },
-                onError: (err) => showSnackbar(err.response?.data?.error || 'Failed to create category', 'error')
-            });
+            const payload = { 
+                section_id: sectionValue,
+                name: currentCategory.name,
+                slug: currentCategory.slug,
+                parent_id: currentCategory.parent_id || null,
+                rank: currentCategory.rank || 0
+            };
+
+            // Level 4 (Topic) additional fields
+            if (currentCategory.isLevel4) {
+                payload.content = currentCategory.content || '';
+                payload.image_id = currentCategory.image_id || null;
+                payload.pdf_id = currentCategory.pdf_id || null;
+            }
+
+            if (isEditing) {
+                await djangoApi.patch(`taxonomy/categories/${currentCategory.id}/`, payload);
+                showSnackbar('Category updated successfully', 'success');
+            } else {
+                await djangoApi.post(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_CATEGORIES_CREATE, payload);
+                showSnackbar('Category created successfully', 'success');
+            }
+            handleCloseModal();
+        } catch (err) {
+            showSnackbar(err.response?.data?.error || 'Failed to save category', 'error');
+        } finally {
+            setActionLoading(false);
         }
     };
     
@@ -356,19 +389,22 @@ const TaxonomyManagement = () => {
 
             <div className="am-filter-bar">
                 <div className="am-tabs">
-                    {sections.map(section => (
-                        <button 
-                            key={section.id}
-                            className={`am-tab ${activeSection === section.id ? 'active' : ''}`} 
-                            onClick={() => {
-                                setActiveSection(section.id);
-                                setParentFilter('');
-                            }}
-                        >
-                            {activeSection === section.id && <i className="fas fa-check-circle"></i>}
-                            {section.name}
-                        </button>
-                    ))}
+                    {sections.map(section => {
+                        const sectionKey = section.slug || section.id;
+                        return (
+                            <button 
+                                key={section.id}
+                                className={`am-tab ${activeSection === sectionKey ? 'active' : ''}`} 
+                                onClick={() => {
+                                    setActiveSection(sectionKey);
+                                    setParentFilter('');
+                                }}
+                            >
+                                {activeSection === sectionKey && <i className="fas fa-check-circle"></i>}
+                                {section.name}
+                            </button>
+                        );
+                    })}
                 </div>
                 
                 <div className="am-filter-controls" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -610,17 +646,72 @@ const TaxonomyManagement = () => {
                                     <select 
                                         className="am-input"
                                         value={currentCategory.parent_id || ''}
-                                        onChange={(e) => setCurrentCategory({...currentCategory, parent_id: e.target.value})}
+                                        onChange={(e) => {
+                                            const parentId = e.target.value;
+                                            // Depth check (simplified: if parent exists, it's at least level 2)
+                                            // For true depth, we'd need to trace. 
+                                            // Let's assume selecting a level 3 parent makes this level 4.
+                                            setCurrentCategory({...currentCategory, parent_id: parentId});
+                                        }}
                                     >
                                         <option value="">ROOT (No Parent)</option>
+                                        {/* Ideally we should show the full tree as options or use a cascading select here too */}
                                         {taxonomies
-                                            .filter(t => t.id !== currentCategory.id && !t.parent_id) 
+                                            .filter(t => t.id !== currentCategory.id) 
                                             .map(t => (
                                                 <option key={t.id} value={t.id}>{t.name} (ID: {t.id})</option>
                                             ))
                                         }
                                     </select>
                                 </div>
+
+                                <div className="am-form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        id="isLevel4" 
+                                        checked={currentCategory.isLevel4}
+                                        onChange={(e) => setCurrentCategory({...currentCategory, isLevel4: e.target.checked})}
+                                    />
+                                    <label htmlFor="isLevel4" className="am-label" style={{ marginBottom: 0 }}>Is Level 4 (Topic)?</label>
+                                </div>
+
+                                {currentCategory.isLevel4 && (
+                                    <div className="am-level4-fields" style={{ marginTop: '15px', padding: '15px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                                        <h4 style={{ marginBottom: '10px', color: '#1e293b' }}>Topic Specific Content</h4>
+                                        <div className="am-form-group">
+                                            <label className="am-label">Content (HTML)</label>
+                                            <textarea 
+                                                className="am-input"
+                                                value={currentCategory.content}
+                                                onChange={(e) => setCurrentCategory({...currentCategory, content: e.target.value})}
+                                                placeholder="Enter HTML content..."
+                                                rows="5"
+                                            />
+                                        </div>
+                                        <div className="am-form-row">
+                                            <div className="am-form-group">
+                                                <label className="am-label">Image ID</label>
+                                                <input 
+                                                    type="number"
+                                                    className="am-input"
+                                                    value={currentCategory.image_id || ''}
+                                                    onChange={(e) => setCurrentCategory({...currentCategory, image_id: e.target.value})}
+                                                    placeholder="Media ID"
+                                                />
+                                            </div>
+                                            <div className="am-form-group">
+                                                <label className="am-label">PDF ID</label>
+                                                <input 
+                                                    type="number"
+                                                    className="am-input"
+                                                    value={currentCategory.pdf_id || ''}
+                                                    onChange={(e) => setCurrentCategory({...currentCategory, pdf_id: e.target.value})}
+                                                    placeholder="Media ID"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="am-form-row">
                                     <div className="am-form-group">
                                         <label className="am-label">Rank / Order</label>

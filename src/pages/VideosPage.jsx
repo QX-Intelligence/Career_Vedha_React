@@ -9,61 +9,124 @@ import Skeleton from '../components/ui/Skeleton';
 import VideoPlayerModal from '../components/ui/VideoPlayerModal';
 import '../styles/VideosPage.css';
 
-const VideosPage = () => {
-    const { category } = useParams();
+/* ── Small reusable section that fetches one category ── */
+const VideoSection = ({ apiCategory, label, layoutClass, onVideoClick }) => {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [activeLanguage, setActiveLanguage] = useState(() => localStorage.getItem('preferredLanguage') || 'english');
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [selectedVideo, setSelectedVideo] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    
     const cursorIdRef = useRef(null);
 
-    const videoCategory = category === 'shorts' ? 'SHORT' : 'LONG';
-
     const fetchVideos = useCallback(async (isInitial = false) => {
-        if (isInitial) {
-            setLoading(true);
-            cursorIdRef.current = null;
-        } else {
-            setLoadingMore(true);
-        }
+        if (isInitial) { setLoading(true); cursorIdRef.current = null; }
+        else { setLoadingMore(true); }
 
         try {
-            const data = await youtubeService.getYoutubeUrls(videoCategory, cursorIdRef.current);
-            
-            if (isInitial) {
-                setVideos(data);
-            } else {
-                setVideos(prev => [...prev, ...data]);
-            }
+            const data = await youtubeService.getYoutubeUrls(apiCategory, cursorIdRef.current);
+            if (isInitial) setVideos(data);
+            else setVideos(prev => [...prev, ...data]);
 
             if (data.length > 0) {
                 cursorIdRef.current = data[data.length - 1].id;
-                setHasMore(data.length >= 12); // Assuming backend returns 12 per page if more exist
+                setHasMore(data.length >= 12);
             } else {
                 setHasMore(false);
             }
         } catch (error) {
-            console.error('Error fetching videos:', error);
+            console.error(`Error fetching ${label}:`, error);
         } finally {
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [videoCategory]);
+    }, [apiCategory, label]);
 
-    useEffect(() => {
-        fetchVideos(true);
-    }, [fetchVideos]);
+    useEffect(() => { fetchVideos(true); }, [fetchVideos]);
 
     const getYoutubeId = (url) => {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
+        const m = url.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]{11})/);
+        return m ? m[1] : null;
     };
+
+    if (loading) {
+        return (
+            <section className="video-section">
+                <div className="videos-section-header"><h2>{label}</h2></div>
+                <div className={`videos-grid ${layoutClass}`}>
+                    {[1,2,3,4].map(i => (
+                        <div key={i} className="video-card-skeleton">
+                            <Skeleton variant="card" height={layoutClass === 'shorts-layout' ? '350px' : '200px'} />
+                        </div>
+                    ))}
+                </div>
+            </section>
+        );
+    }
+
+    if (videos.length === 0) return null;
+
+    return (
+        <section className="video-section">
+            <div className="videos-section-header">
+                <h2>
+                    {label}
+                    <span className="videos-count-badge">{videos.length}</span>
+                </h2>
+            </div>
+
+            <div className={`videos-grid ${layoutClass}`}>
+                {videos.map((video) => {
+                    const videoId = getYoutubeId(video.url);
+                    const thumbnail = videoId
+                        ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+                        : '/placeholder-video.jpg';
+                    return (
+                        <div
+                            key={video.id}
+                            className={`video-item branded-overlay-card ${layoutClass === 'shorts-layout' ? 'short-item-branded' : 'long-item-branded'}`}
+                            onClick={() => onVideoClick(video)}
+                        >
+                            <div className="video-thumbnail-wrapper">
+                                <img src={thumbnail} alt={video.title} loading="lazy" className="thumbnail-main" />
+                                <div className="card-overlay-branded-full">
+                                    <div className="overlay-flex-container">
+                                        <img src="/favicon.png" alt="Logo" className="favicon-main" />
+                                        <div className="branding-text-content">
+                                            <h3 className="video-title">{video.title}</h3>
+                                            <span className="brand-name-text">Career Vedha</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="play-overlay">
+                                    <i className="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {hasMore && (
+                <div className="load-more-container">
+                    <button className="load-more-btn" onClick={() => fetchVideos(false)} disabled={loadingMore}>
+                        {loadingMore
+                            ? <><i className="fas fa-spinner fa-spin"></i> Loading...</>
+                            : <>Load More <i className="fas fa-chevron-down"></i></>}
+                    </button>
+                </div>
+            )}
+        </section>
+    );
+};
+
+/* ── Main Page ── */
+const VideosPage = () => {
+    const { category } = useParams(); // undefined when on /videos
+    const [activeLanguage, setActiveLanguage] = useState(() => localStorage.getItem('preferredLanguage') || 'english');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [selectedVideo, setSelectedVideo] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => { window.scrollTo(0, 0); }, [category]);
 
     const handleVideoClick = (video) => {
         setSelectedVideo(video);
@@ -74,6 +137,11 @@ const VideosPage = () => {
         setActiveLanguage(lang);
         localStorage.setItem('preferredLanguage', lang);
     };
+
+    // Determine which sections to show
+    const showLong = !category || category === 'long';
+    const showShorts = !category || category === 'shorts';
+    const pageTitle = !category ? 'Videos' : (category === 'shorts' ? 'Shorts' : 'Videos');
 
     return (
         <div className="videos-page">
@@ -86,79 +154,35 @@ const VideosPage = () => {
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
-            <main className="container main-content py-4">
-                <div className="page-header d-flex justify-content-between align-items-center mb-4">
-                    <h1 className="page-title text-capitalize">{category}</h1>
-                    <Link to="/" className="back-link">
-                        <i className="fas fa-chevron-left"></i> Back to Home
-                    </Link>
+            <main className="videos-main-content">
+                <div className="container">
+                    <nav className="videos-breadcrumb">
+                        <Link to="/">Home</Link>
+                        <i className="fas fa-chevron-right"></i>
+                        <span>{pageTitle}</span>
+                    </nav>
+
+                    {showLong && (
+                        <VideoSection
+                            apiCategory="LONG"
+                            label="Long Videos"
+                            layoutClass="long-layout"
+                            onVideoClick={handleVideoClick}
+                        />
+                    )}
+
+                    {showShorts && (
+                        <VideoSection
+                            apiCategory="SHORT"
+                            label="Shorts"
+                            layoutClass="shorts-layout"
+                            onVideoClick={handleVideoClick}
+                        />
+                    )}
                 </div>
-
-                {loading ? (
-                    <div className="videos-grid">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                            <div key={i} className="video-card-skeleton">
-                                <Skeleton variant="card" height={category === 'shorts' ? '400px' : '200px'} />
-                                <Skeleton variant="text" width="80%" style={{ marginTop: '10px' }} />
-                            </div>
-                        ))}
-                    </div>
-                ) : videos.length > 0 ? (
-                    <>
-                        <div className={`videos-grid ${category === 'shorts' ? 'shorts-layout' : 'long-layout'}`}>
-                            {videos.map((video) => {
-                                const videoId = getYoutubeId(video.url);
-                                const thumbnail = videoId 
-                                    ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-                                    : '/placeholder-video.jpg';
-
-                                return (
-                                    <div 
-                                        key={video.id} 
-                                        className={`video-item branded-overlay-card ${category === 'shorts' ? 'short-item-branded' : 'long-item-branded'}`}
-                                        onClick={() => handleVideoClick(video)}
-                                    >
-                                        <div className="video-thumbnail-wrapper">
-                                            <img src={thumbnail} alt={video.title} loading="lazy" className="thumbnail-main" />
-                                            <div className="card-overlay-branded-full">
-                                                <div className="overlay-flex-container">
-                                                    <img src="/favicon.png" alt="Logo" className="favicon-main" />
-                                                    <div className="branding-text-content">
-                                                        <h3 className="video-title">{video.title}</h3>
-                                                        <span className="brand-name-text">Career Vedha</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="play-overlay">
-                                                <i className="fas fa-play"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        {hasMore && (
-                            <div className="load-more-container mt-5 text-center">
-                                <button 
-                                    className="load-more-btn"
-                                    onClick={() => fetchVideos(false)}
-                                    disabled={loadingMore}
-                                >
-                                    {loadingMore ? 'Loading...' : 'Load More'}
-                                </button>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <div className="empty-state text-center py-5">
-                        <i className="fas fa-video-slash fa-4x mb-3 text-muted"></i>
-                        <h3>No videos found in this category.</h3>
-                        <p className="text-muted">Stay tuned, we'll be adding more content soon!</p>
-                    </div>
-                )}
             </main>
 
-            <VideoPlayerModal 
+            <VideoPlayerModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 videoUrl={selectedVideo?.url || ''}

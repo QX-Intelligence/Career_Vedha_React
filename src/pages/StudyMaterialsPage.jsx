@@ -69,12 +69,7 @@ const StudyMaterialsPage = () => {
             />
             
             <div className="papers-page">
-                <div className="papers-hero">
-                    <div className="container">
-                        <h1>Study Materials</h1>
-                        <p>Download comprehensive study materials for exam preparation</p>
-                    </div>
-                </div>
+
 
                 <div className="container">
                     <div className="papers-controls">

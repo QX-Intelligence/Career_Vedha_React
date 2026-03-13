@@ -69,12 +69,7 @@ const QuestionPapersPage = () => {
             />
             
             <div className="papers-page">
-                <div className="papers-hero">
-                    <div className="container">
-                        <h1>Question Papers</h1>
-                        <p>Access previous year question papers for various competitive exams</p>
-                    </div>
-                </div>
+
 
                 <div className="container">
                     <div className="papers-controls">

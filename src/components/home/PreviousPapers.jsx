@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { questionPaperService } from '../../services';
 
-const PreviousPapers = () => {
+const PreviousPapers = ({ title = 'Resources' }) => {
     const [papers, setPapers] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +31,7 @@ const PreviousPapers = () => {
     return (
         <section className="previous-papers">
             <div className="container">
-                <h2 className="section-title">Resources</h2>
+                <h2 className="section-title">{title}</h2>
 
                 {/* Question Papers Section */}
                 <div className="resource-section">

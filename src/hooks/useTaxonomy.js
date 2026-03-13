@@ -63,6 +63,18 @@ export function useFetchCategoryChildren() {
 
 
 /**
+ * Hook to fetch children of a specific category (for cascading dropdowns)
+ */
+export function useCategoryChildren(section, parentId) {
+    return useQuery({
+        queryKey: taxonomyKeys.children(section, parentId),
+        queryFn: () => newsService.getCategoryChildren(section, parentId),
+        enabled: !!section && !!parentId,
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
+/**
  * Hook to fetch all admin categories (legacy/simple list)
  */
 export function useAdminCategories() {
@@ -88,25 +100,12 @@ export function useCategoriesBySection(section) {
 }
 
 /**
- * Hook to fetch all sections (derived from categories)
+ * Hook to fetch all sections
  */
 export function useSections() {
-    const { data: categories } = useAdminCategories();
-    
     return useQuery({
         queryKey: taxonomyKeys.sections(),
-        queryFn: () => {
-            if (!categories?.results) return [];
-            
-            // Get unique sections from categories
-            const categorySections = [...new Set(categories.results.map(cat => cat.section))];
-            
-            return categorySections.map(id => ({
-                id: id,
-                name: id.charAt(0).toUpperCase() + id.slice(1).replace(/_/g, ' ')
-            }));
-        },
-        enabled: !!categories,
+        queryFn: () => newsService.getSections(),
         staleTime: 30 * 60 * 1000,
     });
 }

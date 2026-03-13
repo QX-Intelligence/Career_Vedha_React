@@ -89,17 +89,8 @@ const NewsPage = () => {
             />
             <PrimaryNav />
 
-            {/* Hero Section */}
-            <div className="articles-hero" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-                <div className="articles-hero-glow"></div>
-                <div className="container px-4 mx-auto text-center">
-                    <span className="articles-hero-badge">
-                        <i className="fas fa-bullhorn"></i> {t.latestUpdates || 'Latest Updates'}
-                    </span>
-                    <h1>{t.navNews || 'News'}</h1>
-                    <p>{t.newsSubtitle || 'Stay informed with the latest announcements, circulars, and educational updates.'}</p>
-                </div>
-            </div>
+
+
 
             {/* Filters Bar - Simplified */}
             <div className="articles-filters-bar">

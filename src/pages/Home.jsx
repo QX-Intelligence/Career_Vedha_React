@@ -125,10 +125,10 @@ const Home = () => {
             
             <section className="home-videos-wrapper bg-white py-5">
                 <div className="container">
-                    <div className="section-header-branded mb-5 text-center">
-                        <div className="section-marker mx-auto mb-3"></div>
-                        <h2 className="section-title text-dark">Videos</h2>
-                        <p className="section-subtitle text-muted">Watch the latest updates and insights from Career Vedha</p>
+                    <div className="section-header-branded mb-5" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <h2 className="text-dark" style={{ fontSize: '32px', fontWeight: 800, paddingLeft: 0, margin: '0 0 16px 0', letterSpacing: '-0.02em' }}>Videos</h2>
+                        <div style={{ width: '80px', height: '6px', background: 'linear-gradient(90deg, var(--primary-yellow), var(--dark-yellow))', borderRadius: '4px', marginBottom: '16px' }}></div>
+                        <p className="section-subtitle text-muted text-center m-0" style={{ maxWidth: '600px' }}>Watch the latest updates and insights from Career Vedha</p>
                     </div>
                     
                     <Suspense fallback={<SectionSkeleton />}>

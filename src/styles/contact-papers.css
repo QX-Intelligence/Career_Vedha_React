@@ -316,23 +316,7 @@
   background: var(--gray-50);
 }
 
-.papers-hero {
-  background: linear-gradient(135deg, var(--gray-900) 0%, #1a1a1a 100%);
-  color: var(--white);
-  padding: 60px 0;
-  text-align: center;
-}
 
-.papers-hero h1 {
-  font-size: 42px;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.papers-hero p {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.8);
-}
 
 .papers-controls {
   display: flex;

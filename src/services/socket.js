@@ -1,6 +1,7 @@
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import API_CONFIG from "../config/api.config";
+import { getAccessToken } from "./api";
 
 class WebSocketService {
     constructor() {
@@ -16,9 +17,13 @@ class WebSocketService {
         const wsUrl = API_CONFIG.WS_URL || import.meta.env.VITE_WS_URL || 'http://localhost:8000/ws';
         console.log("🔌 Attempting WebSocket connection to:", wsUrl);
 
+        const token = getAccessToken();
+        const connectHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
         this.stompClient = new Client({
             webSocketFactory: () => new SockJS(wsUrl),
             reconnectDelay: 5000,
+            connectHeaders,
             onConnect: () => {
                 console.log("✅ WebSocket connected");
                 this.isConnected = true;

@@ -133,6 +133,17 @@ const CMSSidebar = ({
                             </button>
                         )}
 
+                        {checkAccess(MODULES.ARTICLE_MANAGEMENT) && (
+                            <button
+                                className={`menu-item ${activeSection === 'top-stories' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/top-stories')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-star"></i>
+                                <span>Top Stories</span>
+                            </button>
+                        )}
+
                         {/* Hide Jobs for Contributors explicitly */}
                         {userRole !== 'CONTRIBUTOR' && checkAccess(MODULES.JOB_MANAGEMENT) && (
                             <button
@@ -197,6 +208,18 @@ const CMSSidebar = ({
                             >
                                 <i className="fas fa-file-pdf"></i>
                                 <span>Previous Papers</span>
+                            </button>
+                        )}
+                        
+                        {/* E-Store Admin Integration */}
+                        {(userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') && (
+                            <button
+                                className={`menu-item ${activeSection === 'e-store' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/e-store')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-store"></i>
+                                <span>E-Store Admin</span>
                             </button>
                         )}
 

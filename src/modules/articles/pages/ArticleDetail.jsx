@@ -221,7 +221,12 @@ const ArticleDetail = () => {
                                 })}
                             </div>
                         </div>
-                        <Sidebar />
+                        <Sidebar 
+                            tags={article.tags || article.keywords} 
+                            currentId={article.id} 
+                            section={section}
+                            slug={slug}
+                        />
                     </div>
                 </div>
             </main>

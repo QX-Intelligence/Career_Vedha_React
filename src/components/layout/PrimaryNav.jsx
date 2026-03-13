@@ -112,15 +112,27 @@ const PrimaryNav = ({ isOpen }) => {
                                 onMouseEnter={() => handleMouseEnter(index)}
                                 onMouseLeave={handleMouseLeave}
                             >
-                                <Link 
-                                    to={item.path} 
-                                    className={`${isActive ? 'active' : ''} ${activeDropdown === index ? 'dropdown-active' : ''}`}
-                                    onClick={(e) => item.hasDropdown && toggleDropdown(e, index)}
-                                >
-                                    {item.icon && <i className={item.icon}></i>}
-                                    {item.name}
-                                    {item.hasDropdown && <i className={`fas fa-chevron-down dropdown-icon ${activeDropdown === index ? 'rotate' : ''}`}></i>}
-                                </Link>
+                                {item.path.startsWith('http') ? (
+                                    <a 
+                                        href={item.path}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`${isActive ? 'active' : ''} ${activeDropdown === index ? 'dropdown-active' : ''}`}
+                                    >
+                                        {item.icon && <i className={item.icon}></i>}
+                                        {item.name}
+                                    </a>
+                                ) : (
+                                    <Link 
+                                        to={item.path} 
+                                        className={`${isActive ? 'active' : ''} ${activeDropdown === index ? 'dropdown-active' : ''}`}
+                                        onClick={(e) => item.hasDropdown && toggleDropdown(e, index)}
+                                    >
+                                        {item.icon && <i className={item.icon}></i>}
+                                        {item.name}
+                                        {item.hasDropdown && <i className={`fas fa-chevron-down dropdown-icon ${activeDropdown === index ? 'rotate' : ''}`}></i>}
+                                    </Link>
+                                )}
 
                                 {item.hasDropdown && item.dropdownItems && item.dropdownItems.length > 0 && (
                                     <ul className={`nav-dropdown ${activeDropdown === index ? 'show' : ''}`}>

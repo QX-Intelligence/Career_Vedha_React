@@ -150,7 +150,7 @@ export const newsService = {
                 );
             }
 
-            const response = await djangoApi.post('cms/articles/', payload, { headers });
+            const response = await djangoApi.post(API_CONFIG.DJANGO_ENDPOINTS.ARTICLE_CREATE, payload, { headers });
             return response.data;
         } catch (error) {
             console.error('Error creating article:', error);
@@ -202,7 +202,7 @@ export const newsService = {
                 );
             }
 
-            const response = await djangoApi.patch(`cms/articles/${articleId}/`, payload, { headers });
+            const response = await djangoApi.patch(`${API_CONFIG.DJANGO_ENDPOINTS.ARTICLE_CREATE}${articleId}/`, payload, { headers });
             return response.data;
         } catch (error) {
             console.error('Error updating article:', error);
@@ -355,10 +355,69 @@ export const newsService = {
         }
     },
 
+    // 6c. Top Stories CRUD (Admin)
+    getTopStoriesList: async (params = {}) => {
+        try {
+            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TOP_STORIES_CMS, { params });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching admin top stories:', error);
+            return { results: [], next_cursor: null, has_next: false };
+        }
+    },
+
+    createTopStory: async (data) => {
+        try {
+            const payload = data instanceof FormData ? data : Object.fromEntries(
+                Object.entries(data).filter(([_, v]) => v !== null && v !== undefined)
+            );
+            const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+            const response = await djangoApi.post(API_CONFIG.DJANGO_ENDPOINTS.TOP_STORIES_CMS, payload, { headers });
+            return response.data;
+        } catch (error) {
+            console.error('Error creating top story:', error);
+            throw error;
+        }
+    },
+
+    updateTopStory: async (id, data) => {
+        try {
+            const payload = data instanceof FormData ? data : Object.fromEntries(
+                Object.entries(data).filter(([_, v]) => v !== null && v !== undefined)
+            );
+            const headers = data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+            const response = await djangoApi.patch(`${API_CONFIG.DJANGO_ENDPOINTS.TOP_STORIES_CMS}${id}/`, payload, { headers });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating top story:', error);
+            throw error;
+        }
+    },
+
+    deleteTopStory: async (id) => {
+        try {
+            const response = await djangoApi.delete(`${API_CONFIG.DJANGO_ENDPOINTS.TOP_STORIES_CMS}${id}/`);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting top story:', error);
+            throw error;
+        }
+    },
+
+    getRelatedArticles: async (section, slug) => {
+        try {
+            const response = await djangoApi.get(`cms/articles/${section}/${slug}/related/`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching related articles:', error);
+            return { results: [] };
+        }
+    },
+
     // 7. Taxonomy / Categories
     getTaxonomyBySection: async (section) => {
         try {
-            const response = await djangoApi.get(`taxonomy/${section}/`);
+            const response = await djangoApi.get(`taxonomy/${section}/tree/`);
             return response.data;
         } catch (error) {
             console.error(`Error fetching taxonomy for ${section}:`, error);
@@ -423,6 +482,17 @@ export const newsService = {
         } catch (error) {
             console.error('Error enabling category:', error);
             throw error;
+        }
+    },
+
+    getSections: async () => {
+        try {
+            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_SECTIONS);
+            const data = response.data;
+            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
+        } catch (error) {
+            console.error('Error fetching taxonomy sections:', error);
+            return [];
         }
     },
 

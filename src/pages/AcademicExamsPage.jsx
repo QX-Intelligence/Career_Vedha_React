@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import StudentAcademicsExplorer from '../components/home/StudentAcademicsExplorer';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useLocation } from 'react-router-dom';
@@ -7,7 +7,21 @@ import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import AcademicsSidebar from '../components/academics/AcademicsSidebar';
+import SectionCategoryBlocks from '../components/home/SectionCategoryBlocks';
+import Skeleton from '../components/ui/Skeleton';
 import '../modules/jobs/pages/JobsList.css'; // Reusing jobs styles for hero
+
+// Lazy load heavier components
+const PreviousPapers = lazy(() => import('../components/home/PreviousPapers'));
+
+const SectionSkeleton = () => (
+    <div className="container" style={{ padding: '2rem 0' }}>
+        <Skeleton variant="title" width="30%" style={{ marginBottom: '1.5rem' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <Skeleton variant="card" count={3} />
+        </div>
+    </div>
+);
 
 const AcademicExamsPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -67,12 +81,6 @@ const AcademicExamsPage = () => {
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
-            <div className="jobs-hero">
-                <div className="container">
-                    <h1>Academic Exams & Practice</h1>
-                    <p>Navigate through our structured curriculum and practice assessments.</p>
-                </div>
-            </div>
             
             <main className="jobs-main-content">
                 <div className="container">
@@ -95,6 +103,13 @@ const AcademicExamsPage = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Academics-related resources from Home */}
+            <SectionCategoryBlocks section="academics" title="Latest from Academics" activeLanguage={activeLanguage} />
+
+            <Suspense fallback={<SectionSkeleton />}>
+                <PreviousPapers activeLanguage={activeLanguage} title="Previous Question Papers" />
+            </Suspense>
 
             <Footer />
         </div>

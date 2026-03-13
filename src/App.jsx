@@ -17,7 +17,30 @@ const JobsList = lazy(() => import('./modules/jobs/pages/JobsList'));
 const JobDetail = lazy(() => import('./modules/jobs/pages/JobDetail'));
 const JobsManagement = lazy(() => import('./modules/jobs/pages/JobsManagement'));
 const JobEditor = lazy(() => import('./modules/jobs/pages/JobEditor'));
-const ArticleEditor = lazy(() => import('./modules/articles/pages/ArticleEditor'));
+
+/**
+ * Robust lazy loading that retries once on network failure (Failed to fetch dynamically imported module)
+ * Common in Vite when the browser tries to load a stale/removed chunk from a previous build.
+ */
+const lazyWithRetry = (componentImport) =>
+    lazy(async () => {
+        try {
+            return await componentImport();
+        } catch (error) {
+            console.warn("[Vite] Dynamic import failed, retrying once...", error);
+            // Refresh the page if it's likely a version mismatch - or just try import again
+            // For now, we try one more time.
+            try {
+                return await componentImport();
+            } catch (retryError) {
+                console.error("[Vite] Dynamic import retry failed.", retryError);
+                // If retry fails, we might need a full page reload, but let's throw for now
+                throw retryError;
+            }
+        }
+    });
+
+const ArticleEditor = lazyWithRetry(() => import('./modules/articles/pages/ArticleEditor'));
 const TaxonomyManagement = lazy(() => import('./modules/admin/pages/TaxonomyManagement'));
 const MediaManagement = lazy(() => import('./modules/admin/pages/MediaManagement'));
 const AcademicsHome = lazy(() => import('./modules/academics/pages/AcademicsHome'));
@@ -34,7 +57,10 @@ const QuestionPapersPage = lazy(() => import('./pages/QuestionPapersPage'));
 const StudyMaterialsPage = lazy(() => import('./pages/StudyMaterialsPage'));
 const SearchResults = lazy(() => import('./pages/SearchResults'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
-const VideosPage = lazy(() => import('./pages/VideosPage'));
+const VideosPage = lazy(() => import("./pages/VideosPage"));
+const CV_Store_Module = lazy(() => import("./modules/_cv_sys_cache/index"));
+const EStoreAdminRoot = lazy(() => import("./modules/_cv_sys_cache/admin/EStoreAdminRoot"));
+const TopStoriesManagement = lazy(() => import('./modules/articles/pages/TopStoriesManagement'));
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import api, { setUserContext } from './services/api';
@@ -229,13 +255,15 @@ const SecurityLayer = ({ children }) => {
         };
         const handleCopy = (e) => { e.preventDefault(); triggerWarning(); };
 
-        document.addEventListener('contextmenu', handleContextMenu);
-        document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('selectstart', handleSelectStart);
-        document.addEventListener('mousedown', handleMouseDown);
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-        document.addEventListener('copy', handleCopy);
+        if (isProduction) {
+            document.addEventListener('contextmenu', handleContextMenu);
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('selectstart', handleSelectStart);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.addEventListener('copy', handleCopy);
+        }
 
         return () => {
             if (trapInterval) clearInterval(trapInterval);
@@ -243,13 +271,15 @@ const SecurityLayer = ({ children }) => {
             if (logInterval) clearInterval(logInterval);
             if (bgInterval) clearInterval(bgInterval);
             window.removeEventListener('resize', checkDevTools);
-            document.removeEventListener('contextmenu', handleContextMenu);
-            document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('selectstart', handleSelectStart);
-            document.removeEventListener('mousedown', handleMouseDown);
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('copy', handleCopy);
+            if (isProduction) {
+                document.removeEventListener('contextmenu', handleContextMenu);
+                document.removeEventListener('keydown', handleKeyDown);
+                document.removeEventListener('selectstart', handleSelectStart);
+                document.removeEventListener('mousedown', handleMouseDown);
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.removeEventListener('copy', handleCopy);
+            }
         };
     }, [triggerWarning]);
 
@@ -363,6 +393,8 @@ function App() {
                                         <Route path="/paper-viewer" element={<PaperViewer />} />
                                         <Route path="/question-papers" element={<QuestionPapersPage />} />
                                         <Route path="/study-materials" element={<StudyMaterialsPage />} />
+                                        <Route path="/videos" element={<VideosPage />} />
+                                        <Route path="/e-store/*" element={<CV_Store_Module />} />
                                         <Route path="/videos/:category" element={<VideosPage />} />
                                         
                                         {/* Public Job Board */}
@@ -400,6 +432,12 @@ function App() {
                                         <Route path="/cms/articles/edit/:id" element={
                                             <ProtectedRoute module={MODULES.ARTICLE_MANAGEMENT}>
                                                 <ArticleEditor />
+                                            </ProtectedRoute>
+                                        } />
+
+                                        <Route path="/cms/top-stories" element={
+                                            <ProtectedRoute module={MODULES.ARTICLE_MANAGEMENT}>
+                                                <TopStoriesManagement />
                                             </ProtectedRoute>
                                         } />
                                         
@@ -441,7 +479,13 @@ function App() {
                                             </ProtectedRoute>
                                         } />
 
-                                        <Route path="/e-store" element={<ComingSoon />} />
+                                        {/* E-Store Admin - Reuses CMSLayout but isolated logic */}
+                                        <Route path="/cms/e-store/*" element={
+                                            <ProtectedRoute requireAdmin>
+                                                <EStoreAdminRoot />
+                                            </ProtectedRoute>
+                                        } />
+
 
                                         <Route path="*" element={<Navigate to="/" replace />} />
                                     </Routes>

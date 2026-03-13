@@ -620,12 +620,51 @@
     align-items: center;
 }
 
-.um-modal-header h3 {
+.um-modal-header h3,
+.um-modal-title {
     margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: 800;
     color: var(--slate-900);
 }
+
+.um-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.um-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--slate-500);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.um-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--slate-200);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: var(--slate-900);
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.um-input:focus {
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.1);
+}
+
+.um-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
+
 
 .um-modal-close {
     background: transparent;
@@ -751,4 +790,861 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Welcome Section - For Dashboard Overview */
+.welcome-section {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    border: 1px solid var(--slate-200);
+}
+
+.welcome-title {
+    font-size: 1.25rem;
+    color: var(--slate-900);
+    margin-bottom: 0.5rem;
+}
+
+
+.welcome-text {
+    line-height: 1.6;
+    color: var(--slate-600);
+}
+
+/* Book Inventory Specifics */
+.um-book-id {
+    font-weight: 600;
+    color: var(--slate-900);
+}
+
+.um-book-cover {
+    width: 40px;
+    height: 60px;
+    background: var(--slate-100);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.um-book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.um-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--slate-400);
+}
+
+.um-book-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.um-book-name {
+    font-weight: 600;
+    color: var(--slate-900);
+}
+
+.um-book-author {
+    font-size: 0.8rem;
+    color: var(--slate-500);
+}
+
+.um-book-price {
+    font-weight: 600;
+    color: #D4A843; /* Maintain the brand's price color */
+}
+
+/* Order Management Specifics */
+.um-order-row {
+    transition: background-color 0.2s ease;
+}
+
+.um-order-row.selected {
+    background: var(--slate-50) !important;
+}
+
+.um-order-id {
+    font-weight: 600;
+    color: var(--slate-900);
+}
+
+.um-order-price {
+    font-weight: 600;
+    color: #D4A843;
+}
+
+.um-view-items-btn {
+    background: transparent;
+    border: 1px solid var(--slate-200);
+    color: var(--slate-700);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.um-view-items-btn:hover {
+    background: var(--slate-50);
+    border-color: var(--slate-300);
+}
+
+.um-detail-container-cell {
+    padding: 0 !important;
+    border-bottom: 1px solid var(--slate-200);
+}
+
+.um-detail-area {
+    padding: 2rem;
+    background: var(--slate-50);
+    border-left: 3px solid #D4A843;
+}
+
+.um-detail-title {
+    color: #D4A843;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+}
+
+.um-detail-loading,
+.um-detail-empty {
+    color: var(--slate-400);
+    font-size: 0.9rem;
+    padding: 1rem 0;
+}
+
+.um-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.um-item-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--slate-200);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+/* Bulk Upload Cards */
+.um-bulk-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--slate-200);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.um-bulk-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.um-bulk-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--slate-100);
+}
+
+.um-bulk-card-index {
+    background: var(--slate-900);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.um-file-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+    background: var(--slate-50);
+    border-radius: 12px;
+}
+
+.um-file-upload-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.um-file-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.um-file-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: white;
+    padding: 0.75rem;
+    border: 1.5px dashed var(--slate-200);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.um-file-input-wrapper:hover {
+    border-color: var(--primary-yellow);
+    background: rgba(250, 204, 21, 0.02);
+}
+
+.um-file-input-wrapper input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+}
+
+.um-file-info {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    color: var(--slate-600);
+}
+
+.um-file-icon {
+    color: var(--slate-300);
+    font-size: 1.1rem;
+}
+
+.um-file-input-wrapper.active {
+    border-color: #10B981;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.um-file-input-wrapper.active .um-file-icon {
+    color: #10B981;
+}
+
+.um-file-input-wrapper.active .um-file-info {
+    color: #065F46;
+    font-weight: 600;
+}
+
+.um-remove-card-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.um-remove-card-btn:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+.um-add-row-btn {
+    width: 100%;
+    padding: 1rem;
+    background: white;
+    border: 2px dashed var(--slate-200);
+    border-radius: 16px;
+    color: var(--slate-500);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.um-add-row-btn:hover {
+    border-color: var(--primary-yellow);
+    color: var(--primary-yellow);
+    background: rgba(250, 204, 21, 0.02);
+}
+.um-item-info {
+    flex: 1;
+}
+
+.um-item-name {
+    color: var(--slate-900);
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.um-item-subtext {
+    color: var(--slate-500);
+    font-size: 0.825rem;
+    margin: 4px 0 0;
+}
+
+.um-item-qty {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.qty-label {
+    display: block;
+    color: var(--slate-400);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.qty-value {
+    display: block;
+    color: var(--slate-900);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+
+/* E-Store Dashboard Overhaul */
+.um-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.um-stat-card.premium-gold {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(212, 168, 67, 0.3);
+}
+
+.um-stat-card.premium-gold .um-stat-value {
+    color: #D4A843;
+}
+
+.um-stat-card.premium-gold .um-stat-label {
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.um-stat-card.premium-gold .um-stat-value {
+    color: #D4A843;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.um-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--slate-100);
+    color: var(--slate-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.um-dashboard-grid {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.um-dashboard-section {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--slate-200);
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.um-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.um-section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--slate-900);
+}
+
+.um-btn-text {
+    background: none;
+    border: none;
+    color: #D4A843;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.um-btn-text:hover {
+    background: rgba(212, 168, 67, 0.05);
+    padding-right: 0.75rem;
+}
+
+.um-quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.um-action-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    color: var(--slate-900);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+}
+
+.um-action-card:hover {
+    background: white;
+    border-color: #D4A843;
+    color: #D4A843;
+    transform: translateX(4px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.um-action-card i {
+    font-size: 1.1rem;
+    opacity: 0.7;
+}
+
+.um-info-card {
+    margin-top: 1rem;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border-left: 4px solid var(--slate-900);
+}
+
+.um-info-card i {
+    color: var(--slate-400);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.um-info-card p {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--slate-600);
+    margin: 0;
+}
+
+.um-filter-bar.orders-filter {
+    margin-bottom: 2rem;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--slate-200);
+}
+
+.um-tabs.compact {
+    gap: 0.5rem;
+    padding: 0.25rem;
+    background: var(--slate-50);
+    border-radius: 10px;
+    display: inline-flex;
+}
+
+.um-tabs.compact .um-tab {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--slate-500);
+    font-weight: 700;
+}
+
+.um-tabs.compact .um-tab.active {
+    background: var(--primary-yellow);
+    color: var(--slate-900);
+    box-shadow: 0 2px 4px rgba(250, 204, 21, 0.2);
+}
+
+.um-tabs.compact .um-tab:hover:not(.active) {
+    background: var(--slate-100);
+    color: var(--slate-700);
+}
+
+@media (max-width: 1024px) {
+    .um-dashboard-grid {
+        flex-direction: column;
+    }
+    
+    .um-dashboard-section {
+        width: 100%;
+    }
+}
+
+.um-header-search {
+    flex-grow: 0;
+    min-width: 320px;
+}
+
+.um-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 10px;
+    padding: 0 1rem;
+    transition: all 0.2s;
+}
+
+.um-search-wrapper:focus-within {
+    background: white;
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+}
+
+.um-search-wrapper i {
+    color: var(--slate-400);
+    font-size: 0.9rem;
+}
+
+.um-search-wrapper input {
+    border: none;
+    background: transparent;
+    padding: 0.75rem 0.75rem;
+    font-size: 0.9rem;
+    color: var(--slate-900);
+    width: 100%;
+    font-family: inherit;
+}
+
+.um-search-wrapper input:focus {
+    outline: none;
+}
+
+.um-search-clear {
+    background: none;
+    border: none;
+    color: var(--slate-400);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.um-search-clear:hover {
+    background: var(--slate-100);
+    color: var(--slate-600);
+}
+
+.um-filter-results {
+    font-size: 0.825rem;
+    color: var(--slate-500);
+    font-weight: 600;
+}
+
+.um-results-count {
+    background: rgba(212, 168, 67, 0.1);
+    color: #D4A843;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+    .um-header-search {
+        width: 100%;
+        min-width: 0;
+        margin-top: 1rem;
+    }
+}
+
+/* Low Stock Highlights */
+.um-stat-card.highlight-warning {
+    border-bottom: 3px solid #ef4444;
+}
+
+.um-stat-card.highlight-warning .um-stat-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Invoice Modal Styles */
+.invoice-modal {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.invoice-content {
+    background: white;
+    padding: 2.5rem;
+    color: var(--slate-900);
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--slate-100);
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+}
+
+.order-meta {
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.order-meta p {
+    margin: 4px 0;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+}
+
+.invoice-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid var(--slate-100);
+    color: var(--slate-500);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.invoice-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--slate-50);
+}
+
+.invoice-summary {
+    margin-left: auto;
+    width: 300px;
+    background: var(--slate-50);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 0.95rem;
+}
+
+.summary-row.total {
+    border-top: 1px solid var(--slate-200);
+    margin-top: 8px;
+    padding-top: 12px;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #D4A843;
+}
+
+.invoice-footer {
+    margin-top: 4rem;
+    text-align: center;
+    border-top: 1px solid var(--slate-100);
+    padding-top: 2rem;
+}
+
+/* Print Rules */
+@media print {
+    /* Hide non-essential layout elements */
+    .no-print,
+    .CMSSidebar,
+    .CMSTopbar,
+    .main-top-header,
+    .notification-bell-container,
+    .top-user-profile,
+    .um-header,
+    .um-filter-bar,
+    .um-table-container,
+    .um-pagination,
+    .um-modal-header.no-print,
+    .um-bulk-bar {
+        display: none !important;
+    }
+
+    /* Reset Body and Container defaults */
+    body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: black !important;
+    }
+
+    .admin-orders-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+    }
+
+    /* Force the modal overlay to occupy the full print page without fixed positioning hurdles */
+    .um-modal-overlay {
+        position: static !important;
+        display: block !important;
+        background: white !important;
+        backdrop-filter: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+
+    /* Reset modal styling for print flow */
+    .invoice-modal {
+        position: static !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: white !important;
+        transform: none !important; /* Reset framer-motion transforms */
+        opacity: 1 !important;
+        display: block !important;
+    }
+
+    .invoice-content {
+        padding: 20px !important;
+        width: 100% !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    /* Preserve colors for the Career Vedha branding */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    /* Ensure table borders and colors are visible */
+    .invoice-table th {
+        border-bottom: 2px solid #eee !important;
+        color: #666 !important;
+    }
+
+    .invoice-table td {
+        border-bottom: 1px solid #f9f9f9 !important;
+    }
+
+    .invoice-summary {
+        background: #fdfdfd !important;
+        border: 1px solid #eee !important;
+    }
+}
+
+/* Bulk Action Bar */
+.um-bulk-bar {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--slate-900);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 1000;
+    min-width: 450px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.um-bulk-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.um-bulk-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.um-bulk-actions button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.um-btn-text {
+    background: transparent;
+    border: none;
+    color: var(--slate-400);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.um-btn-text:hover {
+    color: white;
+}
+
+tr.um-table-row.selected {
+    background: rgba(212, 168, 67, 0.05) !important;
+}
+
+tr.um-table-row.selected td {
+    border-bottom: 1px solid rgba(212, 168, 67, 0.2) !important;
 }

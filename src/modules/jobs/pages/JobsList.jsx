@@ -88,12 +88,7 @@ const JobsList = () => {
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
-            <div className="jobs-hero">
-                <div className="container">
-                    <h1>Explore Career Opportunities</h1>
-                    <p>Find the perfect job that matches your skills and aspirations.</p>
-                </div>
-            </div>
+
 
             <main className="jobs-main-content">
                 <div className="container mobile-container">
