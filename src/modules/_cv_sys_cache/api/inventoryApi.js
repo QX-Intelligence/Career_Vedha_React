@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { getAccessToken, setUserContext } from '../../../services/api';
 
-const API_BASE = import.meta.env.VITE_API_URL_INVENTORY;
-const MAIN_API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE = import.meta.env.VITE_API_URL_INVENTORY || '';
+const MAIN_API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -20,7 +20,7 @@ const processQueue = (error, token = null) => {
 };
 
 const inventoryApi = axios.create({
-    baseURL: API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`,
+    baseURL: API_BASE ? (API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`) : '',
     withCredentials: true,
     timeout: 30000,
 });
