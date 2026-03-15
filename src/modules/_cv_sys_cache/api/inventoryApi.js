@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAccessToken, setUserContext } from '../../../services/api';
 
-const API_BASE = import.meta.env.VITE_API_URL_INVENTORY ;
+const API_BASE = import.meta.env.VITE_API_URL_INVENTORY || 'http://localhost:8081/api';
 const MAIN_API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 let isRefreshing = false;

@@ -308,6 +308,8 @@ const TopStoriesManagement = () => {
         title_te: '',
         description_en: '',
         description_te: '',
+        slug: '',
+        section: '',
         category: '',       // taxonomy category ID
         rank: 0,
         publish_date: new Date().toISOString().substring(0, 16),
@@ -369,6 +371,8 @@ const TopStoriesManagement = () => {
                 title_te: story.title_te || '',
                 description_en: story.description_en || '',
                 description_te: story.description_te || '',
+                slug: story.slug || '',
+                section: story.section || '',
                 category: story.category || '',
                 rank: story.rank ?? 0,
                 publish_date: story.publish_date ? story.publish_date.substring(0, 16) : new Date().toISOString().substring(0, 16),
@@ -397,6 +401,8 @@ const TopStoriesManagement = () => {
                 title_te: formData.title_te || '',
                 description_en: formData.description_en || '',
                 description_te: formData.description_te || '',
+                slug: formData.slug || '',
+                section: formData.section || '',
                 category: formData.category ? parseInt(formData.category, 10) : null,
                 rank: parseInt(formData.rank, 10) || 0,
                 publish_date: formData.publish_date,
@@ -521,7 +527,10 @@ const TopStoriesManagement = () => {
                                                 )}
                                                 <div>
                                                     <div className="ts-text-main">{story.title_en}</div>
-                                                    <div className="ts-text-sub" style={{ direction: 'rtl', textAlign: 'left', fontFamily: 'serif' }}>{story.title_te}</div>
+                                                    <div className="ts-text-sub" style={{ direction: 'rtl', textAlign: 'left', fontFamily: 'serif', color: '#059669' }}>{story.title_te}</div>
+                                                    <div className="ts-text-desc" style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                        {story.description_en || story.description || story.summary || 'No description'}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -619,10 +628,22 @@ const TopStoriesManagement = () => {
                                     </div>
                                 </div>
 
+                                {/* --- Slug & Section (Optional redirection) --- */}
+                                <div className="am-form-row">
+                                    <div className="am-form-group">
+                                        <label className="am-label">Target Section (slug)</label>
+                                        <input type="text" name="section" className="am-input" value={formData.section} onChange={handleInputChange} placeholder="e.g. academics, jobs" />
+                                    </div>
+                                    <div className="am-form-group">
+                                        <label className="am-label">Target Article Slug</label>
+                                        <input type="text" name="slug" className="am-input" value={formData.slug} onChange={handleInputChange} placeholder="e.g. kcr-it-policy" />
+                                    </div>
+                                </div>
+
                                 {/* --- Category & Rank --- */}
                                 <div className="am-form-row">
                                     <div className="am-form-group">
-                                        <label className="am-label">Category (Dynamic) *</label>
+                                        <label className="am-label">Display Category (Label) *</label>
                                         <select name="category" className="am-input" value={formData.category} onChange={handleInputChange} required>
                                             <option value="">-- Select a Taxonomy Category --</option>
                                             {categories.map(cat => (
@@ -631,7 +652,7 @@ const TopStoriesManagement = () => {
                                         </select>
                                     </div>
                                     <div className="am-form-group">
-                                        <label className="am-label">Rank (0 = top priority)</label>
+                                        <label className="am-label">Display Rank (0 = first)</label>
                                         <input type="number" name="rank" className="am-input" value={formData.rank} onChange={handleInputChange} min="0" placeholder="0" />
                                     </div>
                                 </div>

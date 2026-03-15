@@ -114,7 +114,9 @@ const TopStoriesHero = ({
         const storyTitle = getStoryTitle(story);
         const storyDesc = getStoryDesc(story);
         const categoryName = story.category_detail?.name || story.category || '';
-        const storyUrl = story.slug && story.section ? `/article/${story.section}/${story.slug}` : null;
+        const storyUrl = (story.slug && story.section) 
+            ? `/article/${story.section}/${story.slug}` 
+            : (story.category_detail?.slug ? `/articles?category=${story.category_detail.slug}` : null);
 
         const inner = (
             <>
