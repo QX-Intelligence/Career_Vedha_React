@@ -24,15 +24,6 @@ const Module_Process = () => {
   const tax = summary.gstAmount || 0;
   const grandTotal = summary.totalAmount || 0;
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    zip: ''
-  });
-
   const nextStep = () => setStep(s => s + 1);
   const prevStep = () => setStep(s => s - 1);
 
@@ -56,7 +47,7 @@ const Module_Process = () => {
       setOrderId(Number(activeId));
       if (!storedOrderId) sessionStorage.setItem("currentOrderId", activeId);
       // Skip to Review & Pay for retry/resumed checkout
-      setStep(3);
+      setStep(2);
     }
   }, [searchParams]);
 
@@ -207,11 +198,6 @@ const Module_Process = () => {
           }, 3000);
         }
       },
-      prefill: {
-        name: formData.name,
-        email: formData.email,
-        contact: formData.phone
-      },
       theme: { color: "#D4A843" },
       modal: {
         ondismiss: () => {
@@ -270,13 +256,13 @@ const Module_Process = () => {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
 
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4rem', gap: '4rem' }}>
-          {[1, 2, 3].map(s => (
+          {[1, 2].map(s => (
             <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', opacity: step >= s ? 1 : 0.3 }}>
               <div style={{ width: '40px', height: '40px', background: step >= s ? '#D4A843' : '#1a1a1a', color: step >= s ? '#111' : '#fff', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, border: '2px solid', borderColor: step >= s ? '#D4A843' : '#333' }}>
                 {s < step ? <CheckCircle2 size={18} /> : s}
               </div>
               <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: step >= s ? '#fff' : '#444' }}>
-                {s === 1 ? 'Shipping' : s === 2 ? 'Payment' : 'Review'}
+                {s === 1 ? 'Payment' : 'Review & Pay'}
               </span>
             </div>
           ))}
@@ -287,27 +273,6 @@ const Module_Process = () => {
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <Motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                  <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#fff', fontSize: '2rem', marginBottom: '2rem' }}>Shipping Details</h2>
-                  <div className="store-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                    <div style={{ gridColumn: 'span 2' }}>
-                      <label style={{ display: 'block', color: '#666', fontSize: '0.75rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Full Name</label>
-                      <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', background: '#111', border: '1px solid #333', padding: '1rem', borderRadius: '0.75rem', color: '#fff', outline: 'none' }} />
-                    </div>
-                    <div className="store-form-full-mobile">
-                      <label style={{ display: 'block', color: '#666', fontSize: '0.75rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Email Address</label>
-                      <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', background: '#111', border: '1px solid #333', padding: '1rem', borderRadius: '0.75rem', color: '#fff', outline: 'none' }} />
-                    </div>
-                    <div className="store-form-full-mobile">
-                      <label style={{ display: 'block', color: '#666', fontSize: '0.75rem', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Phone Number</label>
-                      <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} style={{ width: '100%', background: '#111', border: '1px solid #333', padding: '1rem', borderRadius: '0.75rem', color: '#fff', outline: 'none' }} />
-                    </div>
-                  </div>
-                  <button onClick={nextStep} style={{ marginTop: '2.5rem', width: '100%', padding: '1.25rem', background: '#D4A843', color: '#111', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Continue</button>
-                </Motion.div>
-              )}
-
-              {step === 2 && (
-                <Motion.div key="step2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                   <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#fff', fontSize: '2rem', marginBottom: '2rem' }}>Payment</h2>
                   <div style={{ display: 'grid', gap: '1.5rem' }}>
                     <div style={{ padding: '1.5rem', border: '2px solid #D4A843', borderRadius: '1rem', background: 'rgba(212, 168, 67, 0.05)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -317,35 +282,34 @@ const Module_Process = () => {
                         <p style={{ color: '#666', fontSize: '0.8rem' }}>Payment via Razorpay</p>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '2rem', marginTop: '1rem' }}>
-                      <button onClick={prevStep} style={{ flex: 1, padding: '1rem', background: 'none', color: '#666', fontWeight: 600, border: 'none' }}>Back</button>
-                      <button onClick={nextStep} style={{ flex: 2, padding: '1.25rem', background: '#D4A843', color: '#111', fontWeight: 800, borderRadius: '0.75rem', border: 'none' }}>Review</button>
-                    </div>
+                    <p style={{ color: '#888', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                      Your ebooks will be available instantly in your library after successful payment.
+                    </p>
+                    <button onClick={nextStep} style={{ marginTop: '1rem', width: '100%', padding: '1.25rem', background: '#D4A843', color: '#111', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Review Order</button>
                   </div>
                 </Motion.div>
               )}
 
-              {step === 3 && (
-                <Motion.div key="step3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                  <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#fff', fontSize: '2rem', marginBottom: '2rem' }}>Final Review</h2>
+              {step === 2 && (
+                <Motion.div key="step2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+                  <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#fff', fontSize: '2rem', marginBottom: '2rem' }}>Review & Pay</h2>
                   <div style={{ background: '#111', padding: '2rem', borderRadius: '1rem', border: '1px solid #333', marginBottom: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
                       <h4 style={{ color: '#D4A843', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>
-                        {isRetryFlow ? 'Order Details' : 'Delivery To'}
+                        Order Details
                       </h4>
                       {isRetryFlow ? (
                         <p style={{ color: '#fff' }}>Retrying Payment for Order #{orderId}</p>
                       ) : (
-                        <>
-                          <p style={{ color: '#fff' }}>{formData.name}</p>
-                          <p style={{ color: '#888', fontSize: '0.9rem' }}>{formData.email} • {formData.phone}</p>
-                        </>
+                        <p style={{ color: '#888', fontSize: '0.9rem' }}>Digital delivery — your ebooks will appear in My Library immediately after payment.</p>
                       )}
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '2rem' }}>
-                    <button onClick={prevStep} style={{ flex: 1, padding: '1rem', background: 'none', color: '#666', fontWeight: 600, border: 'none' }}>Back</button>
+                    {!isRetryFlow && (
+                      <button onClick={prevStep} style={{ flex: 1, padding: '1rem', background: 'none', color: '#666', fontWeight: 600, border: 'none' }}>Back</button>
+                    )}
                     <button
                       onClick={handlePlaceOrder}
                       disabled={isProcessing}
