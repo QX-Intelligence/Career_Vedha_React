@@ -7,7 +7,7 @@ import Footer from '../components/layout/Footer';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import { useInfiniteArticles } from '../hooks/useArticles';
 import '../styles/contact-papers.css';
-import '../styles/Articles.css';
+import './Articles.css';
 
 const QuestionPapersPage = () => {
     const [searchParams] = useSearchParams();

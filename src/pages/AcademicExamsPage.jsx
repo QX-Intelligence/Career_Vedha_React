@@ -12,8 +12,7 @@ import { useAcademicsHierarchy } from '../hooks/useAcademics';
 import Skeleton from '../components/ui/Skeleton';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import { useInfiniteArticles } from '../hooks/useArticles';
-import '../modules/news/pages/NewsList.css'; // Reusing news styles for general articles
-import '../styles/Articles.css';
+import './Articles.css';
 
 // Lazy load heavier components
 const PreviousPapers = lazy(() => import('../components/home/PreviousPapers'));
