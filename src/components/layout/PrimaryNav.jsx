@@ -242,6 +242,7 @@ const PrimaryNav = ({ isOpen }) => {
             path: '#',
             hasDropdown: true,
             dropdownItems: [
+                { name: t.navCurriculum || "Course Materials", path: '/curriculum' },
                 { name: t.navVideos, path: '/videos' },
                 { name: t.navPreviousPapers, path: '/question-papers' }
             ]

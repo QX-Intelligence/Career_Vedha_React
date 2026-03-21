@@ -57,6 +57,7 @@ const QuestionPapersPage = lazy(() => import('./pages/QuestionPapersPage'));
 const StudyMaterialsPage = lazy(() => import('./pages/StudyMaterialsPage'));
 const SearchResults = lazy(() => import('./pages/SearchResults'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const Curriculum = lazy(() => import('./pages/Curriculum'));
 const VideosPage = lazy(() => import("./pages/VideosPage"));
 const CV_Store_Module = lazy(() => import("./modules/_cv_sys_cache/index"));
 const EStoreAdminRoot = lazy(() => import("./modules/_cv_sys_cache/admin/EStoreAdminRoot"));
@@ -394,6 +395,7 @@ function App() {
                                         <Route path="/paper-viewer" element={<PaperViewer />} />
                                         <Route path="/question-papers" element={<QuestionPapersPage />} />
                                         <Route path="/study-materials" element={<StudyMaterialsPage />} />
+                                        <Route path="/curriculum" element={<Curriculum />} />
                                         <Route path="/videos" element={<VideosPage />} />
                                         <Route path="/e-store/*" element={<CV_Store_Module />} />
                                         <Route path="/videos/:category" element={<VideosPage />} />

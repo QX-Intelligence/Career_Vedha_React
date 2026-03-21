@@ -1,17 +1,14 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import StudentAcademicsExplorer from '../components/home/StudentAcademicsExplorer';
+import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useLocation, Link } from 'react-router-dom';
 import TopBar from '../components/layout/TopBar';
 import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
-import AcademicsSidebar from '../components/academics/AcademicsSidebar';
-import SectionCategoryBlocks from '../components/home/SectionCategoryBlocks';
-import { useAcademicsHierarchy } from '../hooks/useAcademics';
 import Skeleton from '../components/ui/Skeleton';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import { useInfiniteArticles } from '../hooks/useArticles';
+import API_CONFIG from '../config/api.config';
 import './Articles.css';
 
 // Lazy load heavier components
@@ -27,7 +24,7 @@ const SectionSkeleton = () => (
 );
 
 const AcademicExamsPage = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeLanguage, setActiveLanguage] = useState(() => {
@@ -35,46 +32,54 @@ const AcademicExamsPage = () => {
     });
     
     // Derived from URL
-    const levelIdParam = searchParams.get('category') || searchParams.get('level');
-    const [selectedLevelName, setSelectedLevelName] = useState(null);
+    const categoryParam = searchParams.get('category');
+    const subParam = searchParams.get('sub_category') || searchParams.get('sub');
+    const segmentParam = searchParams.get('segment');
 
-    const handleLevelChange = (level) => {
-        const newParams = new URLSearchParams(searchParams);
-        if (level && level.id) {
-            newParams.set('category', level.id);
-            setSelectedLevelName(level.name);
-            newParams.delete('level');
-            newParams.delete('subject');
-        } else {
-            newParams.delete('category');
-            newParams.delete('level');
-            newParams.delete('subject');
-            setSelectedLevelName(null);
+    // Resolve hierarchy names from cache for UI standard display
+    const hierarchyNames = useMemo(() => {
+        if (!categoryParam) return null;
+        try {
+            const cached = localStorage.getItem('cv_nav_tree_v3');
+            if (!cached) return null;
+            const { data } = JSON.parse(cached);
+            
+            const sectionData = data['exams'];
+            if (!sectionData) return null;
+
+            const stateNode = sectionData.find(c => c.slug === categoryParam || String(c.id) === String(categoryParam));
+            const districtNode = subParam ? stateNode?.children?.find(s => s.slug === subParam || String(s.id) === String(subParam)) : null;
+            const segmentNode = segmentParam ? districtNode?.children?.find(seg => seg.slug === segmentParam || String(seg.id) === String(segmentParam)) : null;
+
+            return {
+                state: stateNode?.name,
+                district: districtNode?.name,
+                segment: segmentNode?.name
+            };
+        } catch (e) {
+            return null;
         }
-        setSearchParams(newParams);
-    };
+    }, [categoryParam, subParam, segmentParam]);
 
-    const query = selectedLevelName ? `${selectedLevelName} - AP` : '';
-    
-    // Resolve level name from hierarchy if we have a param but no name
-    const { data: hierarchy } = useAcademicsHierarchy();
-    useEffect(() => {
-        if (levelIdParam && !selectedLevelName && hierarchy) {
-            const level = hierarchy.find(l => l.id.toString() === levelIdParam.toString());
-            if (level) setSelectedLevelName(level.name);
-        }
-    }, [levelIdParam, selectedLevelName, hierarchy]);
+    const filters = useMemo(() => ({
+        lang: activeLanguage === 'telugu' ? 'te' : 'en',
+        section: 'exams',
+        category: categoryParam || undefined,
+        sub_category: subParam || undefined,
+        segment: segmentParam || undefined
+    }), [activeLanguage, categoryParam, subParam, segmentParam]);
 
-    // Using unified infinite articles hook with keyword search
     const { 
         data, 
         fetchNextPage, 
         hasNextPage, 
+        isFetchingNextPage,
         isLoading, 
-        isError 
-    } = useInfiniteArticles(query ? { q: query, limit: 200 } : {}, { enabled: !!query });
+        isError,
+        refetch
+    } = useInfiniteArticles(filters);
 
-    const articles = data?.pages.flatMap(page => page.results) || [];
+    const allArticles = data?.pages.flatMap(page => page.results) || [];
 
     const handleLanguageChange = (lang) => {
         setActiveLanguage(lang);
@@ -84,13 +89,28 @@ const AcademicExamsPage = () => {
     // Scroll to top on mount
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, []);
+    }, [categoryParam, subParam, segmentParam]);
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'Recent';
+        try {
+            const date = new Date(dateString);
+            const locale = activeLanguage === 'telugu' ? 'te-IN' : 'en-IN';
+            return date.toLocaleDateString(locale, {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return 'Recent';
+        }
+    };
 
     return (
-        <div className="jobs-page-wrapper">
+        <div className="articles-page-wrapper">
             <Helmet>
-                <title>Academic Exams | Career Vedha</title>
-                <meta name="description" content="Explore academic exams, subjects, and chapters. Take practice tests and improve your skills." />
+                <title>Exams | Career Vedha</title>
+                <meta name="description" content="Explore entrance exams, competitive exams, and preparation material." />
             </Helmet>
 
             <TopBar />
@@ -102,79 +122,116 @@ const AcademicExamsPage = () => {
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
-            <TaxonomyTabs sectionSlug="exams" />
-            
-            <main className="jobs-main-content">
-                <div className="container">
-                    <div className="jobs-layout">
-                        <aside className="jobs-sidebar">
-                            <AcademicsSidebar 
-                                activeLevelId={levelIdParam} 
-                                onLevelChange={handleLevelChange} 
-                            />
-                        </aside>
-                        
-                        <div className="jobs-content-area">
-                            {levelIdParam ? (
-                                <div className="academics-articles-list">
-                                    <div className="section-header-flex">
-                                        <h2 className="premium-title">{selectedLevelName || 'Academic Materials'}</h2>
-                                        <div className="papers-count">{articles.length} Materials Found</div>
-                                    </div>
-
-                                    {isLoading ? (
-                                        <div className="premium-loader-container">
-                                            <div className="premium-spinner"></div>
-                                            <p>Fetching amazing content for you...</p>
-                                        </div>
-                                    ) : articles.length > 0 ? (
-                                        <div className="papers-grid-large">
-                                            {articles.map(article => (
-                                                <Link 
-                                                    key={article.id} 
-                                                    to={`/articles/${article.slug}`} 
-                                                    className="paper-card-large"
-                                                >
-                                                    <div className="paper-icon">
-                                                        <i className="fas fa-file-pdf"></i>
-                                                    </div>
-                                                    <div className="paper-card-content">
-                                                        <h3 className="paper-title">{article.title}</h3>
-                                                        <p className="paper-description">{article.summary}</p>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="papers-empty">
-                                            <i className="fas fa-search"></i>
-                                            <p>No academic materials found for this level matching "{query}".</p>
-                                        </div>
-                                    )}
-
-                                    {hasNextPage && (
-                                        <div className="load-more-container">
-                                            <button className="load-more-btn" onClick={() => fetchNextPage()}>
-                                                <i className="fas fa-plus"></i> Load More
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <StudentAcademicsExplorer 
-                                    showHeader={false} 
-                                    style={{ padding: '0', background: 'transparent' }} 
-                                    activeLevelId={levelIdParam}
-                                    activeLanguage={activeLanguage}
-                                />
-                            )}
-                        </div>
+            {/* Hierarchical Header for Exams */}
+            {hierarchyNames && (hierarchyNames.state || hierarchyNames.district) && (
+                <div className="taxonomy-header-container">
+                    <div className="taxonomy-breadcrumb">
+                        {hierarchyNames.state && <span className="state-name">{hierarchyNames.state}</span>}
+                        {hierarchyNames.district && (
+                            <>
+                                <i className="fas fa-chevron-right separator"></i>
+                                <span className="district-name">{hierarchyNames.district}</span>
+                            </>
+                        )}
+                        {hierarchyNames.segment && (
+                            <>
+                                <i className="fas fa-chevron-right separator"></i>
+                                <span className="segment-name">{hierarchyNames.segment}</span>
+                            </>
+                        )}
                     </div>
                 </div>
-            </main>
+            )}
 
-            {/* Academics-related resources from Home */}
-            <SectionCategoryBlocks section="academics" title="Latest from Academics" activeLanguage={activeLanguage} />
+            <TaxonomyTabs sectionSlug="exams" />
+            
+            <main className="articles-main">
+                {isLoading ? (
+                    <div className="articles-loading">
+                        <div className="spinner mx-auto mb-4"></div>
+                        <p>Loading your articles...</p>
+                    </div>
+                ) : isError ? (
+                    <div className="articles-error">
+                        <i className="fas fa-exclamation-triangle mb-4 text-red-500" style={{ fontSize: '48px' }}></i>
+                        <h2>Something went wrong</h2>
+                        <p className="mb-6">We couldn't load the articles at this time.</p>
+                        <button onClick={() => refetch()} className="btn-load-more">
+                            Retry Request
+                        </button>
+                    </div>
+                ) : allArticles.length === 0 ? (
+                    <div className="articles-empty">
+                        <i className="fas fa-search"></i>
+                        <h2>No exams found</h2>
+                        <p>We couldn't find any articles matching this category.</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="articles-grid">
+                            {allArticles.map((article) => {
+                                let imageUrl = article.featured_media?.url || article.og_image_url;
+                                if (imageUrl && imageUrl.startsWith('/')) {
+                                    imageUrl = `${API_CONFIG.DJANGO_BASE_URL.replace('/api', '')}${imageUrl}`;
+                                }
+                                imageUrl = imageUrl || "https://placehold.co/600x400/FFC107/333333?text=Exam";
+
+                                return (
+                                    <article key={article.id} className="article-card">
+                                        <div className="article-card-image">
+                                            <img
+                                                src={imageUrl}
+                                                alt={article.title}
+                                                onError={(e) => {
+                                                    e.target.src = "https://placehold.co/600x400/FFC107/333333?text=Exam";
+                                                }}
+                                            />
+                                            <div className="article-card-badge">
+                                                Exams
+                                            </div>
+                                        </div>
+                                        <div className="article-card-content">
+                                            <h3 className="news-title">{article.title}</h3>
+                                            <p className="news-description">{article.summary || article.title}</p>
+                                            <div className="news-card-footer">
+                                                <div className="news-date">
+                                                    <i className="far fa-clock"></i>
+                                                    {formatDate(article.published_at || article.created_at)}
+                                                </div>
+                                                <Link 
+                                                    to={`/article/exams/${article.slug}`} 
+                                                    className="read-more-btn"
+                                                >
+                                                    Read Full Story <i className="fas fa-arrow-right"></i>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+
+                        {hasNextPage && (
+                            <div className="load-more-section">
+                                <button
+                                    onClick={() => fetchNextPage()}
+                                    disabled={isFetchingNextPage}
+                                    className="btn-load-more"
+                                >
+                                    {isFetchingNextPage ? (
+                                        <>
+                                            <div className="spinner"></div>
+                                            Loading more...
+                                        </>
+                                    ) : (
+                                        'Load More Exams'
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </main>
 
             <Suspense fallback={<SectionSkeleton />}>
                 <PreviousPapers activeLanguage={activeLanguage} title="Previous Question Papers" />

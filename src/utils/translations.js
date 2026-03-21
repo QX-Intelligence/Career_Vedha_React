@@ -27,6 +27,7 @@ export const translations = {
         navExams: "Exams",
         navCampusPages: "Campus Pages",
         navMore: "More",
+        navCurriculum: "Course Materials",
         
         // ===== HOME PAGE =====
         latestUpdates: "Latest Updates",
@@ -162,6 +163,7 @@ export const translations = {
         navExams: "పరీక్షలు",
         navCampusPages: "క్యాంపస్ పేజీలు",
         navMore: "మరిన్ని",
+        navCurriculum: "కోర్సు సామగ్రి",
         
         // ===== HOME PAGE =====
         latestUpdates: "తాజా నవీకరణలు",

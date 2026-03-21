@@ -473,7 +473,40 @@ export const academicsService = {
             // Using Spring Boot hierarchy
             const response = await api.get(API_CONFIG.ENDPOINTS.ACADEMICS_HIERARCHY);
             const data = response.data;
-            return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
+            const hierarchy = Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
+            
+            // Map Spring's 4-level structure to legacy 3-level structure (for UI components like StudentAcademicsExplorer)
+            hierarchy.forEach(level => {
+                if (!level.subjects) {
+                    const legacySubjects = [];
+                    (level.sub_categories || []).forEach(subCat => {
+                        (subCat.segments || []).forEach(segment => {
+                            // Ensure uniqueness in the flat list, optionally append sub-category name
+                            // But usually subjects are distinct enough or users rely on context
+                            const existingSubject = legacySubjects.find(s => s.name === segment.name);
+                            if (existingSubject) {
+                                // Merge topics into chapters if subject already exists
+                                const newChapters = (segment.topics || []).map(topic => ({ ...topic, id: topic.id, name: topic.name }));
+                                existingSubject.chapters = [...(existingSubject.chapters || []), ...newChapters];
+                            } else {
+                                legacySubjects.push({
+                                    id: segment.id,
+                                    name: segment.name,
+                                    sub_category_name: subCat.name,
+                                    chapters: (segment.topics || []).map(topic => ({
+                                        ...topic,
+                                        id: topic.id,
+                                        name: topic.name
+                                    }))
+                                });
+                            }
+                        });
+                    });
+                    level.subjects = legacySubjects;
+                }
+            });
+            
+            return hierarchy;
         } catch (error) {
             console.error('Error fetching academics hierarchy from Spring:', error);
             throw error;

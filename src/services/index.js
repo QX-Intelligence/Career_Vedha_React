@@ -968,12 +968,13 @@ export const youtubeService = {
     // Get YouTube URLs by category/filters
     getYoutubeUrls: async (category, cursorId = null, filters = {}) => {
         try {
-            const params = { category, ...filters };
+            const params = { category };
             if (cursorId) params.cursorId = cursorId;
             
             // Map frontend standard names to backend expected if different
             if (filters.category) params.category_slug = filters.category;
             if (filters.sub_category) params.sub_category_slug = filters.sub_category;
+            if (filters.segment) params.segment = filters.segment;
 
             const response = await apiClient.get(API_CONFIG.ENDPOINTS.GET_YT_URLS_BY_CATEGORY, { params });
             return response.data;
@@ -1272,7 +1273,7 @@ export const globalSearchService = {
                                     id: `level-${level.id}`,
                                     title: level.name || '',
                                     summary: `Academic Level: ${level.name}`,
-                                    url: `/academic-exams?level=${level.id}`
+                                    url: `/curriculum?level=${level.id}`
                                 });
                             }
                             (level.subjects || []).forEach(subject => {
@@ -1313,7 +1314,7 @@ export const globalSearchService = {
                                             id: `chapter-${chapter.id}`,
                                             title: chapter.name || chapter.title || '',
                                             summary: `${subject.name} › ${level.name}`,
-                                            url: `/academic-exams`,
+                                            url: `/curriculum`,
                                             examConfig: {
                                                 type: 'chapter',
                                                 value: String(chapter.id),
