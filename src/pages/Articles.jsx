@@ -10,6 +10,7 @@ import { newsService, taxonomyService } from '../services';
 import TopStoriesHero from '../components/home/TopStoriesHero';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import ContentHubWidget from '../components/ui/ContentHubWidget';
+import ArticleCard from '../components/ui/ArticleCard';
 import './Articles.css';
 
 const ArticlesPage = () => {
@@ -261,47 +262,14 @@ const ArticlesPage = () => {
                 ) : (
                     <>
                         <div className="articles-grid">
-                            {allArticles.map((article) => {
-                                // Resolve image URL
-                                let imageUrl = article.featured_media?.url || article.og_image_url;
-                                if (imageUrl && imageUrl.startsWith('/')) {
-                                    imageUrl = `${API_CONFIG.DJANGO_BASE_URL.replace('/api', '')}${imageUrl}`;
-                                }
-                                imageUrl = imageUrl || "https://placehold.co/600x400/FFC107/333333?text=Article";
-
-                                return (
-                                    <article key={article.id} className="article-card">
-                                        <div className="article-card-image">
-                                            <img
-                                                src={imageUrl}
-                                                alt={article.title}
-                                                onError={(e) => {
-                                                    e.target.src = "https://placehold.co/600x400/FFC107/333333?text=Article";
-                                                }}
-                                            />
-                                            <div className="article-card-badge">
-                                                {article.section}
-                                            </div>
-                                        </div>
-                                        <div className="article-card-content">
-                                            <h3 className="news-title">{article.title}</h3>
-                                            <p className="news-description">{article.summary || article.title}</p>
-                                            <div className="news-card-footer">
-                                                <div className="news-date">
-                                                    <i className="far fa-clock"></i>
-                                                    {formatDate(article.published_at || article.created_at)}
-                                                </div>
-                                                <Link 
-                                                    to={`/article/${article.section || 'null'}/${article.slug}`} 
-                                                    className="read-more-btn"
-                                                >
-                                                    Read Full Story <i className="fas fa-arrow-right"></i>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </article>
-                                );
-                            })}
+                            {allArticles.map((article) => (
+                                <ArticleCard 
+                                    key={article.id} 
+                                    article={article} 
+                                    formatDate={formatDate}
+                                    activeLanguage={activeLanguage}
+                                />
+                            ))}
                         </div>
 
                         {hasNextPage && (

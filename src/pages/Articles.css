@@ -138,6 +138,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    cursor: pointer;
 }
 
 .article-card:hover {
@@ -249,6 +250,8 @@
     background: #f1f5f9;
     border-radius: 8px;
     transition: all 0.2s;
+    cursor: pointer;
+    border: none;
 }
 
 .read-more-btn:hover {
