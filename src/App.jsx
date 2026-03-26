@@ -57,6 +57,9 @@ const QuestionPapersPage = lazy(() => import('./pages/QuestionPapersPage'));
 const StudyMaterialsPage = lazy(() => import('./pages/StudyMaterialsPage'));
 const SearchResults = lazy(() => import('./pages/SearchResults'));
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const AboutUs = lazy(() => import('./pages/AboutUs'));
+const ContactUs = lazy(() => import('./pages/ContactUs'));
 const Curriculum = lazy(() => import('./pages/Curriculum'));
 const VideosPage = lazy(() => import("./pages/VideosPage"));
 const CV_Store_Module = lazy(() => import("./modules/_cv_sys_cache/index"));
@@ -391,6 +394,9 @@ function App() {
                                         <Route path="/articles" element={<ArticlesPage />} />
                                         <Route path="/search" element={<SearchResults />} />
                                         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                                        <Route path="/about" element={<AboutUs />} />
+                                        <Route path="/contact" element={<ContactUs />} />
                                         <Route path="/current-affairs" element={<CurrentAffairs />} />
                                         <Route path="/paper-viewer" element={<PaperViewer />} />
                                         <Route path="/question-papers" element={<QuestionPapersPage />} />

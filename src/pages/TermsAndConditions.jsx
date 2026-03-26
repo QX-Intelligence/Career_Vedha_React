@@ -94,14 +94,20 @@ const TermsAndConditions = () => {
                         </section>
 
                         <section>
-                            <h2>9. Contact Us</h2>
+                            <h2>10. Advertising</h2>
                             <p>
-                                If you have any questions about these Terms and Conditions, please contact us at:
+                                We use third-party advertising services such as Google AdSense. These services may use cookies to show ads based on user interests and browsing behavior.
                             </p>
-                            {/* <p className="contact-details">
-                                <strong>Email:</strong> info@careervedha.com<br />
-                                <strong>Address:</strong> Hyderabad, Telangana, India
-                            </p> */}
+                            <p>
+                                Users can control ad personalization through Google Ads Settings.
+                            </p>
+                        </section>
+
+                        <section>
+                            <h2>11. Contact Us</h2>
+                            <p>
+                                If you have any questions, contact us at: <strong>careervedha@gmail.com</strong>
+                            </p>
                             <button 
                                 className="premium-contact-trigger"
                                 style={{ marginTop: '24px', maxWidth: '280px' }}

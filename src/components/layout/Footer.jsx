@@ -67,9 +67,13 @@ const Footer = () => {
                             <div className="footer-bottom-links">
                                 <Link to="/">Home</Link>
                                 <span className="separator">|</span>
+                                <Link to="/about">About Us</Link>
+                                <span className="separator">|</span>
                                 <Link to="/terms-and-conditions">Terms & Conditions</Link>
                                 <span className="separator">|</span>
-                                <button className="footer-contact-btn" onClick={() => setShowContactForm(true)}>Contact Us</button>
+                                <Link to="/privacy-policy">Privacy Policy</Link>
+                                <span className="separator">|</span>
+                                <Link to="/contact">Contact Us</Link>
                             </div>
 
                             <div className="footer-social-premium">
