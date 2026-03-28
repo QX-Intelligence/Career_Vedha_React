@@ -34,11 +34,11 @@ const CMSSidebar = ({
 
     return (
         <aside className="dashboard-sidebar desktop-only">
-            <div className="sidebar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <div className="sidebar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'center', padding: '0 10px' }}>
                 <img 
-                    src="/Career Vedha logo.png" 
+                    src="/Career Vedha logo1.png" 
                     alt="Career Vedha" 
-                    style={{ height: '80px', width: 'auto', marginBottom: '15px' }}
+                    style={{ width: '230px', height: 'auto', maxHeight: '70px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
                 />
             </div>
 

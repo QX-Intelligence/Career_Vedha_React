@@ -29,6 +29,32 @@ export function useArticles(filters = {}) {
 }
 
 /**
+ * Cursor-based infinite query hook for admin article list.
+ * Pages through the backend 20 at a time using next_cursor.
+ * No hardcoded limit needed — just call fetchNextPage() for more.
+ * @param {Object} filters - Filter options (status, q, section, etc.)
+ */
+export function useInfiniteAdminArticles(filters = {}) {
+    // Strip undefined/null so they don't pollute the cache key
+    const cleanFilters = Object.fromEntries(
+        Object.entries(filters).filter(([, v]) => v !== null && v !== undefined && v !== '')
+    );
+
+    return useInfiniteQuery({
+        queryKey: [...articleKeys.adminList(cleanFilters), 'infinite'],
+        queryFn: async ({ pageParam = null }) => {
+            const params = { ...cleanFilters };
+            if (pageParam) params.cursor = pageParam;
+            return await newsService.getAdminArticles(params);
+        },
+        getNextPageParam: (lastPage) => lastPage?.next_cursor || undefined,
+        staleTime: 0,
+        refetchOnMount: true,
+        refetchOnWindowFocus: false,
+    });
+}
+
+/**
  * Infinite query hook for public articles with cursor pagination
  * @param {Object} filters - Filter options (lang, section, etc.)
  */

@@ -83,7 +83,7 @@
     border-bottom: none;
 }
 
-.ts-table tr:hover {
+.ts-table tbody tr:hover {
     background: #fdfaf3;
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import djangoApi from '../services/djangoApi'; 
 import { currentAffairsService, newsService } from '../services';
@@ -67,8 +67,32 @@ const CurrentAffairs = () => {
     // Cursor pagination state
     const [cursorTime, setCursorTime] = useState(null);
     const [cursorId, setCursorId] = useState(null);
+    const [djangoCursor, setDjangoCursor] = useState(null);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState(null); // Document viewer state
     const LIMIT = 12;
+
+    const sentinelRef = useRef(null);
+
+    // Infinite scroll observer
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (entry.isIntersecting && hasMore && !loading && !isFetchingMore) {
+                    console.log('[CurrentAffairs] Sentinel intersecting, fetching next batch...');
+                    handleLoadMore();
+                }
+            },
+            { rootMargin: '400px', threshold: 0 }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [hasMore, loading, isFetchingMore]);
 
 
     const lang = activeLanguage === 'telugu' ? 'te' : 'en';
@@ -88,12 +112,14 @@ const CurrentAffairs = () => {
         setNews([]);
         setCursorTime(null);
         setCursorId(null);
-        fetchNews(null, null, true);
+        setDjangoCursor(null);
+        fetchNews(null, null, null, true);
     }, [activeLanguage, categoryParam, subParam, segmentParam]);
 
-    const fetchNews = async (cTime = null, cId = null, isFresh = false) => {
+    const fetchNews = async (cTime = null, cId = null, dCursor = null, isFresh = false) => {
         try {
-            setLoading(true);
+            if (isFresh) setLoading(true);
+            else setIsFetchingMore(true);
             
             // 1. Prepare Params
             const springParams = { 
@@ -103,14 +129,18 @@ const CurrentAffairs = () => {
             if (cTime) springParams.cursorTime = cTime;
             if (cId) springParams.cursorId = cId;
 
-            // 2. Fetch from Both Sources
+            // 2. Fetch from Django Source
             let djangoArticles = [];
-            if (isFresh) {
+            let nextDjangoCursor = null;
+            
+            // Only fetch Django if we are starting fresh or have a cursor for more
+            if (isFresh || dCursor) {
                 try {
                     const djangoParams = {
                         section: 'current-affairs',
                         lang: lang,
-                        limit: 15
+                        limit: 15,
+                        cursor: dCursor
                     };
                     
                     if (categoryParam) djangoParams.category = categoryParam;
@@ -127,25 +157,45 @@ const CurrentAffairs = () => {
                         creationorupdationDate: art.published_at,
                         region: categoryParam === 'national' ? 'India' : (categoryParam || 'General')
                     }));
+                    nextDjangoCursor = djangoRes.next_cursor || null;
                 } catch (djangoErr) {
                     console.error('Error fetching Django current affairs:', djangoErr);
                 }
             }
 
-            let springResponse;
-            const springRegion = categoryParam || LEVEL_TO_SPRING_REGION[categoryParam] || LEVEL_TO_SPRING_REGION[subParam];
+            // 3. Fetch from Spring Source
+            let springArticles = [];
+            let nextSTime = null;
+            let nextSId = null;
 
-            if (!springRegion || springRegion === 'ALL') {
-                springResponse = await currentAffairsService.getAllAffairs(springParams);
-            } else if (springRegion === 'INDIA') {
-                springResponse = await currentAffairsService.getAllAffairs(springParams);
-            } else {
-                springResponse = await currentAffairsService.getByRegion(springRegion, springParams);
+            // Only fetch Spring if we are fresh OR we have a Spring cursor (avoid re-fetching Spring if we only have Django more)
+            // But usually we fetch both in parallel for combined feeds
+            if (isFresh || (cTime && cId)) {
+                try {
+                    let springResponse;
+                    const springRegion = categoryParam || LEVEL_TO_SPRING_REGION[categoryParam] || LEVEL_TO_SPRING_REGION[subParam];
+
+                    if (!springRegion || springRegion === 'ALL') {
+                        springResponse = await currentAffairsService.getAllAffairs(springParams);
+                    } else if (springRegion === 'INDIA') {
+                        springResponse = await currentAffairsService.getAllAffairs(springParams);
+                    } else {
+                        springResponse = await currentAffairsService.getByRegion(springRegion, springParams);
+                    }
+                    
+                    springArticles = Array.isArray(springResponse) ? springResponse : [];
+                    if (springArticles.length > 0) {
+                        const lastSpringItem = springArticles[springArticles.length - 1];
+                        nextSTime = lastSpringItem.creationorupdationDate;
+                        nextSId = lastSpringItem.id;
+                    }
+                } catch (springErr) {
+                    console.error('Error fetching Spring current affairs:', springErr);
+                }
             }
 
-            console.log(`[CurrentAffairs] Fetched Django: ${djangoArticles.length}, Spring: ${springResponse?.length}`);
+            console.log(`[CurrentAffairs] Batch Fetched - Django: ${djangoArticles.length}, Spring: ${springArticles.length}`);
             
-            const springArticles = Array.isArray(springResponse) ? springResponse : [];
             const combinedBatch = [...djangoArticles, ...springArticles];
             
             if (isFresh) {
@@ -154,25 +204,30 @@ const CurrentAffairs = () => {
                 setNews(prev => [...prev, ...combinedBatch]);
             }
             
-            if (springArticles.length > 0) {
-                const lastSpringItem = springArticles[springArticles.length - 1];
-                setCursorTime(lastSpringItem.creationorupdationDate);
-                setCursorId(lastSpringItem.id);
-            }
+            // Update cursors for next fetch
+            setDjangoCursor(nextDjangoCursor);
+            setCursorTime(nextSTime);
+            setCursorId(nextSId);
 
-            const limitUsed = (springRegion === 'INDIA') ? 20 : LIMIT;
-            setHasMore(springArticles.length === limitUsed);
+            // We have more if EITHER source returned a full batch or has a next cursor
+            const springLimitUsed = (springParams.limit || LIMIT);
+            const hasMoreSpring = springArticles.length >= springLimitUsed;
+            const hasMoreDjango = !!nextDjangoCursor;
+            
+            setHasMore(hasMoreSpring || hasMoreDjango);
             setError(null);
         } catch (err) {
             console.error('Error fetching news:', err);
             setError(t.error);
         } finally {
             setLoading(false);
+            setIsFetchingMore(false);
         }
     };
 
     const handleLoadMore = () => {
-        fetchNews(cursorTime, cursorId);
+        if (loading || isFetchingMore) return;
+        fetchNews(cursorTime, cursorId, djangoCursor);
     };
 
     const handleLanguageChange = (lang) => {
@@ -302,25 +357,21 @@ const CurrentAffairs = () => {
                             )}
                         </div>
 
+                        {/* Infinite scroll sentinel */}
                         {hasMore && (
-                            <div className="load-more-container">
-                                <button 
-                                    className="load-more-btn" 
-                                    onClick={handleLoadMore}
-                                    disabled={loading}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <div className="btn-spinner"></div>
-                                            {t.loading}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="fas fa-plus-circle"></i>
-                                            {t.loadMore}
-                                        </>
-                                    )}
-                                </button>
+                            <div 
+                                ref={sentinelRef} 
+                                className="load-more-container"
+                                style={{ minHeight: '60px', marginTop: '2rem' }}
+                            >
+                                {isFetchingMore ? (
+                                    <div className="premium-loader-container" style={{ padding: '1rem 0' }}>
+                                        <div className="premium-spinner mini"></div>
+                                        <p style={{ fontSize: '0.9rem', color: '#64748b' }}>{t.loading}</p>
+                                    </div>
+                                ) : (
+                                    <div style={{ opacity: 0 }}>Scroll for more</div>
+                                )}
                             </div>
                         )}
                     </>

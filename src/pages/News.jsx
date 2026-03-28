@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useInfiniteArticles } from '../hooks/useArticles';
 import { useTrendingArticles } from '../hooks/useHomeContent';
 import Header from '../components/layout/Header';
@@ -52,6 +52,30 @@ const NewsPage = () => {
         isError,
         refetch
     } = useInfiniteArticles(filters);
+
+    // Infinite scroll: sentinel at bottom triggers next page load
+    const sentinelRef = useRef(null);
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    console.log('Sentinel intersecting, fetching next page...');
+                    fetchNextPage();
+                }
+            },
+            {
+                rootMargin: '400px', // Fetch 400px before reaching the bottom
+                threshold: 0
+            }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const { data: trendingArticles, isLoading: trendingLoading } = useTrendingArticles(5, activeLanguage);
 
@@ -198,22 +222,21 @@ const NewsPage = () => {
                             })}
                         </div>
 
+                        {/* Infinite scroll sentinel */}
                         {hasNextPage && (
-                            <div className="load-more-section">
-                                <button
-                                    onClick={() => fetchNextPage()}
-                                    disabled={isFetchingNextPage}
-                                    className="btn-load-more"
-                                >
-                                    {isFetchingNextPage ? (
-                                        <>
-                                            <div className="spinner"></div>
-                                            {t.loading || 'Loading...'}
-                                        </>
-                                    ) : (
-                                        t.loadMore || 'Load More'
-                                    )}
-                                </button>
+                            <div 
+                                ref={sentinelRef} 
+                                className="load-more-section"
+                                style={{ height: '40px', margin: '20px 0', width: '100%', minHeight: '40px' }}
+                            >
+                                {isFetchingNextPage ? (
+                                    <div className="articles-loading-mini">
+                                        <div className="spinner mini mx-auto"></div>
+                                        <p>{t.loadingMore || 'Loading more articles...'}</p>
+                                    </div>
+                                ) : (
+                                    <div style={{ opacity: 0 }}>Scroll for more</div>
+                                )}
                             </div>
                         )}
                     </>

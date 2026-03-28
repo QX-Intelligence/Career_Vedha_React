@@ -213,6 +213,7 @@ a:hover {
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
     z-index: 1000002;
     transition: transform 0.3s ease;
+    pointer-events: none; /* Let clicks/hovers pass through to Nav below header */
 }
 
 .logo-box:hover .site-logo {

@@ -72,13 +72,14 @@ export const newsService = {
                 ...data, // Include total_published, top_categories etc from backend
                 results: results,
                 total: data.total_published || data.count || results.length,
-                next_cursor: data.next_cursor || null,
-                has_next: data.has_next || !!data.next_cursor,
+                // Robust cursor extraction
+                next_cursor: data.next_cursor || data.next || null,
+                has_next: data.has_next || !!(data.next_cursor || data.next),
                 categoryInfo: data.category || null // Pass back the resolved category info if available
             };
         } catch (error) {
             console.error('Error fetching public articles:', error);
-            return { results: [], next_cursor: null, has_next: false };
+            return { results: [], next_cursor: null, has_next: false, total: 0 };
         }
     },
 

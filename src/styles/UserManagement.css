@@ -1574,7 +1574,6 @@
     * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-        color-adjust: exact !important;
     }
 
     /* Ensure table borders and colors are visible */
@@ -1632,13 +1631,15 @@
 .um-btn-text {
     background: transparent;
     border: none;
-    color: var(--slate-400);
+    color: #D4A843;
+    font-weight: 700;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: all 0.2s;
 }
 
 .um-btn-text:hover {
-    color: white;
+    color: #b08a35;
+    background: rgba(212, 168, 67, 0.05);
 }
 
 tr.um-table-row.selected {

@@ -6,7 +6,7 @@ import { getUserContext } from '../../../services/api';
 import CustomSelect from '../../../components/ui/CustomSelect';
 import LuxuryCalendar from '../../../components/ui/LuxuryCalendar';
 import LuxuryTooltip from '../../../components/ui/LuxuryTooltip';
-import { useArticles } from '../../../hooks/useArticles';
+import { useArticles, useInfiniteAdminArticles } from '../../../hooks/useArticles';
 import { useHomeContent } from '../../../hooks/useHomeContent';
 import {
     useToggleCategoryStatus,
@@ -25,14 +25,49 @@ const ArticleManagement = ({ activeLanguage }) => {
     const [activeTab, setActiveTab] = useState('PUBLISHED');
     const [searchQuery, setSearchQuery] = useState('');
     const [filterDate, setFilterDate] = useState('');
-    
-    const { data: articlesData, isLoading: loading, refetch } = useArticles({
+
+    const {
+        data: infiniteData,
+        isLoading: loading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+        refetch
+    } = useInfiniteAdminArticles({
         status: (activeTab === 'SCHEDULED' || activeTab === 'FEATURED') ? 'PUBLISHED' : activeTab,
         q: searchQuery.trim() || undefined,
-        limit: 50 // Fetch enough but avoid exhausting connections
     });
-    
-    const articles = articlesData?.results || [];
+
+    // Flatten all cursor pages into a single list
+    const articles = useMemo(
+        () => (infiniteData?.pages || []).flatMap(page => page?.results || []),
+        [infiniteData]
+    );
+    const totalCount = infiniteData?.pages?.[0]?.count ?? null;
+
+    // Infinite scroll: sentinel at bottom of table triggers next page load
+    const sentinelRef = useRef(null);
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+        
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    console.log('Sentinel intersecting, fetching next page...');
+                    fetchNextPage();
+                }
+            },
+            { 
+                rootMargin: '400px', // Fetch 400px before reaching the bottom
+                threshold: 0 
+            }
+        );
+        
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
     const [currentArticle, setCurrentArticle] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [articleToDelete, setArticleToDelete] = useState(null);
@@ -420,9 +455,11 @@ const ArticleManagement = ({ activeLanguage }) => {
                     <p className="am-subtitle">Manage news stories, academic updates, and categorized content.</p>
                 </div>
                 {canCreate && (
-                    <button className="m-btn-primary" onClick={handleNewArticleClick}>
-                        <i className="fas fa-plus"></i> New Article
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button className="m-btn-primary" onClick={handleNewArticleClick}>
+                            <i className="fas fa-plus"></i> New Article
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -660,9 +697,23 @@ const ArticleManagement = ({ activeLanguage }) => {
                                 ))}
                             </tbody>
                         </table>
+                        
                     </div>
                 )}
 
+                {/* Infinite scroll sentinel placed outside for better visibility */}
+                {hasNextPage && (
+                    <div 
+                        ref={sentinelRef} 
+                        style={{ height: '40px', margin: '20px 0', width: '100%' }} 
+                    />
+                )}
+                
+                {isFetchingNextPage && (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem', color: '#6366f1', gap: '12px', alignItems: 'center', fontWeight: 'bold' }}>
+                        <i className="fas fa-spinner fa-spin"></i> Fetching more articles...
+                    </div>
+                )}
             </div>
 
             {/* Form and Modals would go here but now handled by dedicated page */}
