@@ -233,6 +233,9 @@ const ArticleEditor = () => {
 
             setFormData({
                 ...article,
+                tags: Array.isArray(article.tags) 
+                    ? article.tags.join(', ') 
+                    : (article.tags || ''),
                 section: article.section || sectionParam || '',
                 language: telTrans ? 'te' : 'en',
                 eng_title: article.eng_title || engTrans?.title || (article.language === 'en' ? article.title : ''),
@@ -368,7 +371,7 @@ const ArticleEditor = () => {
         const newErrors = {};
         
         // 1. Core Mandatory Fields
-        if (!formData.slug?.trim()) {
+        if (!String(formData.slug || '').trim()) {
             newErrors.slug = true;
             showSnackbar('URL Slug is required', 'error');
         }
@@ -384,24 +387,24 @@ const ArticleEditor = () => {
         }
 
         // 2. Content Requirement: (tel_title && tel_summary) OR (eng_title && eng_summary)
-        const hasTelugu = formData.tel_title?.trim() && !isContentEmpty(formData.tel_content) && formData.tel_summary?.trim();
-        const hasEnglish = formData.eng_title?.trim() && !isContentEmpty(formData.eng_content) && formData.eng_summary?.trim();
+        const hasTelugu = String(formData.tel_title || '').trim() && !isContentEmpty(formData.tel_content) && String(formData.tel_summary || '').trim();
+        const hasEnglish = String(formData.eng_title || '').trim() && !isContentEmpty(formData.eng_content) && String(formData.eng_summary || '').trim();
 
         if (!hasTelugu && !hasEnglish) {
             showSnackbar('Please provide Title, Content, and Summary in at least one language (Telugu or English)', 'error');
             if (formData.language === 'te') {
-                if (!formData.tel_title?.trim()) newErrors.tel_title = true;
+                if (!String(formData.tel_title || '').trim()) newErrors.tel_title = true;
                 if (isContentEmpty(formData.tel_content)) newErrors.tel_content = true;
-                if (!formData.tel_summary?.trim()) newErrors.tel_summary = true;
+                if (!String(formData.tel_summary || '').trim()) newErrors.tel_summary = true;
             } else {
-                if (!formData.eng_title?.trim()) newErrors.eng_title = true;
+                if (!String(formData.eng_title || '').trim()) newErrors.eng_title = true;
                 if (isContentEmpty(formData.eng_content)) newErrors.eng_content = true;
-                if (!formData.eng_summary?.trim()) newErrors.eng_summary = true;
+                if (!String(formData.eng_summary || '').trim()) newErrors.eng_summary = true;
             }
         }
 
         // 3. Additional Required Fields
-        if (!formData.keywords?.trim()) {
+        if (!String(formData.keywords || '').trim()) {
             newErrors.keywords = true;
             showSnackbar('Keywords are required for better SEO *', 'error');
         }
@@ -443,12 +446,25 @@ const ArticleEditor = () => {
                     limit: 5
                 }) || { results: [] };
                 
-                const tagsToMatch = (formData.tags || '').split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+                // Safely handle source tags (from form)
+                const rawTags = formData.tags;
+                const tagsToMatch = Array.isArray(rawTags)
+                    ? rawTags.map(t => String(t || '').trim().toLowerCase()).filter(t => t)
+                    : (typeof rawTags === 'string' ? rawTags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : []);
+
                 const filtered = results.results?.filter(a => {
                     if (a.id == id) return false;
-                    const articleTags = a.tags || [];
-                    return articleTags.some(at => tagsToMatch.includes(at.toLowerCase())) || 
-                           a.article_categories?.some(ac => formData.category_ids.includes(ac.category_id));
+                    
+                    // Safely handle target article tags
+                    const aTagsRaw = a.tags || [];
+                    const aTags = Array.isArray(aTagsRaw)
+                        ? aTagsRaw.map(t => String(t || '').trim().toLowerCase()).filter(t => t)
+                        : (typeof aTagsRaw === 'string' ? aTagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : []);
+                    
+                    const matchesTags = aTags.some(at => tagsToMatch.includes(at));
+                    const matchesCats = a.article_categories?.some(ac => formData.category_ids?.includes(ac.category_id));
+                    
+                    return matchesTags || matchesCats;
                 }).slice(0, 5) || [];
                 setRelatedArticles(filtered);
             } catch (error) {
