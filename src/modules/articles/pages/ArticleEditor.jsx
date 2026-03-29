@@ -286,19 +286,22 @@ const ArticleEditor = () => {
 
             // IMPORTANT: Only proceed if the loaded hierarchy matches the article's section
             if (articleSection && hierarchySection && articleSection !== hierarchySection) {
-                // If they don't match, we set level1 to trigger the correct tree query
+                // Trigger a sync of level1 to match the article's section to fetch the right tree
+                console.log(`[Prefill] Section mismatch: ${articleSection} vs ${hierarchySection}. Triggering tree fetch...`);
                 setLevel1(articleData.section);
-                return; // Wait for next tick when hierarchy updates
+                return; // Wait for next hierarchy calculation
             }
 
+            console.log(`[Prefill] Starting match for IDs:`, articleData.category_ids || articleData.categories);
+            
             const rawIds = articleData.article_categories 
                 ? articleData.article_categories.map(c => c.category_id) 
-                : (articleData.categories ? articleData.categories.map(c => c.id) : []);
+                : (articleData.categories ? articleData.categories.map(c => (c.id || c.category_id)) : []);
             
-            const ids = rawIds.map(rid => parseInt(rid, 10)).filter(rid => !isNaN(rid));
+            const ids = rawIds.map(rid => Number(rid)).filter(rid => !isNaN(rid));
             
             if (ids.length > 0) {
-                const matched = hierarchy.filter(h => ids.includes(parseInt(h.id || h.category_id, 10)));
+                const matched = hierarchy.filter(h => ids.includes(Number(h.id)));
                 if (matched.length > 0) {
                     setSelectedCategories(matched.map(m => ({ id: m.id || m.category_id, name: m.name, level: m.level })));
                     
@@ -309,13 +312,14 @@ const ArticleEditor = () => {
                         let l5 = '', l4 = '', l3 = '', l2 = '';
                         
                         while (curr) {
-                            if (curr.level === 5) l5 = curr.id?.toString();
-                            if (curr.level === 4) l4 = curr.id?.toString();
-                            if (curr.level === 3) l3 = curr.id?.toString();
-                            if (curr.level === 2) l2 = curr.id?.toString();
+                            if (curr.level === 5) l5 = String(curr.id);
+                            if (curr.level === 4) l4 = String(curr.id);
+                            if (curr.level === 3) l3 = String(curr.id);
+                            if (curr.level === 2) l2 = String(curr.id);
                             
-                            // Use loose equality or string conversion for finding parent
-                            curr = hierarchy.find(h => h.id?.toString() === curr.parent_id?.toString());
+                            // Move up to the parent using Number safe comparison
+                            const parentId = curr.parent_id;
+                            curr = parentId ? hierarchy.find(h => Number(h.id) === Number(parentId)) : null;
                         }
 
                         if (l2) setLevel2(l2);
