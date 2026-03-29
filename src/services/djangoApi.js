@@ -5,9 +5,9 @@ import { getAccessToken } from './api';
 
 const djangoApi = axios.create({
     baseURL: API_CONFIG.DJANGO_BASE_URL.endsWith('/') ? API_CONFIG.DJANGO_BASE_URL : `${API_CONFIG.DJANGO_BASE_URL}/`,
-    timeout: API_CONFIG.TIMEOUT,
-    headers: API_CONFIG.HEADERS
+    timeout: API_CONFIG.TIMEOUT
 });
+// Axios will handle Content-Type (json or multipart) dynamically.
 
 // Request Interceptor to attach JWT
 djangoApi.interceptors.request.use(
