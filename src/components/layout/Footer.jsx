@@ -109,8 +109,7 @@ const Footer = () => {
 
                         <div className="copyright-bar mt-4">
                             <p>
-                                &copy; {currentYear} Career Vedha. All rights reserved. | Empowering Students Nationwide |
-                                <span className="dev-credit-inline"> Developed by <a href="https://www.quinzexintelligence.com" target="_blank" rel="noopener noreferrer">Quinzex Intelligence</a></span>
+                                &copy; {currentYear} Career Vedha. All rights reserved. | Empowering Students Nationwide
                             </p>
                         </div>
                     </div>

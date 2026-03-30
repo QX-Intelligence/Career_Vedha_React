@@ -3467,25 +3467,6 @@ section {
     margin: 0;
 }
 
-.developer-credit {
-    display: none; /* Combined into copyright line */
-}
-
-.dev-credit-inline {
-    margin-left: 5px;
-}
-
-.dev-credit-inline a {
-    color: var(--primary-yellow);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.dev-credit-inline a:hover {
-    color: var(--white);
-    text-decoration: underline;
-}
-
 @media (max-width: 1024px) {
     .footer-content {
         grid-template-columns: repeat(2, 1fr);
