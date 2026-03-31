@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../../../context/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { jobsService } from '../../../services/jobsService';
@@ -17,9 +18,7 @@ const JobDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage } = useLanguage();
 
     useEffect(() => {
         const fetchJob = async () => {
@@ -51,8 +50,7 @@ const JobDetail = () => {
     }, [slug]);
 
     const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
+        // Handled by Context
     };
 
     if (loading) {
@@ -106,8 +104,6 @@ const JobDetail = () => {
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 

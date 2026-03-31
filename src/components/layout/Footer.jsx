@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ContactForm from '../ui/ContactForm';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
     const [showContactForm, setShowContactForm] = useState(false);
-    const activeLanguage = localStorage.getItem('preferredLanguage') || 'english';
+    const { activeLanguage } = useLanguage();
 
     return (
         <>

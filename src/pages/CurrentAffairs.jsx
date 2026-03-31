@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import djangoApi from '../services/djangoApi'; 
 import { currentAffairsService, newsService } from '../services';
 import TopBar from '../components/layout/TopBar';
@@ -49,9 +50,7 @@ const CurrentAffairs = () => {
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage } = useLanguage();
     const { data: trendingArticles, isLoading: trendingLoading } = useTrendingArticles(5, activeLanguage);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
@@ -230,11 +229,6 @@ const CurrentAffairs = () => {
         fetchNews(cursorTime, cursorId, djangoCursor);
     };
 
-    const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
-    };
-
     const stripHtml = (html) => {
         if (!html) return "";
         const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -247,8 +241,6 @@ const CurrentAffairs = () => {
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
             

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import { youtubeService } from '../services';
 import TopBar from '../components/layout/TopBar';
 import Header from '../components/layout/Header';
@@ -123,7 +124,7 @@ const VideoSection = ({ apiCategory, label, layoutClass, onVideoClick, filters =
 const VideosPage = () => {
     const { category } = useParams();
     const [searchParams] = useSearchParams();
-    const [activeLanguage, setActiveLanguage] = useState(() => localStorage.getItem('preferredLanguage') || 'english');
+    const { activeLanguage, setLanguage } = useLanguage();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -146,8 +147,7 @@ const VideosPage = () => {
     };
 
     const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
+        setLanguage(lang);
     };
 
     // Determine which sections to show
@@ -161,8 +161,6 @@ const VideosPage = () => {
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
             

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useHomeContent } from '../hooks/useHomeContent';
 import { getTranslations } from '../utils/translations';
+import { useLanguage } from '../context/LanguageContext';
 import TopBar from '../components/layout/TopBar';
 import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
@@ -34,9 +35,7 @@ const SectionSkeleton = () => (
 
 const Home = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage } = useLanguage();
     const { data: homeData = {
         hero: [],
         breaking: [],
@@ -46,11 +45,6 @@ const Home = () => {
 
     const t = useMemo(() => getTranslations(activeLanguage), [activeLanguage]);
 
-    const handleLanguageChange = useCallback((lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
-    }, []);
-
     return (
         <div className="home-page">
             {/* These components handle their own desktop-only visibility via CSS media queries in MobileLayout/index.css */}
@@ -58,8 +52,6 @@ const Home = () => {
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
             

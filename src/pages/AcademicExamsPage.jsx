@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useLocation, Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import TopBar from '../components/layout/TopBar';
 import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
@@ -27,9 +28,7 @@ const AcademicExamsPage = () => {
     const [searchParams] = useSearchParams();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage, langCode } = useLanguage();
 
     // Derived from URL
     const categoryParam = searchParams.get('category');
@@ -62,12 +61,12 @@ const AcademicExamsPage = () => {
     }, [categoryParam, subParam, segmentParam]);
 
     const filters = useMemo(() => ({
-        lang: activeLanguage === 'telugu' ? 'te' : 'en',
+        lang: langCode,
         section: 'exams',
         category: categoryParam || undefined,
         sub_category: subParam || undefined,
         segment: segmentParam || undefined
-    }), [activeLanguage, categoryParam, subParam, segmentParam]);
+    }), [langCode, categoryParam, subParam, segmentParam]);
 
     const {
         data,
@@ -106,8 +105,7 @@ const AcademicExamsPage = () => {
     const allArticles = data?.pages.flatMap(page => page.results) || [];
 
     const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
+        // Handled by Context
     };
 
     // Scroll to top on mount
@@ -141,8 +139,6 @@ const AcademicExamsPage = () => {
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
@@ -260,7 +256,7 @@ const AcademicExamsPage = () => {
             </main>
 
             <Suspense fallback={<SectionSkeleton />}>
-                <PreviousPapers activeLanguage={activeLanguage} title="Previous Question Papers" />
+                <PreviousPapers title="Previous Question Papers" />
             </Suspense>
 
             <Footer />

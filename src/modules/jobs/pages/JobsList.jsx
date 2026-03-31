@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 import { jobsService } from '../../../services/jobsService';
 import api, { getUserContext } from '../../../services/api';
 import TopBar from '../../../components/layout/TopBar';
@@ -36,11 +37,7 @@ const JobsList = () => {
         }
     }, [levelParam]);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
-
-    const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
+    const { activeLanguage, langCode } = useLanguage();
 
     // Fetch Job Articles (News)
     const { data: jobArticlesData, isLoading: articlesLoading } = useInfiniteArticles({
@@ -102,8 +99,7 @@ const JobsList = () => {
     };
 
     const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
+        // Handled by Context
     };
 
     return (
@@ -112,8 +108,6 @@ const JobsList = () => {
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
@@ -125,7 +119,6 @@ const JobsList = () => {
                     slug: a.slug
                 }))}
                 loading={loading || trendingLoading || articlesLoading}
-                activeLanguage={activeLanguage}
                 title="Job News & Updates"
                 viewAllLink="/articles?section=jobs"
                 sidebarBlocks={[
@@ -150,7 +143,6 @@ const JobsList = () => {
                 <LatestArticles 
                     latest={{ results: jobArticles.slice(5, 11), count: jobArticles.length }}
                     loading={articlesLoading}
-                    activeLanguage={activeLanguage}
                 />
             </div>
 

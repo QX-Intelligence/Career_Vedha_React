@@ -6,21 +6,55 @@ import MobileDrawer from '../navigation/MobileDrawer';
 import { isHandheld } from '../../constants/breakpoints';
 
 const AdSenseUnit = ({ slot = "5794503693" }) => {
+  const insRef = React.useRef(null);
+
   useEffect(() => {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.error("AdSense error", e);
+    const el = insRef.current;
+    if (!el) return;
+
+    let pushed = false;
+
+    const tryPush = () => {
+      if (pushed) return;
+      const width = el.getBoundingClientRect().width;
+      if (width > 0) {
+        pushed = true;
+        try {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {
+          console.error("AdSense error", e);
+        }
+      }
+    };
+
+    // Try immediately in case already visible
+    tryPush();
+
+    // Watch for when the container gains a real width (e.g. media query kicks in)
+    let observer;
+    if (!pushed && typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => {
+        tryPush();
+        if (pushed && observer) observer.disconnect();
+      });
+      observer.observe(el);
     }
+
+    return () => {
+      if (observer) observer.disconnect();
+    };
   }, []);
 
   return (
-    <ins className="adsbygoogle"
-         style={{ display: 'block' }}
-         data-ad-client="ca-pub-6974648434148802"
-         data-ad-slot={slot}
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
+    <ins
+      ref={insRef}
+      className="adsbygoogle"
+      style={{ display: 'block', width: '160px', height: '600px' }}
+      data-ad-client="ca-pub-6974648434148802"
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
   );
 };
 

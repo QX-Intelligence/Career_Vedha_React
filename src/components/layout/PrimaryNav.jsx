@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getTranslations } from '../../utils/translations';
 import { newsService } from '../../services';
+import { useLanguage } from '../../context/LanguageContext';
 
-const NAV_CACHE_KEY = 'cv_nav_tree_v4';
+const NAV_CACHE_BASE = 'cv_nav_tree_v4';
 const NAV_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours caching to avoid 7s load
 
 // ─── Slugs that use tree (multi-level) vs levels (flat) ───────────────────────
@@ -89,7 +90,7 @@ const DropdownMenu = ({ items, show, isLoading, buildUrl }) => {
 // ─── Main Component ───────────────────────────────────────────────────────────
 const PrimaryNav = ({ isOpen }) => {
     const location = useLocation();
-    const activeLanguage = localStorage.getItem('preferredLanguage') || 'english';
+    const { activeLanguage } = useLanguage();
     const t = getTranslations(activeLanguage);
 
     const [navData, setNavData] = useState({
@@ -107,6 +108,9 @@ const PrimaryNav = ({ isOpen }) => {
 
     // ── Fetch ──────────────────────────────────────────────────────────────────
     useEffect(() => {
+        const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
+        const NAV_CACHE_KEY = `${NAV_CACHE_BASE}_${langCode}`;
+
         const fetchNavData = async () => {
             // 1. Try localStorage cache
             try {
@@ -116,6 +120,7 @@ const PrimaryNav = ({ isOpen }) => {
                     if (Date.now() - timestamp < NAV_CACHE_TTL) {
                         setNavData(data);
                         setIsLoading(false);
+                        // If it's very fresh, we skip the API call
                         if (Date.now() - timestamp < 5 * 60 * 1000) return;
                     }
                 }
@@ -126,13 +131,13 @@ const PrimaryNav = ({ isOpen }) => {
                 const [treeResults, levelResults, sectionsData] = await Promise.all([
                     Promise.all(
                         TREE_SECTIONS.map(async (slug) => {
-                            const data = await newsService.getTaxonomyTree(slug);
+                            const data = await newsService.getTaxonomyTree(slug, activeLanguage);
                             return { slug, data: Array.isArray(data) ? data : [] };
                         })
                     ),
                     Promise.all(
                         LEVEL_SECTIONS.map(async (slug) => {
-                            const data = await newsService.getTaxonomyLevels(slug);
+                            const data = await newsService.getTaxonomyLevels(slug, activeLanguage);
                             return { slug, data: Array.isArray(data) ? data : [] };
                         })
                     ),
@@ -148,7 +153,8 @@ const PrimaryNav = ({ isOpen }) => {
                 setAllSections(sectionsData || []);
                 
                 // Dispatch event so components like TaxonomyTabs can refresh from cache
-                window.dispatchEvent(new CustomEvent('cv-nav-updated', { detail: newData }));
+                // We suffix with langCode to ensure targeted updates
+                window.dispatchEvent(new CustomEvent(`cv-nav-updated-${langCode}`, { detail: newData }));
 
                 // 3. Cache it
                 try {
@@ -166,7 +172,7 @@ const PrimaryNav = ({ isOpen }) => {
         };
 
         fetchNavData();
-    }, []);
+    }, [activeLanguage]);
 
     // ── Nav item definitions ───────────────────────────────────────────────────
     const navItems = [

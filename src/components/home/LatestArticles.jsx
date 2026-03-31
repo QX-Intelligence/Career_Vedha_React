@@ -1,9 +1,11 @@
 import React, { useState, useEffect, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { newsService } from '../../services';
+import { useLanguage } from '../../context/LanguageContext';
 import Skeleton from '../ui/Skeleton';
 
-const LatestArticles = memo(({ latest: initialLatest, loading: initialLoading, activeLanguage }) => {
+const LatestArticles = memo(({ latest: initialLatest, loading: initialLoading }) => {
+    const { activeLanguage, langCode } = useLanguage();
     const [articles, setArticles] = useState(initialLatest?.results || []);
     const [totalCount, setTotalCount] = useState(initialLatest?.count || 0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -25,7 +27,6 @@ const LatestArticles = memo(({ latest: initialLatest, loading: initialLoading, a
     const fetchPage = async (page) => {
         setLoadingMore(true);
         try {
-            const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
             const offset = (page - 1) * limit;
             const data = await newsService.getLatestArticles(langCode, limit, offset);
             setArticles(data.results || []);

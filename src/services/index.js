@@ -51,7 +51,7 @@ export const newsService = {
 
             // Use specialized taxonomy filters if hierarchical params are present
             // Handle both 'level' (legacy) and 'category' (standard)
-            const hasHierarchy = cleanParams.category || cleanParams.level || cleanParams.sub_category || cleanParams.sub || cleanParams.segment;
+            const hasHierarchy = cleanParams.section || cleanParams.category || cleanParams.level || cleanParams.sub_category || cleanParams.sub || cleanParams.segment;
             
             const endpoint = hasHierarchy
                 ? API_CONFIG.DJANGO_ENDPOINTS.ARTICLE_FILTERS
@@ -474,9 +474,10 @@ export const newsService = {
     },
 
     // 7. Taxonomy / Categories
-    getTaxonomyBySection: async (section) => {
+    getTaxonomyBySection: async (section, lang = null) => {
         try {
-            const response = await djangoApi.get(`taxonomy/${section}/tree/`);
+            const params = lang ? { lang: lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang) } : {};
+            const response = await djangoApi.get(`taxonomy/${section}/tree/`, { params });
             return response.data;
         } catch (error) {
             console.error(`Error fetching taxonomy for ${section}:`, error);
@@ -597,9 +598,10 @@ export const newsService = {
         }
     },
 
-    getTaxonomyTree: async (section) => {
+    getTaxonomyTree: async (section, lang = null) => {
         try {
-            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_TREE(section));
+            const params = lang ? { lang: lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang) } : {};
+            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_TREE(section), { params });
             return response.data;
         } catch (error) {
             console.error(`Error fetching taxonomy tree for ${section}:`, error);
@@ -607,9 +609,10 @@ export const newsService = {
         }
     },
 
-    getTaxonomyLevels: async (section) => {
+    getTaxonomyLevels: async (section, lang = null) => {
         try {
-            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_LEVELS(section));
+            const params = lang ? { lang: lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang) } : {};
+            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_LEVELS(section), { params });
             return response.data;
         } catch (error) {
             console.error(`Error fetching taxonomy levels for ${section}:`, error);
@@ -1067,12 +1070,13 @@ export { academicsService };
 
 // Taxonomy Service
 export const taxonomyService = {
-    getSections: async (isAdmin = false) => {
+    getSections: async (isAdmin = false, lang = null) => {
         try {
             const endpoint = isAdmin 
                 ? API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_SECTIONS_CMS 
                 : API_CONFIG.DJANGO_ENDPOINTS.TAXONOMY_SECTIONS_PUBLIC;
-            const response = await djangoApi.get(endpoint);
+            const params = lang ? { lang: lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang) } : {};
+            const response = await djangoApi.get(endpoint, { params });
             const data = response.data;
             return Array.isArray(data) ? data : (data?.results || data?.data || data?.content || []);
         } catch (error) {

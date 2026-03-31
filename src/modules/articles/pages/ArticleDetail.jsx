@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 import { newsService } from '../../../services';
 import TopBar from '../../../components/layout/TopBar';
 import Header from '../../../components/layout/Header';
@@ -14,9 +15,7 @@ const ArticleDetail = () => {
     const [article, setArticle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage, langCode } = useLanguage();
 
     // Extract search context for the Content Hub
     const getSearchContext = () => {
@@ -58,7 +57,6 @@ const ArticleDetail = () => {
         const fetchArticle = async () => {
             setLoading(true);
             try {
-                const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
                 const data = await newsService.getArticleDetail(section, slug, langCode);
                 setArticle(data);
 
@@ -113,8 +111,7 @@ const ArticleDetail = () => {
     }, [article, loading]);
 
     const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
+        // Handled by Context
     };
 
     const formatDate = (dateString) => {
@@ -159,8 +156,6 @@ const ArticleDetail = () => {
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 

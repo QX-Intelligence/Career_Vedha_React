@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 import { academicsService } from '../../../services/academicsService';
 import TopBar from '../../../components/layout/TopBar';
 import Header from '../../../components/layout/Header';
@@ -11,6 +12,7 @@ import './Academics.css';
 const MaterialDetail = () => {
     const { slug } = useParams();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { langCode } = useLanguage();
 
     const [material, setMaterial] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +26,7 @@ const MaterialDetail = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const data = await academicsService.getMaterialDetail(slug);
+                const data = await academicsService.getMaterialDetail(slug, langCode);
                 if (isMounted) {
                     setMaterial(data);
                 }
@@ -38,7 +40,7 @@ const MaterialDetail = () => {
         
         fetchMaterial();
         return () => { isMounted = false; };
-    }, [slug]);
+    }, [slug, langCode]);
 
     if (error) {
         return <div className="error-container">Error loading material.</div>;

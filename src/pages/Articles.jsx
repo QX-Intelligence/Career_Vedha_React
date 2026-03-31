@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useInfiniteArticles } from '../hooks/useArticles';
+import { useLanguage } from '../context/LanguageContext';
 import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
@@ -21,7 +22,7 @@ const ArticlesPage = () => {
         const fetchSections = async () => {
             try {
                 setIsLoadingSections(true);
-                const data = await taxonomyService.getSections();
+                const data = await taxonomyService.getSections(false, activeLanguage);
                 // Ensure ALL is always there
                 const dynamicSections = [
                     { id: 'all', name: 'ALL' },
@@ -39,9 +40,7 @@ const ArticlesPage = () => {
     }, []);
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage } = useLanguage();
     const [searchQuery, setSearchQuery] = useState('');
     const [searchParams] = useSearchParams();
     const categoryParam = searchParams.get('category') || searchParams.get('level');
@@ -72,7 +71,9 @@ const ArticlesPage = () => {
     const hierarchyNames = useMemo(() => {
         if (!categoryParam) return null;
         try {
-            const cached = localStorage.getItem('cv_nav_tree_v3');
+            const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
+            const cacheKey = `cv_nav_tree_v4_${langCode}`;
+            const cached = localStorage.getItem(cacheKey);
             if (!cached) return null;
             const { data } = JSON.parse(cached);
 
@@ -144,26 +145,6 @@ const ArticlesPage = () => {
         return () => observer.disconnect();
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return 'Recent';
-        try {
-            const date = new Date(dateString);
-            const locale = activeLanguage === 'telugu' ? 'te-IN' : 'en-IN';
-            return date.toLocaleDateString(locale, {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-            });
-        } catch (e) {
-            return 'Recent';
-        }
-    };
-
     const { data: trendingArticles, isLoading: trendingLoading } = useTrendingArticles(5, activeLanguage);
 
     const allArticles = data?.pages.flatMap(page => page.results) || [];
@@ -171,10 +152,10 @@ const ArticlesPage = () => {
     return (
         <div className="articles-page-wrapper">
             <Header
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
+                onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                isMenuOpen={isMobileMenuOpen}
             />
-            <PrimaryNav />
+            <PrimaryNav isOpen={isMobileMenuOpen} />
 
 
 

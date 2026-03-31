@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-
 import { useNavigate, Link } from 'react-router-dom';
-import { newsService, globalSearchService } from '../../services';
+import { globalSearchService } from '../../services';
 import { getTranslations } from '../../utils/translations';
+import { useLanguage } from '../../context/LanguageContext';
 
-const Header = ({ onToggleMenu, isMenuOpen, activeLanguage, onLanguageChange }) => {
+const Header = ({ onToggleMenu, isMenuOpen }) => {
+    const { activeLanguage, setLanguage } = useLanguage();
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -35,9 +36,7 @@ const Header = ({ onToggleMenu, isMenuOpen, activeLanguage, onLanguageChange }) 
     };
 
     const toggleLanguage = (lang) => {
-        if (onLanguageChange) {
-            onLanguageChange(lang);
-        }
+        setLanguage(lang);
     };
 
     return (

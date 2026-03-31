@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 import { academicsService } from '../../../services/academicsService';
 import { useInfiniteArticles } from '../../../hooks/useArticles';
 import TopBar from '../../../components/layout/TopBar';
@@ -24,20 +25,18 @@ const AcademicsHome = () => {
     const isFiltered = !!(categoryParam || subParam || segmentParam);
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage, langCode } = useLanguage();
 
     const t = getTranslations(activeLanguage);
 
     const filters = useMemo(() => ({
-        lang: activeLanguage === 'telugu' ? 'te' : 'en',
+        lang: langCode,
         section: 'academics',
         category: categoryParam || undefined,
         sub_category: subParam || undefined,
         segment: segmentParam || undefined,
         limit: 12
-    }), [activeLanguage, categoryParam, subParam, segmentParam]);
+    }), [langCode, categoryParam, subParam, segmentParam]);
 
     const {
         data: articlesData,
@@ -76,10 +75,7 @@ const AcademicsHome = () => {
     return (
         <div className="academics-home-page">
             <TopBar />
-            <Header onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} isMenuOpen={isMobileMenuOpen} activeLanguage={activeLanguage} onLanguageChange={(lang) => {
-                setActiveLanguage(lang);
-                localStorage.setItem('preferredLanguage', lang);
-            }} />
+            <Header onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} isMenuOpen={isMobileMenuOpen} />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
             <div className="container mt-4">
@@ -90,7 +86,6 @@ const AcademicsHome = () => {
                 <TopStoriesHero
                     topStories={homeContent?.top_stories?.filter(s => s.section === 'academics') || homeContent?.latest?.results?.filter(s => s.section === 'academics')?.slice(0, 5) || []}
                     loading={homeLoading}
-                    activeLanguage={activeLanguage}
                     title="Academic Top Stories"
                     viewAllLink="/academics"
                     sidebarBlocks={[

@@ -1,8 +1,10 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 import './TaxonomyTabs.css';
 
 const TaxonomyTabs = ({ sectionSlug }) => {
+    const { langCode } = useLanguage();
     const location = useLocation();
     const navigate = useNavigate();
     const query = new URLSearchParams(location.search);
@@ -23,20 +25,26 @@ const TaxonomyTabs = ({ sectionSlug }) => {
     
     useEffect(() => {
         const handleUpdate = () => setCacheHash(prev => prev + 1);
-        window.addEventListener('cv-nav-updated', handleUpdate);
+        const eventName = `cv-nav-updated-${langCode}`;
+        const cacheKey = `cv_nav_tree_v4_${langCode}`;
+        
+        window.addEventListener(eventName, handleUpdate);
         // Also listen for storage from other tabs for consistency
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'cv_nav_tree_v4') handleUpdate();
-        });
-        return () => {
-            window.removeEventListener('cv-nav-updated', handleUpdate);
-            window.removeEventListener('storage', handleUpdate);
+        const storageHandler = (e) => {
+            if (e.key === cacheKey) handleUpdate();
         };
-    }, []);
+        window.addEventListener('storage', storageHandler);
+        
+        return () => {
+            window.removeEventListener(eventName, handleUpdate);
+            window.removeEventListener('storage', storageHandler);
+        };
+    }, [langCode]);
 
     const tabsInfo = useMemo(() => {
         try {
-            const cached = localStorage.getItem('cv_nav_tree_v4');
+            const cacheKey = `cv_nav_tree_v4_${langCode}`;
+            const cached = localStorage.getItem(cacheKey);
             if (!cached) return { tabs: [], parent: null, depth: 0 };
             
             const { data } = JSON.parse(cached);

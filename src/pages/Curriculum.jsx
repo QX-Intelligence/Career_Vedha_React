@@ -3,18 +3,12 @@ import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import StudentAcademicsExplorer from '../components/home/StudentAcademicsExplorer';
+import { useLanguage } from '../context/LanguageContext';
 import TopBar from '../components/layout/TopBar';
 
 const Curriculum = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
-
-    const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
-    };
+    const { activeLanguage, langCode } = useLanguage();
 
     return (
         <div className="curriculum-page">
@@ -22,8 +16,6 @@ const Curriculum = () => {
             <Header 
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
                 isMenuOpen={isMobileMenuOpen} 
-                activeLanguage={activeLanguage} 
-                onLanguageChange={handleLanguageChange} 
             />
             <PrimaryNav isOpen={isMobileMenuOpen} />
 
@@ -39,7 +31,7 @@ const Curriculum = () => {
                 
                 <StudentAcademicsExplorer 
                     showHeader={false} 
-                    activeLanguage={activeLanguage === 'telugu' ? 'te' : 'en'} 
+                    activeLanguage={langCode} 
                 />
             </div>
 

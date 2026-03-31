@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
 import { academicsService } from '../../../services/academicsService';
 import TopBar from '../../../components/layout/TopBar';
 import Header from '../../../components/layout/Header';
@@ -11,7 +12,7 @@ import './Academics.css';
 const SubjectDetail = () => {
     const { slug } = useParams();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLang, setActiveLang] = useState('te');
+    const { langCode } = useLanguage();
 
     const [blocks, setBlocks] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +24,7 @@ const SubjectDetail = () => {
         const fetchBlocks = async () => {
             setIsLoading(true);
             try {
-                const data = await academicsService.getSubjectBlocks(slug, activeLang);
+                const data = await academicsService.getSubjectBlocks(slug, langCode);
                 if (isMounted) {
                     setBlocks(data);
                 }
@@ -36,7 +37,7 @@ const SubjectDetail = () => {
         
         fetchBlocks();
         return () => { isMounted = false; };
-    }, [slug, activeLang]);
+    }, [slug, langCode]);
 
     return (
         <div className="subject-detail-page">
@@ -51,20 +52,6 @@ const SubjectDetail = () => {
                             <Link to="/academics">Academics</Link>
                             <i className="fas fa-chevron-right"></i>
                             <span>Subject Detail</span>
-                        </div>
-                        <div className="lang-toggle-premium">
-                            <button 
-                                className={activeLang === 'te' ? 'active' : ''} 
-                                onClick={() => setActiveLang('te')}
-                            >
-                                తెలుగు
-                            </button>
-                            <button 
-                                className={activeLang === 'en' ? 'active' : ''} 
-                                onClick={() => setActiveLang('en')}
-                            >
-                                English
-                            </button>
                         </div>
                     </div>
                 </div>

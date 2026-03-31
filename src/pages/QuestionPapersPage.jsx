@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import { newsService } from '../services';
 import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
@@ -12,9 +13,7 @@ import './Articles.css';
 const QuestionPapersPage = () => {
     const [searchParams] = useSearchParams();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage } = useLanguage();
     
     const categoryParam = searchParams.get('category') || searchParams.get('level');
     const subParam = searchParams.get('sub_category') || searchParams.get('sub');
@@ -42,8 +41,7 @@ const QuestionPapersPage = () => {
     const papers = data?.pages.flatMap(page => page.results) || [];
 
     const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
+        // No longer needed, handled by Context
     };
 
     const filteredPapers = papers.filter(paper =>
@@ -54,8 +52,8 @@ const QuestionPapersPage = () => {
     return (
         <>
             <Header 
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
+                onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                isMenuOpen={isMobileMenuOpen}
             />
             <PrimaryNav />
             

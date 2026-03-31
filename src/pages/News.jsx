@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { useInfiniteArticles } from '../hooks/useArticles';
 import { useTrendingArticles } from '../hooks/useHomeContent';
 import Header from '../components/layout/Header';
@@ -13,9 +14,7 @@ import ContentHubWidget from '../components/ui/ContentHubWidget';
 import './Articles.css';
 
 const NewsPage = () => {
-    const [activeLanguage, setActiveLanguage] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'english';
-    });
+    const { activeLanguage } = useLanguage();
     const t = getTranslations(activeLanguage);
     const [searchParams] = useSearchParams();
     const categoryParam = searchParams.get('category') || searchParams.get('level');
@@ -79,11 +78,6 @@ const NewsPage = () => {
 
     const { data: trendingArticles, isLoading: trendingLoading } = useTrendingArticles(5, activeLanguage);
 
-    const handleLanguageChange = (lang) => {
-        setActiveLanguage(lang);
-        localStorage.setItem('preferredLanguage', lang);
-    };
-
     const formatDate = (dateString) => {
         if (!dateString) return 'Recent';
         try {
@@ -119,10 +113,7 @@ const NewsPage = () => {
 
     return (
         <div className="articles-page-wrapper">
-            <Header
-                activeLanguage={activeLanguage}
-                onLanguageChange={handleLanguageChange}
-            />
+            <Header />
             <PrimaryNav />
 
             <TaxonomyTabs sectionSlug="news" />

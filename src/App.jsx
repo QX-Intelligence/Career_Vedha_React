@@ -72,6 +72,7 @@ import './styles/index.css';
 import './styles/contact-papers.css';
 import './styles/paper-viewer.css';
 import { SnackbarProvider } from './context/SnackbarContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { HelmetProvider } from 'react-helmet-async';
 import TooltipManager from './components/ui/TooltipManager';
 import MobileLayout from './components/layout/MobileLayout';
@@ -369,6 +370,7 @@ function App() {
 
     return (
         <QueryClientProvider client={queryClient}>
+            <LanguageProvider>
             {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
             <HelmetProvider>
                 <SnackbarProvider>
@@ -520,6 +522,7 @@ function App() {
                 </SecurityLayer>
             </SnackbarProvider>
             </HelmetProvider>
+            </LanguageProvider>
         </QueryClientProvider>
     );
 }

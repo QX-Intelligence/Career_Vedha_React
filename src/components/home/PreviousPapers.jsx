@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 import { questionPaperService } from '../../services';
 
 const PreviousPapers = ({ title = 'Resources' }) => {
+    const { activeLanguage, langCode } = useLanguage();
     const [papers, setPapers] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [isLoading, setIsLoading] = useState(false);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { globalSearchService } from '../services';
 import Header from '../components/layout/Header';
+import { useLanguage } from '../context/LanguageContext';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import '../styles/SearchResults.css';
@@ -15,7 +16,7 @@ const SearchResults = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('all');
     const [resultsByType, setResultsByType] = useState({});
-    const [activeLanguage, setActiveLanguage] = useState('english');
+    const { activeLanguage } = useLanguage();
 
     useEffect(() => {
         performSearch();
@@ -82,11 +83,8 @@ const SearchResults = () => {
 
     return (
         <div className="page-wrapper">
-            <Header 
-                activeLanguage={activeLanguage}
-                onLanguageChange={setActiveLanguage}
-            />
-            <PrimaryNav activeLanguage={activeLanguage} />
+            <Header />
+            <PrimaryNav />
 
             <div className="search-results-page">
                 <div className="search-results-container">

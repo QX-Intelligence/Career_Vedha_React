@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Skeleton from '../ui/Skeleton';
+import { useLanguage } from '../../context/LanguageContext';
 import { getBestImageUrl } from '../../utils/articleUtils';
 import './TopStoriesHero.css';
 
@@ -41,7 +42,6 @@ const TopStoriesHero = ({
     topStories = [],
     latestUpdates = [],
     loading,
-    activeLanguage,
     title = "Top Stories",
     latestTitle = "Latest Updates",
     viewAllLink = "/articles",
@@ -49,6 +49,7 @@ const TopStoriesHero = ({
     isHomePage = false,
     sidebarBlocks = []
 }) => {
+    const { activeLanguage } = useLanguage();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [gallerySlide, setGallerySlide] = useState(0);
     const galleryTimerRef = useRef(null);
