@@ -7,7 +7,7 @@ export const homeKeys = {
     content: (lang) => [...homeKeys.all, lang],
 };
 
-export const useHomeContent = (lang = 'telugu', limit = 20, offset = 0) => {
+export const useHomeContent = (lang = 'english', limit = 20, offset = 0) => {
     const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
 
     return useQuery({
@@ -33,7 +33,7 @@ export const useHomeContent = (lang = 'telugu', limit = 20, offset = 0) => {
     });
 };
 
-export const useCategoryBlocks = (section, lang = 'telugu') => {
+export const useCategoryBlocks = (section, lang = 'english') => {
     const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
 
     return useQuery({
@@ -51,7 +51,7 @@ export const useCategoryBlocks = (section, lang = 'telugu') => {
     });
 };
 
-export const useTrendingArticles = (limit = 5, lang = 'telugu') => {
+export const useTrendingArticles = (limit = 5, lang = 'english') => {
     const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
 
     return useQuery({

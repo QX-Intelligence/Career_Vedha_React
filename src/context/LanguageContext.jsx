@@ -4,7 +4,7 @@ const LanguageContext = createContext(null);
 
 export const LanguageProvider = ({ children }) => {
     const [activeLanguage, setActiveLanguageState] = useState(() => {
-        return localStorage.getItem('preferredLanguage') || 'telugu';
+        return localStorage.getItem('preferredLanguage') || 'english';
     });
 
     const setLanguage = useCallback((lang) => {

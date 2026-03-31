@@ -52,8 +52,7 @@ const AdSenseUnit = ({ slot = "5794503693" }) => {
       style={{ display: 'block', width: '160px', height: '600px' }}
       data-ad-client="ca-pub-6974648434148802"
       data-ad-slot={slot}
-      data-ad-format="auto"
-      data-full-width-responsive="true"
+      data-ad-format="vertical"
     />
   );
 };

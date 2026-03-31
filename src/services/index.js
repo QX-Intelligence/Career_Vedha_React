@@ -130,13 +130,13 @@ export const newsService = {
         }
     },
     // Get Latest Articles with corrected pagination and language
-    getLatestArticles: async (lang = 'te', limit = 20, offset = 0) => {
+    getLatestArticles: async (lang = 'en', limit = 20, offset = 0) => {
         const params = { lang, limit, offset };
         const response = await djangoApi.get('cms/articles/home/', { params });
         return response.data.latest || { results: [], has_next: false };
     },
     // Get Django Home Articles
-    getHomeContent: async (lang = 'te', limit = 20, offset = 0) => {
+    getHomeContent: async (lang = 'en', limit = 20, offset = 0) => {
         const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
 
         const [response, topStoriesResponse] = await Promise.all([
@@ -621,7 +621,7 @@ export const newsService = {
     },
 
     // 8. Public Feeds & Analytics
-    getCategoryBlocks: async (section, lang = 'te', limit = 6) => {
+    getCategoryBlocks: async (section, lang = 'en', limit = 6) => {
         try {
             const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
             const response = await djangoApi.get('cms/articles/category-block/', {
@@ -647,7 +647,7 @@ export const newsService = {
         }
     },
 
-    getSearchSuggestions: async (q, section, lang = 'te') => {
+    getSearchSuggestions: async (q, section, lang = 'en') => {
         try {
             const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
             const response = await djangoApi.get('cms/articles/search-suggestions/', {
@@ -671,7 +671,7 @@ export const newsService = {
         }
     },
 
-    getSectionFeed: async (section, lang = 'te') => {
+    getSectionFeed: async (section, lang = 'en') => {
         try {
             const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
             const response = await djangoApi.get(`cms/articles/section/${section}/`, {
