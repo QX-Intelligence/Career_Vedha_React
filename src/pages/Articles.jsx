@@ -149,6 +149,21 @@ const ArticlesPage = () => {
 
     const allArticles = data?.pages.flatMap(page => page.results) || [];
 
+    const formatDate = (dateString) => {
+        if (!dateString) return 'Recent';
+        try {
+            const date = new Date(dateString);
+            const locale = activeLanguage === 'telugu' ? 'te-IN' : 'en-IN';
+            return date.toLocaleDateString(locale, {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return 'Recent';
+        }
+    };
+
     return (
         <div className="articles-page-wrapper">
             <Header
