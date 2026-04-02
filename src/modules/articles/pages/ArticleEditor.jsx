@@ -651,9 +651,9 @@ const ArticleEditor = () => {
                 .map(id => parseInt(id, 10))
                 .filter(id => !isNaN(id));
             
-            // Using [] suffix for array fields in multipart data
-            cleanCategoryIds.forEach(id => formDataToSubmit.append('category_ids[]', id));
-            (formData.additional_sections || []).forEach(sec => formDataToSubmit.append('additional_sections[]', sec));
+            // Using standard key for array fields in multipart data
+            cleanCategoryIds.forEach(id => formDataToSubmit.append('category_ids', id));
+            (formData.additional_sections || []).forEach(sec => formDataToSubmit.append('additional_sections', sec));
 
             // Tags and Keywords
             const tagsArray = String(formData.tags || '').split(',').map(t => t.trim()).filter(t => t);
@@ -753,9 +753,9 @@ const ArticleEditor = () => {
                 .map(id => parseInt(id, 10))
                 .filter(id => !isNaN(id));
             
-            // Using [] suffix for array fields in multipart data
-            cleanCategoryIds.forEach(id => formDataToSubmit.append('category_ids[]', id));
-            (formData.additional_sections || []).forEach(sec => formDataToSubmit.append('additional_sections[]', sec));
+            // Using standard key for array fields in multipart data
+            cleanCategoryIds.forEach(id => formDataToSubmit.append('category_ids', id));
+            (formData.additional_sections || []).forEach(sec => formDataToSubmit.append('additional_sections', sec));
 
             // Tags and Keywords
             const tagsArray = String(formData.tags || '').split(',').map(t => t.trim()).filter(t => t);
