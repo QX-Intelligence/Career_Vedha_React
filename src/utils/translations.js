@@ -145,17 +145,17 @@ export const translations = {
         
         // PrimaryNav
         navHome: "హోమ్",
-        navNews: "వార్తలు",
+        navNews: "న్యూస్",
         newsSubtitle: "తాజా ప్రకటనలు, సర్క్యులర్లు మరియు విద్యాపరమైన అప్‌డేట్‌ల గురించి తెలుసుకోండి.",
         navAcademics: "విద్యా విషయాలు",
         navJobs: "ఉద్యోగాలు",
-        navCurrentAffairs: "ప్రస్తుత వ్యవహారాలు",
-        navPreviousPapers: "గత పత్రాలు",
+        navCurrentAffairs: "కరెంట్ అఫైర్స్",
+        navPreviousPapers: "ప్రీవియస్ పేపర్స్",
         navNotifications: "నోటిఫికేషన్లు",
         navResults: "ఫలితాలు",
         navAdmitCards: "అడ్మిట్ కార్డులు",
-        navSyllabus: "పాఠ్యాంశాలు",
-        navArticles: "కథనాలు",
+        navSyllabus: "సిలబస్",
+        navArticles: "ఆర్టికల్స్",
         navVideos: "వీడియోలు",
         navLongVideos: "లాంగ్ వీడియోలు",
         navShorts: "షార్ట్స్",
@@ -163,36 +163,36 @@ export const translations = {
         navExams: "పరీక్షలు",
         navCampusPages: "క్యాంపస్ పేజీలు",
         navMore: "మరిన్ని",
-        navCurriculum: "కోర్సు సామగ్రి",
+        navCurriculum: "కరికులం",
         
         // ===== HOME PAGE =====
-        latestUpdates: "తాజా నవీకరణలు",
+        latestUpdates: "లేటెస్ట్ అప్డేట్స్",
         seeAll: "అన్నీ చూడండి",
-        latestFromAcademics: "విద్యా విషయాల నుండి తాజావి",
-        careerOpportunities: "కెరీర్ అవకాశాలు",
+        latestFromAcademics: "లేటెస్ట్ ఫ్రమ్ అకాడమిక్స్",
+        careerOpportunities: "కెరీర్ ఆపర్చునిటీస్",
         
         // Quick Access
-        studyMaterials: "అధ్యయన సామగ్రి & పాఠ్యాంశాలు",
-        studyMaterialsDesc: "అన్ని విషయాల కోసం సమగ్ర అధ్యయన సామగ్రి",
-        currentAffairs: "ప్రస్తుత వ్యవహారాలు",
-        currentAffairsDesc: "తాజా ప్రస్తుత వ్యవహారాల నవీకరణలతో అప్‌డేట్‌గా ఉండండి",
-        latestJobs: "తాజా ఉద్యోగ నోటిఫికేషన్లు",
+        studyMaterials: "స్టడీ మెటీరియల్స్ & సిలబస్",
+        studyMaterialsDesc: "అన్ని విషయాల కోసం సమగ్ర స్టడీ మెటీరియల్స్",
+        currentAffairs: "కరెంట్ అఫైర్స్",
+        currentAffairsDesc: "తాజా కరెంట్ అఫైర్స్ అప్డేట్లతో అప్డేట్గా ఉండండి",
+        latestJobs: "లేటెస్ట్ జాబ్స్",
         latestJobsDesc: "తాజా ప్రభుత్వ మరియు ప్రైవేట్ ఉద్యోగ హెచ్చరికలతో అప్‌డేట్‌గా ఉండండి",
-        exploreNow: "ఇప్పుడు అన్వేషించండి",
-        startLearning: "నేర్చుకోవడం ప్రారంభించండి",
-        accessNow: "ఇప్పుడు యాక్సెస్ చేయండి",
+        exploreNow: "ఎక్స్ప్లోర్ నౌ",
+        startLearning: "స్టార్ట్ లెర్నింగ్",
+        accessNow: "యాక్సెస్ నౌ",
         
         // Must Read
         mustRead: "తప్పక చదవాల్సినవి",
         trending: "ట్రెండింగ్ ఇప్పుడు",
         
         // ===== CURRENT AFFAIRS PAGE =====
-        currentAffairsTitle: "ప్రస్తుత వ్యవహారాలు",
-        currentAffairsSubtitle: "తాజా సంఘటనలతో అప్‌డేట్‌గా ఉండండి",
-        international: "అంతర్జాతీయ",
-        national: "భారతదేశం",
-        statewide: "రాష్ట్ర వారీగా",
-        selectState: "రాష్ట్రాన్ని ఎంచుకోండి",
+        currentAffairsTitle: "కరెంట్ అఫైర్స్",
+        currentAffairsSubtitle: "తాజా కరెంట్ అఫైర్స్ అప్డేట్లతో అప్డేట్గా ఉండండి",
+        international: "ఇంటర్నేషనల్",
+        national: "నేషనల్",
+        statewide: "స్టేట్ వైడ్",
+        selectState: "స్టేట్ సెలెక్ట్",
         
         // ===== COMMON UI =====
         readMore: "మరింత చదవండి",
@@ -209,22 +209,22 @@ export const translations = {
         noNews: "ఈ వర్గానికి వార్తా కథనాలు కనుగొనబడలేదు.",
         
         // ===== SIDEBAR =====
-        latestNews: "తాజా వార్తలు",
-        popularTopics: "ప్రసిద్ధ అంశాలు",
-        categories: "వర్గాలు",
+        latestNews: "లేటెస్ట్ న్యూస్",
+        popularTopics: "పాపులర్ టాపిక్స్",
+        categories: "కేటగిరీస్",
         
         // ===== FOOTER =====
-        aboutUs: "మా గురించి",
-        contactUs: "మమ్మల్ని సంప్రదించండి",
-        privacyPolicy: "గోప్యతా విధానం",
-        termsConditions: "నిబంధనలు & షరతులు",
-        followUs: "మమ్మల్ని అనుసరించండి",
-        quickLinks: "త్వరిత లింక్లు",
+        aboutUs: "అబౌట్ అస్",
+        contactUs: "కాంటాక్ట్ అస్",
+        privacyPolicy: "ప్రైవసీ పాలసీ",
+        termsConditions: "టర్మ్స్ & కండిషన్స్",
+        followUs: "ఫాలో అస్",
+        quickLinks: "క్విక్ లింక్స్",
         copyright: "© 2026 కెరీర్ వేద. అన్ని హక్కులు రక్షించబడ్డాయి.",
         
         // ===== STUDENT ACADEMICS EXPLORER =====
-        exploreAcademics: "విద్యా విషయాలను అన్వేషించండి",
-        selectYourClass: "మీ తరగతిని ఎంచుకోండి",
+        exploreAcademics: "ఎక్స్ప్లోర్ అకాడమిక్స్",
+        selectYourClass: "సెలెక్ట్ యువర్ క్లాస్",
         
         // ===== PREVIOUS PAPERS =====
         previousPapersTitle: "గత సంవత్సరం ప్రశ్న పత్రాలు",
@@ -268,10 +268,10 @@ export const translations = {
         
         // ===== FILTERS =====
         filterBy: "ఫిల్టర్ చేయండి",
-        sortBy: "క్రమబద్ధీకరించండి",
-        latest: "తాజావి",
-        oldest: "పాతది",
-        popular: "ప్రసిద్ధమైనది"
+        sortBy: "సార్ట్ బై",
+        latest: "లేటెస్ట్",
+        oldest: "ఓల్డెస్ట్",
+        popular: "పాపులర్"
     }
 };
 
