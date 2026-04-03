@@ -20,7 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔥 Force clean workspace (removes any hidden cache remnants)
+      # Force clean workspace (removes any hidden cache remnants)
       - name: Clean workspace
         run: |
           rm -rf node_modules
@@ -35,9 +35,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'none'   # ❌ Disable node cache
+          cache: 'none' 
 
-      # 🔥 Clean install (no cache, deterministic)
+      # Clean install (no cache, deterministic)
       - name: Install Dependencies
         run: npm install --no-cache
 
@@ -68,7 +68,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 🚀 Deploy (also ensures clean target dir)
+      # Deploy (also ensures clean target dir)
       - name: Deploy to EC2 via SSM
         run: |
           aws ssm send-command \
