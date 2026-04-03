@@ -20,11 +20,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Force clean workspace (removes any hidden cache remnants)
+      #  Force clean workspace
       - name: Clean workspace
         run: |
           rm -rf node_modules
-          rm -rf package-lock.json
           rm -rf ~/.npm
           rm -rf ~/.cache
 
@@ -35,11 +34,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'none' 
 
-      # Clean install (no cache, deterministic)
+      #  Clean install (recommended)
       - name: Install Dependencies
-        run: npm install --no-cache
+        run: npm ci
+        
+      - name: Cache Verify
+        run: npm cache verify
 
       - name: Build React App
         run: npm run build
@@ -48,7 +49,6 @@ jobs:
         run: |
           tar -czf frontend.tar.gz -C dist .
 
-      # 🏷 Create Release Tag
       - name: Set release tag
         run: echo "RELEASE_TAG=cvedha-${GITHUB_SHA}" >> $GITHUB_ENV
 
@@ -68,7 +68,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Deploy (also ensures clean target dir)
       - name: Deploy to EC2 via SSM
         run: |
           aws ssm send-command \
