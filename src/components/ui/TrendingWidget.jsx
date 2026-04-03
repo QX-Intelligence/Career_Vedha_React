@@ -21,7 +21,7 @@ const TrendingWidget = () => {
     return (
         <div className="sidebar-widget trending-widget section-fade-in">
             <h3 className="widget-title">
-                <i className="fas fa-fire" style={{ color: '#f59e0b', marginRight: '8px' }}></i>
+                <i className="fas fa-fire" style={{ color: 'var(--cv-primary)', marginRight: '8px' }}></i>
                 Trending Stories
             </h3>
             <div className="sidebar-compact-list">

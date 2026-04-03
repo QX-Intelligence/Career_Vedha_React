@@ -40,13 +40,13 @@
     display: block;
     width: 6px;
     height: 24px;
-    background: #FFC107;
+    background: var(--cv-primary);
     border-radius: 4px;
 }
 
 /* Buttons */
 .add-btn {
-    background: linear-gradient(135deg, #FFC107 0%, #FFB300 100%);
+    background: linear-gradient(135deg, var(--cv-primary) 0%, var(--cv-primary-dark) 100%);
     color: #1e293b;
     border: none;
     padding: 12px 24px;
@@ -57,13 +57,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+    box-shadow: 0 4px 12px rgba(98, 38, 158, 0.2);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .add-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 6px 16px rgba(98, 38, 158, 0.3);
 }
 
 .add-btn:active {
@@ -105,7 +105,7 @@
 .tab-btn.active {
     color: #1e293b;
     background: #FFF9E6;
-    border-color: #FFC107;
+    border-color: var(--cv-primary);
 }
 
 .tab-btn i {
@@ -134,8 +134,8 @@
 }
 
 .search-box-papers:focus-within {
-    border-color: #FFC107;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 3px rgba(98, 38, 158, 0.1);
 }
 
 .search-box-papers i {
@@ -258,7 +258,7 @@
 }
 
 .icon-btn.view:hover {
-    background: #FFC107;
+    background: var(--cv-primary);
     color: #1e293b;
     transform: scale(1.1);
 }
@@ -383,7 +383,7 @@
 }
 
 .upload-area-modal:hover {
-    border-color: #FFC107;
+    border-color: var(--cv-primary);
     background: #FFF9E6;
 }
 
@@ -397,7 +397,7 @@
 
 .file-upload-label i {
     font-size: 48px;
-    color: #FFC107;
+    color: var(--cv-primary);
 }
 
 .file-upload-label span {
@@ -427,7 +427,7 @@
 }
 
 .form-section-title i {
-    color: #FFC107;
+    color: var(--cv-primary);
 }
 
 .files-list {
@@ -542,8 +542,8 @@
 .form-textarea-inline:focus,
 .form-select-inline:focus {
     outline: none;
-    border-color: #FFC107;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 3px rgba(98, 38, 158, 0.1);
 }
 
 .form-textarea-inline {
@@ -624,7 +624,7 @@
     width: 24px;
     height: 24px;
     border: 3px solid #e2e8f0;
-    border-top-color: #FFC107;
+    border-top-color: var(--cv-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 0 auto;

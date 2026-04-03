@@ -191,7 +191,7 @@
 
 .ts-image-upload:hover {
     border-color: #fbbf24;
-    background: #fffbeb;
+    background: var(--cv-primary-light);
 }
 
 .ts-image-preview {
@@ -312,7 +312,7 @@
 
 .ts-upload-area:hover, .ts-upload-area.dragging {
     border-color: #fbbf24;
-    background: #fffbeb;
+    background: var(--cv-primary-light);
 }
 
 .ts-upload-icon {

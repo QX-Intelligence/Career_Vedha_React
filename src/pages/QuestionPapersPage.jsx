@@ -65,8 +65,10 @@ const QuestionPapersPage = () => {
                 <div className="container">
                     <div className="papers-controls">
                         <div className="section-header">
-                            <h1 className="premium-title">Question Papers</h1>
-                            <p className="premium-subtitle">Previous year papers and practice sets</p>
+                            <div>
+                                <h1 className="premium-title">Question Papers</h1>
+                                <p className="premium-subtitle">Previous year papers and practice sets</p>
+                            </div>
                         </div>
                     </div>
 

@@ -809,7 +809,7 @@ const AcademicsManagement = ({ initialTab = 'hierarchy', hideOtherTabs = false }
                                                             <td>{item.id}</td>
                                                             <td className="font-semibold">
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                    <i className={`fas ${isQuestion ? 'fa-question-circle' : 'fa-file-alt'}`} style={{ color: isQuestion ? '#f59e0b' : '#3b82f6' }}></i>
+                                                                    <i className={`fas ${isQuestion ? 'fa-question-circle' : 'fa-file-alt'}`} style={{ color: isQuestion ? 'var(--cv-primary)' : '#3b82f6' }}></i>
                                                                     <span>{itemTitle}</span>
                                                                 </div>
                                                             </td>

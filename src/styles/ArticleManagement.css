@@ -184,7 +184,7 @@
 
 .custom-checkbox label:hover {
     border-color: var(--primary-yellow);
-    background-color: #fffbeb;
+    background-color: var(--cv-primary-light);
 }
 
 .custom-checkbox input:checked + label {
@@ -238,7 +238,6 @@
     font-weight: 400;
     width: 100%; /* Ensure it fills wrapper */
     caret-color: var(--primary-yellow-hover);
-    caret-shape: block;
 }
 
 .am-search-input::placeholder {
@@ -388,7 +387,6 @@
     transition: all 0.2s;
     outline: none;
     caret-color: var(--primary-yellow-hover);
-    caret-shape: block;
 }
 
 .am-input:focus {
@@ -603,7 +601,7 @@
 }
 
 .am-cal-trigger.active {
-    background: #fefce8; /* Light yellow background */
+    background: var(--cv-primary-light); /* Light yellow background */
     border-color: var(--primary-yellow);
     color: var(--slate-900);
 }
@@ -713,7 +711,7 @@
 
 /* Feature/Pin Button Styles */
 .am-btn-pin {
-    background: #fefce8;
+    background: var(--cv-primary-light);
     color: var(--slate-400);
     border: 1px solid #fef9c3;
 }

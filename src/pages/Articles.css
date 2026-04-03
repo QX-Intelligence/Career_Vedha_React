@@ -84,7 +84,7 @@
     background: var(--primary-yellow);
     border-color: var(--primary-yellow);
     color: var(--gray-900);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+    box-shadow: 0 4px 12px rgba(98, 38, 158, 0.2);
 }
 
 .search-input-wrapper {
@@ -115,7 +115,7 @@
     outline: none;
     background: var(--white);
     border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.1);
+    box-shadow: 0 0 0 4px rgba(98, 38, 158, 0.1);
 }
 
 /* Articles Grid */
@@ -154,7 +154,7 @@
 .article-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 8px -6px rgba(0, 0, 0, 0.04);
-    border-color: rgba(255, 193, 7, 0.3);
+    border-color: rgba(98, 38, 158, 0.3);
 }
 
 .article-card-image {
@@ -179,7 +179,7 @@
     display: inline-flex;
     align-items: center;
     padding: 0.25rem 0.6rem;
-    background: #fffbeb;
+    background: var(--cv-primary-light);
     color: #b45309;
     border-radius: 50px;
     font-size: 0.7rem;
@@ -263,7 +263,7 @@
 }
 
 .read-more-btn:hover {
-    background: #FFC107;
+    background: var(--cv-primary);
     color: #0f172a;
     transform: translateX(2px);
     gap: 0.5rem;
@@ -319,7 +319,7 @@
 .spinner {
     width: 24px;
     height: 24px;
-    border: 3px solid rgba(255, 193, 7, 0.2);
+    border: 3px solid rgba(98, 38, 158, 0.2);
     border-top-color: var(--primary-yellow);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -374,7 +374,7 @@
 .taxonomy-breadcrumb .district-name {
     font-weight: 600;
     color: var(--primary-yellow);
-    background: rgba(255, 193, 7, 0.05);
+    background: rgba(98, 38, 158, 0.05);
     padding: 4px 12px;
     border-radius: 6px;
     font-size: 15px;

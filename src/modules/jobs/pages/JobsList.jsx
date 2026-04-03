@@ -114,7 +114,7 @@ const JobsList = () => {
             <TopStoriesHero 
                 topStories={jobArticles.slice(0, 5).map(a => ({
                     ...a,
-                    image_url: a.featured_media?.url || a.og_image_url || "https://placehold.co/800x450/FFC107/333333?text=Job+News",
+                    image_url: a.featured_media?.url || a.og_image_url || "https://placehold.co/800x450/62269E/333333?text=Job+News",
                     section: 'jobs',
                     slug: a.slug
                 }))}
@@ -137,7 +137,7 @@ const JobsList = () => {
 
             <div className="container" style={{ marginTop: '2rem' }}>
                 <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '4px', height: '24px', background: 'var(--primary-color, #fbbf24)', borderRadius: '2px' }}></div>
+                    <div style={{ width: '4px', height: '24px', background: 'var(--primary-color, var(--cv-primary))', borderRadius: '2px' }}></div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>Recent Job Articles</h2>
                 </div>
                 <LatestArticles 

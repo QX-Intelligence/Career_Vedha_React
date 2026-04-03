@@ -36,10 +36,10 @@ const SecondaryStories = ({ stories, loading, activeLanguage }) => {
             {stories.map((story) => (
                 <article key={story.id} className="story-item">
                     <img
-                        src={story.featured_media?.url || story.og_image_url || "https://placehold.co/200x120/FFC107/333333?text=Story"}
+                        src={story.featured_media?.url || story.og_image_url || "https://placehold.co/200x120/62269E/333333?text=Story"}
                         alt={story.title}
                         onError={(e) => {
-                            e.target.src = "https://placehold.co/200x120/FFC107/333333?text=Story";
+                            e.target.src = "https://placehold.co/200x120/62269E/333333?text=Story";
                         }}
                     />
                     <div className="story-info">

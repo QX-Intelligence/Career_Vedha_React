@@ -65,8 +65,10 @@ const StudyMaterialsPage = () => {
                 <div className="container">
                     <div className="papers-controls">
                         <div className="section-header">
-                            <h1 className="premium-title">Study Materials</h1>
-                            <p className="premium-subtitle">Expert curated lessons and notes</p>
+                            <div>
+                                <h1 className="premium-title">Study Materials</h1>
+                                <p className="premium-subtitle">Expert curated lessons and notes</p>
+                            </div>
                         </div>
                     </div>
 

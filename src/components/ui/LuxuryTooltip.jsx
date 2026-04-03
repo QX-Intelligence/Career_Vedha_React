@@ -119,7 +119,7 @@ const LuxuryTooltip = ({ children, content, position = 'top' }) => {
                         >
                             <div style={{
                                 background: '#0f172a',
-                                border: '1px solid #fbbf24',
+                                border: '1px solid var(--cv-primary)',
                                 color: '#f8fafc',
                                 padding: '8px 14px',
                                 borderRadius: '8px',
@@ -136,8 +136,8 @@ const LuxuryTooltip = ({ children, content, position = 'top' }) => {
                                     width: '8px',
                                     height: '8px',
                                     background: '#0f172a',
-                                    borderRight: '1px solid #fbbf24',
-                                    borderBottom: '1px solid #fbbf24',
+                                    borderRight: '1px solid var(--cv-primary)',
+                                    borderBottom: '1px solid var(--cv-primary)',
                                     transform: 'rotate(45deg)',
                                     left: '50%',
                                     marginLeft: '-4px',

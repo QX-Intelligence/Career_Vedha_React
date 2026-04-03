@@ -183,7 +183,7 @@ const ArticleDetail = () => {
                                 if (mainMedia.length === 0) {
                                     // Fallback if no MAIN media - check for other non-BANNER media or use article image
                                     // User said: "block banner and show the main media file"
-                                    const fallbackImage = article.og?.image || article.og?.image_url || article.og_image_url || article.image || "https://placehold.co/1200x600/FFC107/333333?text=Career+Vedha";
+                                    const fallbackImage = article.og?.image || article.og?.image_url || article.og_image_url || article.image || "https://placehold.co/1200x600/62269E/333333?text=Career+Vedha";
                                     return (
                                         <div className="article-featured-image main-banner">
                                             <img

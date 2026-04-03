@@ -173,7 +173,7 @@ const NewsPage = () => {
                                 if (imageUrl && imageUrl.startsWith('/')) {
                                     imageUrl = `${API_CONFIG.DJANGO_BASE_URL.replace('/api', '')}${imageUrl}`;
                                 }
-                                imageUrl = imageUrl || `https://placehold.co/600x400/FFC107/333333?text=${encodeURIComponent(article.section || 'News')}`;
+                                imageUrl = imageUrl || `https://placehold.co/600x400/62269E/333333?text=${encodeURIComponent(article.section || 'News')}`;
 
                                 return (
                                     <Link 
@@ -187,7 +187,7 @@ const NewsPage = () => {
                                                     src={imageUrl}
                                                     alt={article.title}
                                                     onError={(e) => {
-                                                        e.target.src = "https://placehold.co/600x400/FFC107/333333?text=News";
+                                                        e.target.src = "https://placehold.co/600x400/62269E/333333?text=News";
                                                     }}
                                                 />
                                                 <div className="article-card-badge">

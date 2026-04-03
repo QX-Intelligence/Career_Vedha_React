@@ -184,7 +184,7 @@ const DashboardOverview = ({
                                                     <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{h.section}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                                    <i className="fas fa-star" style={{ color: '#f59e0b', marginTop: '3px' }}></i>
+                                                    <i className="fas fa-star" style={{ color: 'var(--cv-primary)', marginTop: '3px' }}></i>
                                                     <span style={{ fontWeight: '500' }}>{h.title || h.summary || 'Untitled Story'}</span>
                                                 </div>
                                             </div>
@@ -199,7 +199,7 @@ const DashboardOverview = ({
                                     <div className="m-card-body" style={{ maxHeight: '250px', overflowY: 'auto' }}>
                                         {homeData.trending?.map(t => (
                                             <div key={t.id} style={{ fontSize: '0.85rem', padding: '10px 0', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: '8px' }}>
-                                                <i className="fas fa-fire" style={{ color: '#f59e0b', marginTop: '3px' }}></i>
+                                                <i className="fas fa-fire" style={{ color: 'var(--cv-primary)', marginTop: '3px' }}></i>
                                                 <div>
                                                     <div style={{ fontWeight: '500' }}>{t.title || t.summary}</div>
                                                     <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}><i className="far fa-eye"></i> {t.views_count} views</div>

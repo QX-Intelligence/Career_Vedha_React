@@ -608,8 +608,7 @@
     min-height: 350px;
     padding: 1.5rem 2rem;
     line-height: 1.8;
-    caret-color: var(--ae-primary);
-    caret-shape: block; /* Thicker cursor in supported browsers */
+    caret-color: auto; /* Fall back to native text color for better visibility */
 }
 
 .ae-quill-wrapper .ql-editor.ql-blank::before {
@@ -625,8 +624,7 @@
 /* Enhanced visibility for standard inputs and textareas */
 .ae-input,
 .ae-textarea {
-    caret-color: var(--ae-primary);
-    caret-shape: block;
+    caret-color: auto;
 }
 
 /* ═══════════════════════════════════════

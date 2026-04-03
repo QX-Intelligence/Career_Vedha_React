@@ -94,10 +94,10 @@ const LatestArticles = memo(({ latest: initialLatest, loading: initialLoading })
                     <article key={article.id} className="article-card">
                         <div className="article-image">
                             <img
-                                src={article.featured_media?.url || article.og_image_url || "https://placehold.co/400x250/FFC107/333333?text=Article"}
+                                src={article.featured_media?.url || article.og_image_url || "https://placehold.co/400x250/62269E/333333?text=Article"}
                                 alt={article.title}
                                 onError={(e) => {
-                                    e.target.src = "https://placehold.co/400x250/FFC107/333333?text=Article";
+                                    e.target.src = "https://placehold.co/400x250/62269E/333333?text=Article";
                                 }}
                             />
                             <span className="article-badge">{article.section}</span>

@@ -194,7 +194,7 @@ const AcademicExamsPage = () => {
                                 if (imageUrl && imageUrl.startsWith('/')) {
                                     imageUrl = `${API_CONFIG.DJANGO_BASE_URL.replace('/api', '')}${imageUrl}`;
                                 }
-                                imageUrl = imageUrl || "https://placehold.co/600x400/FFC107/333333?text=Exam";
+                                imageUrl = imageUrl || "https://placehold.co/600x400/62269E/333333?text=Exam";
 
                                 return (
                                     <Link 
@@ -208,7 +208,7 @@ const AcademicExamsPage = () => {
                                                     src={imageUrl}
                                                     alt={article.title}
                                                     onError={(e) => {
-                                                        e.target.src = "https://placehold.co/600x400/FFC107/333333?text=Exam";
+                                                        e.target.src = "https://placehold.co/600x400/62269E/333333?text=Exam";
                                                     }}
                                                 />
                                                 <div className="article-card-badge">

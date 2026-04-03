@@ -70,7 +70,7 @@
 
 .open-new-tab-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 4px 12px rgba(98, 38, 158, 0.3);
 }
 
 .paper-viewer-content {

@@ -528,7 +528,8 @@ const ArticleEditor = () => {
     };
     
     // Enhanced Quill modules with full formatting
-    const modules = {
+    // Enhanced Quill modules with full formatting (Memoized to prevent cursor jump/loss of focus)
+    const modules = useMemo(() => ({
         toolbar: [
             [{ 'font': [] }],
             [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -543,9 +544,9 @@ const ArticleEditor = () => {
             ['blockquote', 'code-block'],
             ['clean']
         ],
-    };
+    }), []);
 
-    const formats = [
+    const formats = useMemo(() => [
         'font', 'header', 'size',
         'bold', 'italic', 'underline', 'strike',
         'script',
@@ -553,7 +554,7 @@ const ArticleEditor = () => {
         'list', 'bullet', 'indent', 'align',
         'link', 'image', 'video',
         'blockquote', 'code-block'
-    ];
+    ], []);
 
     // Media Upload Handlers
     const handleImageFileChange = (e, target = 'main') => {

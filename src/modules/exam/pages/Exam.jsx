@@ -483,7 +483,7 @@ const Exam = () => {
                                                     <span className="panel-label">User Selection</span>
                                                     <div className={`panel-content user-pick ${isCorrect ? 'correct' : isSkipped ? 'skipped' : 'wrong'}`}>
                                                         {isCorrect ? <i className="fas fa-check-circle" style={{ color: '#10b981' }}></i> :
-                                                            isSkipped ? <i className="fas fa-minus-circle" style={{ color: '#f59e0b' }}></i> :
+                                                            isSkipped ? <i className="fas fa-minus-circle" style={{ color: 'var(--cv-primary)' }}></i> :
                                                                 <i className="fas fa-times-circle" style={{ color: '#ef4444' }}></i>}
                                                         <span>{getFormattedText(studentStr)}</span>
                                                     </div>

@@ -40,13 +40,13 @@
     display: block;
     width: 6px;
     height: 24px;
-    background: #FFC107;
+    background: var(--cv-primary);
     border-radius: 4px;
 }
 
 /* Buttons */
 .add-btn {
-    background: linear-gradient(135deg, #FFC107 0%, #FFB300 100%);
+    background: linear-gradient(135deg, var(--cv-primary) 0%, var(--cv-primary-dark) 100%);
     color: #1e293b;
     border: none;
     padding: 12px 24px;
@@ -57,13 +57,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+    box-shadow: 0 4px 12px rgba(98, 38, 158, 0.2);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .add-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 6px 16px rgba(98, 38, 158, 0.3);
 }
 
 .add-btn:active {
@@ -71,7 +71,7 @@
 }
 
 .btn-primary {
-    background: #FFC107;
+    background: var(--cv-primary);
     color: #1e293b;
     border: none;
     padding: 12px 24px;
@@ -82,7 +82,7 @@
 }
 
 .btn-primary:hover {
-    background: #FFB300;
+    background: var(--cv-primary-dark);
 }
 
 .btn-secondary {
@@ -148,8 +148,8 @@
 
 /* Badges */
 .region-badge {
-    background: #fffbeb;
-    color: #d97706;
+    background: var(--cv-primary-light);
+    color: var(--cv-primary-dark);
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
@@ -213,9 +213,9 @@
 }
 
 .icon-btn.edit:hover {
-    background: #fffbeb;
+    background: var(--cv-primary-light);
     border-color: #fcd34d;
-    color: #d97706;
+    color: var(--cv-primary-dark);
 }
 
 .icon-btn.delete:hover {
@@ -256,10 +256,10 @@
 }
 
 .form-input:focus, .form-textarea:focus {
-    border-color: #FFC107;
+    border-color: var(--cv-primary);
     background-color: white;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+    box-shadow: 0 0 0 3px rgba(98, 38, 158, 0.1);
 }
 
 /* Spinner */
@@ -318,13 +318,13 @@
     display: block;
     width: 6px;
     height: 24px;
-    background: #FFC107;
+    background: var(--cv-primary);
     border-radius: 4px;
 }
 
 /* Buttons */
 .add-btn {
-    background: linear-gradient(135deg, #FFC107 0%, #FFB300 100%);
+    background: linear-gradient(135deg, var(--cv-primary) 0%, var(--cv-primary-dark) 100%);
     color: #1e293b;
     border: none;
     padding: 12px 24px;
@@ -335,13 +335,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+    box-shadow: 0 4px 12px rgba(98, 38, 158, 0.2);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .add-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 6px 16px rgba(98, 38, 158, 0.3);
 }
 
 .add-btn:active {
@@ -349,7 +349,7 @@
 }
 
 .btn-primary {
-    background: #FFC107;
+    background: var(--cv-primary);
     color: #1e293b;
     border: none;
     padding: 12px 24px;
@@ -360,7 +360,7 @@
 }
 
 .btn-primary:hover {
-    background: #FFB300;
+    background: var(--cv-primary-dark);
 }
 
 .btn-secondary {
@@ -426,8 +426,8 @@
 
 /* Badges */
 .region-badge {
-    background: #fffbeb;
-    color: #d97706;
+    background: var(--cv-primary-light);
+    color: var(--cv-primary-dark);
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
@@ -491,9 +491,9 @@
 }
 
 .icon-btn.edit:hover {
-    background: #fffbeb;
+    background: var(--cv-primary-light);
     border-color: #fcd34d;
-    color: #d97706;
+    color: var(--cv-primary-dark);
 }
 
 .icon-btn.delete:hover {
@@ -534,10 +534,10 @@
 }
 
 .form-input:focus, .form-textarea:focus {
-    border-color: #FFC107;
+    border-color: var(--cv-primary);
     background: white;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+    box-shadow: 0 0 0 3px rgba(98, 38, 158, 0.1);
 }
 
 /* Spinner */
@@ -644,7 +644,7 @@
 }
 
 .cam-table-container {
-    box-shadow: 0 6px 15px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 6px 15px rgba(98, 38, 158, 0.3);
 }
 
 .mgmt-table-container {
@@ -740,8 +740,8 @@
 }
 
 .icon-btn.edit:hover {
-    border-color: #FFC107;
-    color: #d97706;
+    border-color: var(--cv-primary);
+    color: var(--cv-primary-dark);
 }
 
 .icon-btn.delete:hover {
@@ -856,10 +856,10 @@
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
-    border-color: #FFC107;
+    border-color: var(--cv-primary);
     background: white;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+    box-shadow: 0 0 0 3px rgba(98, 38, 158, 0.1);
 }
 
 .form-textarea {
@@ -929,8 +929,8 @@
 }
 
 .btn-primary {
-    background: #FFC107;
-    border: 1px solid #FFC107;
+    background: var(--cv-primary);
+    border: 1px solid var(--cv-primary);
     color: #0f172a !important;
     padding: 10px 24px;
     border-radius: 10px;

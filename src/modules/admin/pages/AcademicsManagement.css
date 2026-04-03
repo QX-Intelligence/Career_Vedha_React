@@ -166,8 +166,8 @@
 }
 
 .badge-warning {
-    background: #fffbeb;
-    color: #d97706;
+    background: var(--cv-primary-light);
+    color: var(--cv-primary-dark);
     border-color: #fbbf24;
 }
 

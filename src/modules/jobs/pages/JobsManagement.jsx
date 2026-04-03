@@ -227,7 +227,7 @@ const JobsManagement = () => {
                                                         </LuxuryTooltip>
                                                     )}
                                                     <LuxuryTooltip content="View Public Page">
-                                                        <button className="am-action-btn am-btn-edit" style={{ background: '#fffbeb', color: '#d97706', borderColor: '#fef3c7' }} onClick={() => window.open(`/jobs/${job.slug}`, '_blank')}>
+                                                        <button className="am-action-btn am-btn-edit" style={{ background: 'var(--cv-primary-light)', color: 'var(--cv-primary-dark)', borderColor: 'rgba(98, 38, 158, 0.15)' }} onClick={() => window.open(`/jobs/${job.slug}`, '_blank')}>
                                                             <i className="fas fa-external-link-alt"></i>
                                                         </button>
                                                     </LuxuryTooltip>

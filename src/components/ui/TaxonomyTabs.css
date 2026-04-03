@@ -169,7 +169,7 @@
     background: var(--primary-yellow, #ecc94b);
     border-color: var(--primary-yellow, #ecc94b);
     color: var(--gray-900, #1a202c);
-    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 4px 15px rgba(98, 38, 158, 0.3);
 }
 
 /* Depth 0 (States) - Slightly Larger */
@@ -188,7 +188,7 @@
 }
 
 .taxonomy-tabs-wrapper.depth-1 .taxonomy-tab.active {
-    background: #fffbeb;
+    background: var(--cv-primary-light);
     border-color: #fcd34d;
     color: #92400e;
     box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);

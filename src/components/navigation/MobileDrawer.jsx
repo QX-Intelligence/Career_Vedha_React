@@ -145,14 +145,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           dropdownItems: navData.academics
       },
       {
-          name: t.navNews || "News",
-          icon: 'fas fa-bullhorn',
-          path: '/news',
+          name: t.navExams || "Exams",
+          icon: 'fas fa-pen-nib',
+          path: '/academic-exams',
           hasDropdown: true,
           buildUrl: (item, sub) => sub 
-              ? `/news?category=${item.slug}&sub_category=${sub.slug}` 
-              : `/news?category=${item.slug || item.id}`,
-          dropdownItems: navData.news
+              ? `/academic-exams?category=${item.slug}&sub_category=${sub.slug}` 
+              : `/academic-exams?category=${item.slug || item.id}`,
+          dropdownItems: navData.exams
       },
       {
           name: t.navCurrentAffairs || "Current Affairs",
@@ -165,16 +165,6 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           dropdownItems: navData.currentAffairs
       },
       {
-          name: t.navJobs || "Jobs",
-          icon: 'fas fa-briefcase',
-          path: '/jobs',
-          hasDropdown: true,
-          buildUrl: (item, sub) => sub 
-              ? `/jobs?category=${item.slug}&sub_category=${sub.slug}` 
-              : `/jobs?category=${item.slug || item.id}`,
-          dropdownItems: navData.jobs
-      },
-      {
           name: t.navCampusPages || "Campus Pages",
           icon: 'fas fa-university',
           path: '/articles?section=campus-pages',
@@ -185,14 +175,24 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           dropdownItems: navData.campusPages
       },
       {
-          name: t.navExams || "Exams",
-          icon: 'fas fa-pen-nib',
-          path: '/academic-exams',
+          name: t.navNews || "News",
+          icon: 'fas fa-bullhorn',
+          path: '/news',
           hasDropdown: true,
           buildUrl: (item, sub) => sub 
-              ? `/academic-exams?category=${item.slug}&sub_category=${sub.slug}` 
-              : `/academic-exams?category=${item.slug || item.id}`,
-          dropdownItems: navData.exams
+              ? `/news?category=${item.slug}&sub_category=${sub.slug}` 
+              : `/news?category=${item.slug || item.id}`,
+          dropdownItems: navData.news
+      },
+      {
+          name: t.navJobs || "Jobs",
+          icon: 'fas fa-briefcase',
+          path: '/jobs',
+          hasDropdown: true,
+          buildUrl: (item, sub) => sub 
+              ? `/jobs?category=${item.slug}&sub_category=${sub.slug}` 
+              : `/jobs?category=${item.slug || item.id}`,
+          dropdownItems: navData.jobs
       },
       { name: t.navEStore || "E-Store", icon: 'fas fa-shopping-cart', path: '/e-store', hasDropdown: false },
       {

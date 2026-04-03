@@ -547,7 +547,7 @@ const TopStoriesManagement = () => {
                                         </td>
                                         <td>
                                             <div className="ts-text-main" style={{ fontSize: '0.83rem' }}>
-                                                <i className="far fa-calendar-alt" style={{ marginRight: '5px', color: '#fbbf24' }}></i>
+                                                <i className="far fa-calendar-alt" style={{ marginRight: '5px', color: 'var(--cv-primary)' }}></i>
                                                 {new Date(story.publish_date).toLocaleDateString()}
                                             </div>
                                             {story.expiry_date && (
@@ -555,7 +555,7 @@ const TopStoriesManagement = () => {
                                             )}
                                         </td>
                                         <td>
-                                            <span style={{ color: '#fbbf24', fontWeight: '800' }}>#{story.rank}</span>
+                                            <span style={{ color: 'var(--cv-primary)', fontWeight: '800' }}>#{story.rank}</span>
                                         </td>
                                         <td>
                                             <div className="ts-actions">

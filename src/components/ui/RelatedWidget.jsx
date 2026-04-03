@@ -154,13 +154,13 @@ const RelatedWidget = ({ tags, currentId, section, slug }) => {
             {relatedContent.currentAffairs.length > 0 && (
                 <div className="sidebar-widget related-affairs-widget section-fade-in">
                     <h3 className="widget-title">
-                        <i className="fas fa-calendar-alt" style={{ color: '#f59e0b', marginRight: '8px' }}></i>
+                        <i className="fas fa-calendar-alt" style={{ color: 'var(--cv-primary)', marginRight: '8px' }}></i>
                         Current Affairs
                     </h3>
                     <div className="sidebar-compact-list">
                         {relatedContent.currentAffairs.map((item) => (
                             <Link to={item.url} key={`rel-ca-${item.id}`} className="sidebar-compact-item">
-                                <div className="compact-icon-box"><i className="fas fa-globe" style={{ color: '#f59e0b' }}></i></div>
+                                <div className="compact-icon-box"><i className="fas fa-globe" style={{ color: 'var(--cv-primary)' }}></i></div>
                                 <div className="compact-info">
                                     <h4 className="compact-title">{item.title}</h4>
                                     <span className="compact-meta">{item.language === 'te' ? 'Telugu' : 'English'} Special</span>

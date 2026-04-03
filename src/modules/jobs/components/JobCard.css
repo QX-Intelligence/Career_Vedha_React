@@ -54,7 +54,7 @@
 .job-status-badge.active { background: #dcfce7; color: #16a34a; }
 .job-status-badge.expired { background: #fee2e2; color: #dc2626; }
 .job-status-badge.trending { background: #fdf2f8; color: #db2777; }
-.job-status-badge.pending { background: #fef3c7; color: #d97706; }
+.job-status-badge.pending { background: rgba(98, 38, 158, 0.15); color: var(--cv-primary-dark); }
 
 .job-type-badge.govt {
     background: #FFF7ED; 

@@ -37,10 +37,10 @@ const FeaturedStory = memo(({ story, loading, activeLanguage }) => {
     return (
         <article className="featured-story">
             <img
-                src={story.featured_media?.url || story.og_image_url || "https://placehold.co/800x450/FFC107/333333?text=Featured+Story"}
+                src={story.featured_media?.url || story.og_image_url || "https://placehold.co/800x450/62269E/333333?text=Featured+Story"}
                 alt={story.title}
                 onError={(e) => {
-                    e.target.src = "https://placehold.co/800x450/FFC107/333333?text=Featured+Story";
+                    e.target.src = "https://placehold.co/800x450/62269E/333333?text=Featured+Story";
                 }}
             />
             <div className="story-content">

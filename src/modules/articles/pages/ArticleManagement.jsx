@@ -752,7 +752,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                             <button className="close-btn" onClick={() => setShowDeactivateModal(false)}><i className="fas fa-times"></i></button>
                         </div>
                         <div className="modal-body" style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-                            <div className="warning-icon-big" style={{ background: '#fef3c7', color: '#d97706' }}>
+                            <div className="warning-icon-big" style={{ background: 'rgba(98, 38, 158, 0.15)', color: 'var(--cv-primary-dark)' }}>
                                 <i className="fas fa-eye-slash"></i>
                             </div>
                             <h4 style={{ margin: '1rem 0' }}>Confirm Deactivation?</h4>
@@ -762,7 +762,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                         </div>
                         <div className="modal-footer" style={{ justifyContent: 'center', gap: '12px' }}>
                             <button className="btn-cancel-fancy" onClick={() => setShowDeactivateModal(false)}>Keep Active</button>
-                            <button className="btn-save-fancy" style={{ background: '#d97706', borderColor: '#b45309' }} onClick={handleConfirmDeactivate}>Yes, Deactivate</button>
+                            <button className="btn-save-fancy" style={{ background: 'var(--cv-primary-dark)', borderColor: '#b45309' }} onClick={handleConfirmDeactivate}>Yes, Deactivate</button>
                         </div>
                     </div>
                 </div>
@@ -777,7 +777,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                             <button className="close-panel-btn" onClick={() => setShowActivateModal(false)}><i className="fas fa-times"></i></button>
                         </div>
                         <div className="am-modal-body">
-                            <div className="am-warning-icon" style={{ background: '#f59e0b', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div className="am-warning-icon" style={{ background: 'var(--cv-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <i className="fas fa-check" style={{ fontSize: '1.5rem' }}></i>
                             </div>
                             
@@ -841,7 +841,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                                 </div>
                             </div>
 
-                            <div style={{ marginTop: '1.5rem', background: '#fffbeb', padding: '1rem', borderRadius: '12px', border: '1px solid #fef3c7' }}>
+                            <div style={{ marginTop: '1.5rem', background: 'var(--cv-primary-light)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(98, 38, 158, 0.15)' }}>
                                 <p style={{ fontSize: '0.8rem', color: '#92400e', margin: 0 }}>
                                     <i className="fas fa-info-circle"></i> This article will appear in the selected featured block on the website.
                                 </p>

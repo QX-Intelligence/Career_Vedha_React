@@ -139,15 +139,27 @@ export const newsService = {
     getHomeContent: async (lang = 'en', limit = 20, offset = 0) => {
         const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
 
-        const [response, topStoriesResponse] = await Promise.all([
+        const [response, standaloneTopStoriesResponse, flaggedTopStoriesResponse] = await Promise.all([
             djangoApi.get('cms/articles/home/', {
                 params: { lang: langCode, limit, offset }
             }),
-            djangoApi.get('cms/articles/top-stories/list/', { params: { limit: 10 } }).catch(() => ({ data: { results: [] } }))
+            djangoApi.get('cms/articles/top-stories/list/', { params: { limit: 10 } }).catch(() => ({ data: { results: [] } })),
+            djangoApi.get('cms/articles/top-stories/', { params: { lang: langCode } }).catch(() => ({ data: { results: [] } }))
         ]);
 
         const data = response.data;
-        const cmsTopStories = topStoriesResponse.data.results || [];
+        const cmsTopStories = standaloneTopStoriesResponse.data.results || [];
+        const flaggedTopStories = flaggedTopStoriesResponse.data.results || [];
+
+        // Combine standalone "billboard" top stories with native articles flagged as top stories
+        const combinedTopStories = [
+            ...cmsTopStories,
+            ...flaggedTopStories,
+            ...(data.top_stories || []) // Any backend ArticleFeatures
+        ];
+
+        // Deduplicate by ID (in case standalone points to the same ID, or data.top_stories overlaps)
+        const uniqueTopStories = Array.from(new Map(combinedTopStories.map(item => [item.id, item])).values());
 
         // Resilience: Handle data as array [...] or object { featured: [...] }
         const featuredList = Array.isArray(data) ? data : (data.featured || []);
@@ -162,7 +174,7 @@ export const newsService = {
             latest: latestData,
             // Direct mapping for UI widgets
             hero: (data.hero && data.hero.length > 0) ? data.hero : featuredList.slice(0, 5),
-            top_stories: cmsTopStories.length > 0 ? cmsTopStories : ((data.top_stories && data.top_stories.length > 0) ? data.top_stories : featuredList.slice(5)),
+            top_stories: uniqueTopStories.length > 0 ? uniqueTopStories : featuredList.slice(5),
             breaking: (data.breaking && data.breaking.length > 0) ? data.breaking : featuredList.filter(a => (a.feature_type || a.type) === 'BREAKING'),
             must_read: (data.must_read && data.must_read.length > 0) ? data.must_read : mustReadList
         };

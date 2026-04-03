@@ -25,7 +25,7 @@
 .am-title-icon-wrapper {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #FFC107 0%, #F59E0B 100%);
+    background: linear-gradient(135deg, var(--cv-primary) 0%, #F59E0B 100%);
     color: #0f172a;
     border-radius: 16px;
     display: flex;
@@ -357,7 +357,7 @@
 .modal-title-icon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    background: linear-gradient(135deg, rgba(98, 38, 158, 0.15) 0%, rgba(98, 38, 158, 0.25) 100%);
     color: #b45309;
     display: flex;
     align-items: center;
@@ -602,7 +602,7 @@
 }
 
 .highlight-group {
-    background: #fffbeb;
+    background: var(--cv-primary-light);
     padding: 1rem;
     border-radius: 12px;
     border: 1px dashed #fcd34d;
@@ -744,7 +744,7 @@ code {
 }
 
 .am-row-expanded {
-    background-color: #fffbeb !important; /* Soft yellow for active parent */
+    background-color: var(--cv-primary-light) !important; /* Soft yellow for active parent */
 }
 
 .am-row-child {

@@ -110,7 +110,7 @@
 .doc-icon {
     width: 60px;
     height: 60px;
-    background: #fffbeb;
+    background: var(--cv-primary-light);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
