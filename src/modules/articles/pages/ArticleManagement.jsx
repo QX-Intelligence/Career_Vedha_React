@@ -479,15 +479,17 @@ const ArticleManagement = ({ activeLanguage }) => {
                             {status === 'INACTIVE' && <i className="fas fa-eye-slash"></i>}
                             {status === 'FEATURED' && <i className="fas fa-thumbtack"></i>}
                             {status.charAt(0) + status.slice(1).toLowerCase()}
-                            <span style={{
-                                background: 'rgba(0,0,0,0.06)',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                fontSize: '0.7em',
-                                marginLeft: '4px'
-                            }}>
-                                {statusCounts[status] || 0}
-                            </span>
+                            {!['SCHEDULED', 'DRAFT', 'INACTIVE'].includes(status) && (
+                                <span style={{
+                                    background: 'rgba(0,0,0,0.06)',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    fontSize: '0.7em',
+                                    marginLeft: '4px'
+                                }}>
+                                    {statusCounts[status] || 0}
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>
