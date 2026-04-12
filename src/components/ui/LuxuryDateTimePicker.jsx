@@ -211,6 +211,15 @@ const LuxuryDateTimePicker = ({ value, onChange, placeholder = "Select Date & Ti
                             </div>
                         </div>
                     </div>
+                    <div className="am-calendar-footer" style={{ padding: '0.75rem', borderTop: '1px solid var(--slate-200)', display: 'flex', justifyContent: 'flex-end', background: 'var(--slate-50)' }}>
+                        <button 
+                            type="button" 
+                            onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} 
+                            style={{ padding: '0.4rem 1rem', background: 'var(--primary-color, #4f46e5)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '500', fontSize: '0.9rem' }}
+                        >
+                            Done
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

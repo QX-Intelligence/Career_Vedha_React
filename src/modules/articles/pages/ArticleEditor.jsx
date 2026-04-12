@@ -187,7 +187,11 @@ const ArticleEditor = () => {
     // Mutation loading state (Manual overrides for multipart form submittals)
     const [isSaving, setIsSaving] = useState(false);
 
-    const { data: articleData, isLoading: loadingArticle } = useArticle(id, { enabled: isEditMode });
+    const { data: articleData, isLoading: loadingArticle } = useArticle(id, { 
+        enabled: isEditMode, 
+        staleTime: 0, 
+        gcTime: 0 
+    });
 
     // Media Upload State
     const [bannerFile, setBannerFile] = useState(null);
@@ -702,7 +706,7 @@ const ArticleEditor = () => {
             // Status and Scheduling
             formDataToSubmit.append('status', 'PUBLISHED'); 
             if (scheduleDate) {
-                formDataToSubmit.append('scheduled_at', new Date(scheduleDate).toISOString());
+                formDataToSubmit.append('published_at', new Date(scheduleDate).toISOString());
             }
 
             // Ensure we have section and slug (crucial for backend validator)
