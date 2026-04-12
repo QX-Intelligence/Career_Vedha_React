@@ -258,6 +258,10 @@ const ArticleDetail = () => {
                                             } else if (url.includes('youtube.com/watch')) {
                                                 const urlObj = new URL(url);
                                                 videoId = urlObj.searchParams.get('v');
+                                            } else if (url.includes('youtube.com/live/')) {
+                                                videoId = url.split('youtube.com/live/')[1].split('?')[0];
+                                            } else if (url.includes('youtube.com/shorts/')) {
+                                                videoId = url.split('youtube.com/shorts/')[1].split('?')[0];
                                             } else if (url.includes('youtube.com/embed/')) {
                                                  return url;
                                             }
