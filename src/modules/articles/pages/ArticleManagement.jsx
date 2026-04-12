@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { newsService } from '../../../services';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { getUserContext } from '../../../services/api';
@@ -21,13 +21,24 @@ const ArticleManagement = ({ activeLanguage }) => {
     const navigate = useNavigate();
     const { role: userRole } = getUserContext();
 
-    // Use React Query hook for articles
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'PUBLISHED');
+    // Sync tab with URL without triggering React Router crashes
+    const getInitialTab = () => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('tab') || 'PUBLISHED';
+        }
+        return 'PUBLISHED';
+    };
+
+    const [activeTab, setActiveTab] = useState(getInitialTab());
 
     const handleTabChange = (status) => {
         setActiveTab(status);
-        setSearchParams({ tab: status }, { replace: true });
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', status);
+            window.history.replaceState({}, '', url);
+        }
     };
     const [searchQuery, setSearchQuery] = useState('');
     const [filterDate, setFilterDate] = useState('');
