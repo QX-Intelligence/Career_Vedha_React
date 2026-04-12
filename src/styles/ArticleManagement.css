@@ -882,6 +882,7 @@
     scrollbar-width: thin;
     scrollbar-color: var(--slate-300) transparent;
     padding: 0.5rem 0;
+    min-height: 0;
 }
 
 .scroll-options::-webkit-scrollbar {

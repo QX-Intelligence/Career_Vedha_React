@@ -246,6 +246,43 @@ const ArticleDetail = () => {
                                     className="article-rich-text"
                                     dangerouslySetInnerHTML={{ __html: article.content || '<p>No content available.</p>' }}
                                 />
+                                
+                                {/* Render YouTube Video if available */}
+                                {article.youtube_url && (() => {
+                                    const getYouTubeEmbedUrl = (url) => {
+                                        if (!url) return null;
+                                        let videoId = '';
+                                        try {
+                                            if (url.includes('youtu.be/')) {
+                                                videoId = url.split('youtu.be/')[1].split('?')[0];
+                                            } else if (url.includes('youtube.com/watch')) {
+                                                const urlObj = new URL(url);
+                                                videoId = urlObj.searchParams.get('v');
+                                            } else if (url.includes('youtube.com/embed/')) {
+                                                 return url;
+                                            }
+                                        } catch (e) {
+                                            return null;
+                                        }
+                                        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+                                    };
+                                    const embedUrl = getYouTubeEmbedUrl(article.youtube_url);
+                                    if (!embedUrl) return null;
+                                    return (
+                                        <div className="article-youtube-video" style={{ marginTop: '30px', marginBottom: '20px' }}>
+                                            <iframe
+                                                width="100%"
+                                                height="450"
+                                                src={embedUrl}
+                                                title="YouTube video player"
+                                                frameBorder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                                style={{ borderRadius: '12px', border: 'none' }}
+                                            ></iframe>
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             {/* Related Discovery Hub immediately after content */}
