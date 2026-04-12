@@ -21,7 +21,7 @@ const ArticleManagement = ({ activeLanguage }) => {
     const navigate = useNavigate();
     const { role: userRole } = getUserContext();
 
-    // Sync tab with URL without triggering React Router crashes
+    // Sync tab with URL safely via React Router
     const getInitialTab = () => {
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
@@ -35,9 +35,9 @@ const ArticleManagement = ({ activeLanguage }) => {
     const handleTabChange = (status) => {
         setActiveTab(status);
         if (typeof window !== 'undefined') {
-            const url = new URL(window.location);
-            url.searchParams.set('tab', status);
-            window.history.replaceState({}, '', url);
+            const params = new URLSearchParams(window.location.search);
+            params.set('tab', status);
+            navigate({ search: params.toString() }, { replace: true, preventScrollReset: true });
         }
     };
     const [searchQuery, setSearchQuery] = useState('');
