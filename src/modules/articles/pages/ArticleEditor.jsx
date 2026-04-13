@@ -294,8 +294,8 @@ const ArticleEditor = () => {
 
     // Prefill selected categories when hierarchy is loaded in edit mode
     useEffect(() => {
-        // Guard: Wait for all pieces to be ready
-        if (isEditMode && fullHierarchy?.length > 0 && articleData && !prefillDoneRef.current) {
+        // Guard: Wait for all pieces to be ready (level1 MUST be set to avoid premature lock)
+        if (isEditMode && fullHierarchy?.length > 0 && articleData && level1 && !prefillDoneRef.current) {
             console.log(`[Prefill] Starting match for IDs:`, articleData.category_ids || articleData.categories);
             
             const rawIds = articleData.article_categories 
@@ -710,7 +710,7 @@ const ArticleEditor = () => {
             // Status and Scheduling
             if (scheduleDate) {
                 formDataToSubmit.append('status', 'SCHEDULED');
-                formDataToSubmit.append('published_at', new Date(scheduleDate).toISOString());
+                formDataToSubmit.append('scheduled_at', new Date(scheduleDate).toISOString());
             } else {
                 formDataToSubmit.append('status', 'PUBLISHED'); 
             }
@@ -727,12 +727,16 @@ const ArticleEditor = () => {
                 showSnackbar(`Article ${scheduleDate ? 'scheduled' : 'published'} successfully`, 'success');
             } else {
                 await newsService.updateArticle(id, formDataToSubmit);
+                
+                // Directly manage the explicit state transition for Admins
+                await newsService.directPublish(id, scheduleDate ? { scheduled_at: new Date(scheduleDate).toISOString() } : {});
+                
                 if (formData.is_top_story) {
                     await newsService.pinArticle(id, { feature_type: 'TOP', section: formData.section || 'General' }).catch(console.error);
                 } else {
                     await newsService.unpinArticle(id, { feature_type: 'TOP', section: formData.section || 'General' }).catch(console.error);
                 }
-                showSnackbar(`Article updated successfully`, 'success');
+                showSnackbar(`Article ${scheduleDate ? 'scheduled' : 'published'} successfully`, 'success');
             }
 
             navigate('/dashboard?tab=articles');
