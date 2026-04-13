@@ -1115,7 +1115,7 @@ export const taxonomyService = {
 // No dedicated backend search endpoint. Fetches raw content from regular APIs
 // and the public taxonomy tree, then filters entirely in the browser.
 export const globalSearchService = {
-    searchAll: async (query, types = ['all']) => {
+    searchAll: async (query, types = ['all'], lang = 'en') => {
         if (!query || query.trim().length < 2) {
             return { results: [], totalResults: 0, resultsByType: {} };
         }
@@ -1146,8 +1146,9 @@ export const globalSearchService = {
 
         // ── Articles: fetch ALL published — split into News + Campus Pages ──────
         if (types.includes('all') || types.includes('article') || types.includes('campusPages')) {
+            const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
             promises.push(
-                djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.PUBLISHED_ARTICLES, { params: { limit: 500 } })
+                djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.PUBLISHED_ARTICLES, { params: { limit: 500, lang: langCode } })
                     .then(res => {
                         const items = res.data?.results || (Array.isArray(res.data) ? res.data : []);
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { globalSearchService, newsService } from '../../services'; // Added newsService import
+import { useLanguage } from '../../context/LanguageContext';
 import './ContentHubWidget.css';
 
 const ContentHubWidget = ({ searchQuery, title, minimal = false }) => { // Added minimal prop with default false
+    const { activeLanguage } = useLanguage();
     const [data, setData] = useState({
         articles: [],
         jobs: [],
@@ -25,9 +27,10 @@ const ContentHubWidget = ({ searchQuery, title, minimal = false }) => { // Added
                 const isGeneric = ['Trending', 'Latest', 'Discover', 'Recommended'].includes(searchQuery);
                 
                 if (isGeneric) {
+                    const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
                     const [trendingRes, latestArticles] = await Promise.all([
-                        newsService.getTrendingArticles({ limit: 8 }),
-                        newsService.getLatestArticles('en', 8) // Fallback to latest as well
+                        newsService.getTrendingArticles({ limit: 8, lang: activeLanguage }),
+                        newsService.getLatestArticles(langCode, 8) // Fallback to latest as well
                     ]);
                     
                     const trending = (trendingRes.results || []).map(a => ({
@@ -61,12 +64,12 @@ const ContentHubWidget = ({ searchQuery, title, minimal = false }) => { // Added
                     });
                 } else {
                     // Regular targeted search for specific context (e.g. 10th Class)
-                    const response = await globalSearchService.searchAll(searchQuery);
+                    const response = await globalSearchService.searchAll(searchQuery, ['all'], activeLanguage);
                     results = response.results || [];
 
                     // Fallback: If results are too thin, add trending
                     if (results.filter(r => r.type === 'article').length < 4) { // Changed limit from 2 to 4
-                        const trendingRes = await newsService.getTrendingArticles({ limit: 4 }); // Changed limit from 10 to 4
+                        const trendingRes = await newsService.getTrendingArticles({ limit: 4, lang: activeLanguage }); // Changed limit from 10 to 4
                         const trending = (trendingRes.results || []).map(a => ({
                             type: 'article',
                             id: a.id,
