@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { globalSearchService, newsService } from '../../services';
+import { useLanguage } from '../../context/LanguageContext';
 
 const RelatedWidget = ({ tags, currentId, section, slug }) => {
+    const { activeLanguage } = useLanguage();
     const [relatedContent, setRelatedContent] = useState({
         articles: [],
         jobs: [],
@@ -16,7 +18,7 @@ const RelatedWidget = ({ tags, currentId, section, slug }) => {
             if (section && slug) {
                 setLoading(true);
                 try {
-                    const response = await newsService.getRelatedArticles(section, slug);
+                    const response = await newsService.getRelatedArticles(section, slug, activeLanguage);
                     // The backend returns { results: [...] }
                     setRelatedContent(prev => ({
                         ...prev,

@@ -475,9 +475,12 @@ export const newsService = {
         }
     },
 
-    getRelatedArticles: async (section, slug) => {
+    getRelatedArticles: async (section, slug, lang = 'en') => {
         try {
-            const response = await djangoApi.get(`cms/articles/${section}/${slug}/related/`);
+            const langCode = lang === 'telugu' ? 'te' : (lang === 'english' ? 'en' : lang);
+            const response = await djangoApi.get(`cms/articles/${section}/${slug}/related/`, {
+                params: { lang: langCode }
+            });
             return response.data;
         } catch (error) {
             console.error('Error fetching related articles:', error);
