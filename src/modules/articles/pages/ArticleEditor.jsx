@@ -242,7 +242,7 @@ const ArticleEditor = () => {
                     ? article.tags.join(', ') 
                     : (article.tags || ''),
                 section: article.section || sectionParam || '',
-                language: (engTrans && (engTrans.content || engTrans.summary)) ? 'en' : (telTrans ? 'te' : 'en'),
+                language: (telTrans && (telTrans.content || telTrans.summary)) ? 'te' : ((engTrans && (engTrans.content || engTrans.summary)) ? 'en' : 'te'),
                 eng_title: article.eng_title || engTrans?.title || (article.language === 'en' ? article.title : ''),
                 eng_content: article.eng_content || engTrans?.content || (article.language === 'en' ? article.content : ''),
                 eng_summary: article.eng_summary || engTrans?.summary || (article.language === 'en' ? article.summary : ''),
