@@ -4,7 +4,7 @@ import { globalSearchService, newsService } from '../../services'; // Added news
 import { useLanguage } from '../../context/LanguageContext';
 import './ContentHubWidget.css';
 
-const ContentHubWidget = ({ searchQuery, title, minimal = false }) => { // Added minimal prop with default false
+const ContentHubWidget = ({ searchQuery, title, minimal = false, excludeIds = [] }) => {
     const { activeLanguage } = useLanguage();
     const [data, setData] = useState({
         articles: [],
@@ -85,13 +85,25 @@ const ContentHubWidget = ({ searchQuery, title, minimal = false }) => { // Added
                     }
                 }
                 
+                // Deduplicate results by ID and filter out excluded IDs
+                const excludeSet = new Set(excludeIds.map(Number).filter(Boolean));
+                const seen = new Set();
+                const dedupedResults = [];
+                for (const r of results) {
+                    const numId = Number(r.id);
+                    if (!seen.has(numId) && !excludeSet.has(numId)) {
+                        seen.add(numId);
+                        dedupedResults.push(r);
+                    }
+                }
+
                 // Group by type with high density limits
                 setData({
-                    articles: results.filter(r => r.type === 'article').slice(0, 12), // Increased limit from 8 to 12
-                    jobs: results.filter(r => r.type === 'job').slice(0, 8), // Increased limit from 6 to 8
-                    academics: results.filter(r => r.type === 'academic').slice(0, 8), // Increased limit from 6 to 8
-                    estore: results.filter(r => r.type === 'product').slice(0, 8), // Increased limit from 6 to 8
-                    currentAffairs: results.filter(r => r.type === 'currentAffair').slice(0, 8) // Increased limit from 6 to 8
+                    articles: dedupedResults.filter(r => r.type === 'article').slice(0, 12),
+                    jobs: dedupedResults.filter(r => r.type === 'job').slice(0, 8),
+                    academics: dedupedResults.filter(r => r.type === 'academic').slice(0, 8),
+                    estore: dedupedResults.filter(r => r.type === 'product').slice(0, 8),
+                    currentAffairs: dedupedResults.filter(r => r.type === 'currentAffair').slice(0, 8)
                 });
             } catch (error) {
                 console.error('Error fetching hub data:', error);

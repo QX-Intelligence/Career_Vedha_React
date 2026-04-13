@@ -296,6 +296,7 @@ const ArticleDetail = () => {
                                         searchQuery={searchContext} 
                                         title={activeLanguage === 'telugu' ? `${searchContext} కి సంబంధించినవి` : `Related to ${searchContext}`}
                                         minimal={true}
+                                        excludeIds={[article.id]}
                                     />
                                 </div>
                             )}
@@ -325,6 +326,7 @@ const ArticleDetail = () => {
                             searchQuery="Trending" 
                             title="Other Articles You Might Like"
                             minimal={true}
+                            excludeIds={[article.id]}
                         />
                     </div>
                 </div>
