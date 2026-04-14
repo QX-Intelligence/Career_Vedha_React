@@ -2106,8 +2106,8 @@ section {
 }
 
 .ticket-tag {
-    background: var(--cv-primary);
-    color: var(--cv-primary-text);
+    background-color: var(--cv-primary-light) !important;
+    color: var(--cv-primary) !important;
     font-size: 10px;
     font-weight: 800;
     padding: 2px 8px;
