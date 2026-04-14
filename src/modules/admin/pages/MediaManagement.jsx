@@ -767,8 +767,8 @@ const MediaManagement = () => {
                         <form onSubmit={handleReplace}>
                             <div className="mm-modal-body">
                                 <div className="mm-info-box" style={{
-                                    background: 'rgba(250, 204, 21, 0.1)',
-                                    border: '1px solid var(--primary-yellow)',
+                                    background: 'rgba(123, 63, 228, 0.1)',
+                                    border: '1px solid var(--cv-primary)',
                                     borderRadius: '12px',
                                     padding: '1.25rem',
                                     marginBottom: '1.5rem',
@@ -789,7 +789,7 @@ const MediaManagement = () => {
                                             justifyContent: 'center',
                                             flexShrink: 0 
                                         }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                         </div>
                                     ) : replaceCurrentPreviewUrl ? (
                                         <div style={{ 
@@ -823,7 +823,7 @@ const MediaManagement = () => {
                                     
                                     <div style={{ flex: 1 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                            <i className="fas fa-info-circle" style={{color: 'var(--primary-yellow)'}}></i>
+                                            <i className="fas fa-info-circle" style={{color: 'var(--cv-primary)'}}></i>
                                             <span style={{ fontWeight: 700 }}>Replacing Existing Media</span>
                                         </div>
                                         <div style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--slate-900)' }}>{replaceItem.title}</div>

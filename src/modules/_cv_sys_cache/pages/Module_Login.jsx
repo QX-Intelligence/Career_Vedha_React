@@ -131,7 +131,7 @@ const Module_Login = () => {
     return (
         <div style={{ 
             minHeight: '100vh', 
-            background: '#111', 
+            background: '#FDFBF7', 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
@@ -144,31 +144,31 @@ const Module_Login = () => {
                 style={{ 
                     maxWidth: '450px', 
                     width: '100%', 
-                    background: '#1a1a1a', 
+                    background: '#FFFFFF', 
                     padding: '3rem', 
                     borderRadius: '2rem',
-                    border: '1px solid #222',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                    border: '1px solid #F1F5F9',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)'
                 }}
             >
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                     <div style={{ 
                         width: '64px', 
                         height: '64px', 
-                        background: '#D4A843', 
+                        background: '#62269E', 
                         borderRadius: '1.25rem', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
                         margin: '0 auto 1.5rem',
-                        boxShadow: '0 10px 20px rgba(212, 168, 67, 0.2)'
+                        boxShadow: '0 10px 20px rgba(98, 38, 158, 0.2)'
                     }}>
-                        <ShieldCheck size={32} color="#111" />
+                        <ShieldCheck size={32} color="#FDFBF7" />
                     </div>
-                    <h2 style={{ color: '#fff', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+                    <h2 style={{ color: '#0F172A', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
                         {step === 1 ? 'Welcome Back' : 'Verify Account'}
                     </h2>
-                    <p style={{ color: '#888', fontFamily: 'sans-serif', fontSize: '0.95rem' }}>
+                    <p style={{ color: '#64748B', fontFamily: 'sans-serif', fontSize: '0.95rem' }}>
                         {step === 1 ? 'Login to continue your shopping journey' : `Enter the 6-digit code sent to ${email}`}
                     </p>
                 </div>
@@ -176,9 +176,9 @@ const Module_Login = () => {
                 {step === 1 ? (
                     <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            <label style={{ color: '#aaa', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Email Address</label>
+                            <label style={{ color: '#475569', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Email Address</label>
                             <div style={{ position: 'relative' }}>
-                                <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#D4A843' }} />
+                                <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#62269E' }} />
                                 <input
                                     type="email"
                                     placeholder="your@email.com"
@@ -188,17 +188,17 @@ const Module_Login = () => {
                                     style={{ 
                                         width: '100%', 
                                         padding: '1.25rem 1.25rem 1.25rem 3rem', 
-                                        background: '#222', 
-                                        border: '1px solid #333', 
+                                        background: '#FFFFFF', 
+                                        border: '1px solid #E2E8F0', 
                                         borderRadius: '1rem', 
-                                        color: '#fff',
+                                        color: '#0F172A',
                                         fontSize: '1rem',
                                         fontFamily: 'sans-serif',
                                         outline: 'none',
                                         transition: 'border-color 0.2s'
                                     }}
-                                    onFocus={(e) => e.target.style.borderColor = '#D4A843'}
-                                    onBlur={(e) => e.target.style.borderColor = '#333'}
+                                    onFocus={(e) => e.target.style.borderColor = '#62269E'}
+                                    onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
                                     required
                                 />
                             </div>
@@ -209,8 +209,8 @@ const Module_Login = () => {
                             disabled={loading}
                             style={{ 
                                 padding: '1.25rem', 
-                                background: '#D4A843', 
-                                color: '#111', 
+                                background: '#62269E', 
+                                color: '#FDFBF7', 
                                 border: 'none', 
                                 borderRadius: '1rem', 
                                 fontWeight: 800, 
@@ -221,7 +221,7 @@ const Module_Login = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '0.75rem',
-                                boxShadow: '0 10px 20px rgba(212, 168, 67, 0.2)'
+                                boxShadow: '0 10px 20px rgba(98, 38, 158, 0.2)'
                             }}
                         >
                             {loading ? <Loader2 className="animate-spin" size={20} /> : (
@@ -232,8 +232,8 @@ const Module_Login = () => {
                         </button>
 
                         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                            <p style={{ color: '#666', fontSize: '0.9rem', fontFamily: 'sans-serif' }}>
-                                Don't have an account? <Link to="/e-store/register" style={{ color: '#D4A843', textDecoration: 'none', fontWeight: 600 }}>Register Now</Link>
+                            <p style={{ color: '#94A3B8', fontSize: '0.9rem', fontFamily: 'sans-serif' }}>
+                                Don't have an account? <Link to="/e-store/register" style={{ color: '#62269E', textDecoration: 'none', fontWeight: 600 }}>Register Now</Link>
                             </p>
                         </div>
                     </form>
@@ -253,10 +253,10 @@ const Module_Login = () => {
                                     style={{ 
                                         width: '45px', 
                                         height: '55px', 
-                                        background: '#222', 
-                                        border: '1px solid #333', 
+                                        background: '#FFFFFF', 
+                                        border: '1px solid #E2E8F0', 
                                         borderRadius: '0.75rem', 
-                                        color: '#fff',
+                                        color: '#0F172A',
                                         fontSize: '1.5rem',
                                         fontWeight: 700,
                                         textAlign: 'center',
@@ -270,13 +270,13 @@ const Module_Login = () => {
 
                         <div style={{ textAlign: 'center' }}>
                             {resendTimer > 0 ? (
-                                <p style={{ color: '#666', fontSize: '0.85rem', fontFamily: 'sans-serif' }}>Resend code in {resendTimer}s</p>
+                                <p style={{ color: '#94A3B8', fontSize: '0.85rem', fontFamily: 'sans-serif' }}>Resend code in {resendTimer}s</p>
                             ) : (
                                 <button
                                     type="button"
                                     onClick={handleSendOtp}
                                     disabled={loading}
-                                    style={{ background: 'none', border: 'none', color: '#D4A843', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
+                                    style={{ background: 'none', border: 'none', color: '#62269E', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
                                 >
                                     Resend Verification Code
                                 </button>
@@ -291,9 +291,9 @@ const Module_Login = () => {
                                 style={{ 
                                     flex: 1,
                                     padding: '1.25rem', 
-                                    background: '#1a1a1a', 
-                                    color: '#888', 
-                                    border: '1px solid #333', 
+                                    background: '#FFFFFF', 
+                                    color: '#64748B', 
+                                    border: '1px solid #E2E8F0', 
                                     borderRadius: '1rem', 
                                     fontWeight: 700,
                                     cursor: 'pointer',
@@ -311,8 +311,8 @@ const Module_Login = () => {
                                 style={{ 
                                     flex: 2,
                                     padding: '1.25rem', 
-                                    background: '#D4A843', 
-                                    color: '#111', 
+                                    background: '#62269E', 
+                                    color: '#FDFBF7', 
                                     border: 'none', 
                                     borderRadius: '1rem', 
                                     fontWeight: 800,

@@ -27,7 +27,7 @@ const SidebarJobsWidget = () => {
     return (
         <div className="sidebar-widget jobs-widget section-fade-in mt-4">
             <h3 className="widget-title">
-                <i className="fas fa-briefcase" style={{ color: 'var(--primary-yellow)', marginRight: '8px' }}></i>
+                <i className="fas fa-briefcase" style={{ color: 'var(--cv-primary)', marginRight: '8px' }}></i>
                 Career Opportunities
             </h3>
             <div className="sidebar-compact-list">

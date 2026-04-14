@@ -110,7 +110,7 @@ const RelatedWidget = ({ tags, currentId, section, slug }) => {
             {relatedContent.articles.length > 0 && (
                 <div className="sidebar-widget related-stories-widget section-fade-in">
                     <h3 className="widget-title">
-                        <i className="fas fa-newspaper" style={{ color: 'var(--primary-yellow)', marginRight: '8px' }}></i>
+                        <i className="fas fa-newspaper" style={{ color: 'var(--cv-primary)', marginRight: '8px' }}></i>
                         Related Stories
                     </h3>
                     <div className="sidebar-compact-list">
@@ -136,13 +136,13 @@ const RelatedWidget = ({ tags, currentId, section, slug }) => {
             {relatedContent.jobs.length > 0 && (
                 <div className="sidebar-widget related-jobs-widget section-fade-in">
                     <h3 className="widget-title">
-                        <i className="fas fa-briefcase" style={{ color: 'var(--primary-yellow)', marginRight: '8px' }}></i>
+                        <i className="fas fa-briefcase" style={{ color: 'var(--cv-primary)', marginRight: '8px' }}></i>
                         Career Opportunities
                     </h3>
                     <div className="sidebar-compact-list">
                         {relatedContent.jobs.map((item) => (
                             <Link to={item.url} key={`rel-job-${item.id}`} className="sidebar-compact-item">
-                                <div className="compact-icon-box"><i className="fas fa-building" style={{ color: 'var(--primary-yellow)' }}></i></div>
+                                <div className="compact-icon-box"><i className="fas fa-building" style={{ color: 'var(--cv-primary)' }}></i></div>
                                 <div className="compact-info">
                                     <h4 className="compact-title">{item.title}</h4>
                                     <span className="compact-meta">{item.company}</span>

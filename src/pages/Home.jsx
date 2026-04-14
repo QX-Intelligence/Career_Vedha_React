@@ -14,6 +14,7 @@ import LatestArticles from '../components/home/LatestArticles';
 import SectionCategoryBlocks from '../components/home/SectionCategoryBlocks';
 import TopStoriesHero from '../components/home/TopStoriesHero';
 import MustRead from '../components/home/MustRead';
+import OurServicesPublic from '../components/home/OurServicesPublic';
 import Skeleton from '../components/ui/Skeleton';
 
 // Lazy load below-the-fold components
@@ -125,7 +126,7 @@ const Home = () => {
                 <div className="container">
                     <div className="section-header-branded mb-5" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <h2 className="text-dark" style={{ fontSize: '32px', fontWeight: 800, paddingLeft: 0, margin: '0 0 16px 0', letterSpacing: '-0.02em' }}>Videos</h2>
-                        <div style={{ width: '80px', height: '6px', background: 'linear-gradient(90deg, var(--primary-yellow), var(--dark-yellow))', borderRadius: '4px', marginBottom: '16px' }}></div>
+                        <div style={{ width: '80px', height: '6px', background: 'linear-gradient(90deg, var(--cv-primary), var(--cv-primary-dark))', borderRadius: '4px', marginBottom: '16px' }}></div>
                         <p className="section-subtitle text-muted text-center m-0" style={{ maxWidth: '600px' }}>Watch the latest updates and insights from Career Vedha</p>
                     </div>
                     
@@ -138,6 +139,8 @@ const Home = () => {
                     </Suspense>
                 </div>
             </section>
+            
+            <OurServicesPublic activeLanguage={activeLanguage} />
             
             <Footer />
         </div>

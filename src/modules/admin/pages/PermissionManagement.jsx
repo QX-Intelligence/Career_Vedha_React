@@ -206,7 +206,7 @@ const PermissionManagement = () => {
                                     datasets: [{
                                         label: 'Count',
                                         data: [permissions.length, roles.length],
-                                        backgroundColor: ['#facc15', '#10b981'],
+                                        backgroundColor: ['#62269E', '#10b981'],
                                         borderColor: ['#eab308', '#059669'],
                                         borderWidth: 1,
                                         borderRadius: 8
@@ -223,7 +223,7 @@ const PermissionManagement = () => {
                                             padding: 12,
                                             titleFont: { size: 14, weight: '700' },
                                             bodyFont: { size: 13 },
-                                            borderColor: '#facc15',
+                                            borderColor: '#62269E',
                                             borderWidth: 1,
                                             callbacks: {
                                                 label: function(context) {

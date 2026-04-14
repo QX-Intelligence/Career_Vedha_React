@@ -105,7 +105,7 @@ const ChapterMaterialsView = ({ materials: inputMaterials, language, onStartExam
                                             color: '#1e293b', 
                                             marginBottom: '1rem',
                                             paddingLeft: '0.5rem',
-                                            borderLeft: '4px solid #facc15'
+                                            borderLeft: '4px solid #62269E'
                                         }}>
                                             {matTitle} (Image)
                                         </h3>
@@ -172,7 +172,7 @@ const ChapterMaterialsView = ({ materials: inputMaterials, language, onStartExam
                                             color: '#1e293b', 
                                             marginBottom: '1rem',
                                             paddingLeft: '0.5rem',
-                                            borderLeft: '4px solid #facc15'
+                                            borderLeft: '4px solid #62269E'
                                         }}>
                                             {matTitle} {isPdf ? '(PDF)' : ''}
                                         </h3>

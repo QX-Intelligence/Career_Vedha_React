@@ -54,8 +54,7 @@ const UI_Nav = () => {
 
         {/* Logo — always visible */}
         <Link to="/e-store" className="store-nav-brand">
-          <GraduationCap size={26} />
-          <span>CAREER VEDHA</span>
+          <img src="/Career Vedha logo1.png" alt="Logo" style={{ height: '45px', width: 'auto' }} />
         </Link>
 
         {/* ── DESKTOP: centre nav links ── */}
@@ -80,14 +79,14 @@ const UI_Nav = () => {
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <Link
                 to="/e-store/queue"
-                style={{ color: '#fff', display: 'flex', alignItems: 'center', transition: 'transform 0.2s' }}
+                style={{ color: '#0F172A', display: 'flex', alignItems: 'center', transition: 'transform 0.2s' }}
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
-                <ShoppingBag size={22} color={count > 0 ? '#D4A843' : '#fff'} />
+                <ShoppingBag size={22} color={count > 0 ? '#62269E' : '#0F172A'} />
               </Link>
               {count > 0 && (
-                <span style={{ position: 'absolute', top: '-8px', right: '-10px', background: '#D4A843', color: '#111', fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '100px', fontWeight: 800, border: '2px solid #111', pointerEvents: 'none' }}>{count}</span>
+                <span style={{ position: 'absolute', top: '-8px', right: '-10px', background: '#62269E', color: '#FDFBF7', fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '100px', fontWeight: 800, border: '2px solid #FDFBF7', pointerEvents: 'none' }}>{count}</span>
               )}
             </div>
           )}
@@ -96,14 +95,14 @@ const UI_Nav = () => {
           {auth.isAuthenticated && (
             <div className="store-nav-profile">
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 700 }}>
+                <span style={{ color: '#0F172A', fontSize: '0.8rem', fontWeight: 700 }}>
                   {auth.firstName ? `${auth.firstName} ${auth.lastName || ''}`.trim() : auth.email?.split('@')[0]}
                 </span>
-                <span style={{ color: '#D4A843', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' }}>{auth.role}</span>
+                <span style={{ color: '#62269E', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' }}>{auth.role}</span>
               </div>
               <button
                 onClick={handleLogout}
-                style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.5rem', borderRadius: '50%', transition: 'all 0.2s' }}
+                style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.5rem', borderRadius: '50%', transition: 'all 0.2s' }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.background = 'rgba(255,68,68,0.1)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = '#888'; e.currentTarget.style.background = 'none'; }}
                 title="Logout"
@@ -145,9 +144,9 @@ const UI_Nav = () => {
       <div className={`store-mobile-drawer ${menuOpen ? 'open' : ''}`}>
 
         {/* Drawer header */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #222', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: '#D4A843', fontWeight: 800, fontSize: '1rem', letterSpacing: '1px' }}>MENU</span>
-          <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ color: '#62269E', fontWeight: 800, fontSize: '1rem', letterSpacing: '1px' }}>MENU</span>
+          <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}>
             <X size={22} />
           </button>
         </div>
@@ -166,8 +165,8 @@ const UI_Nav = () => {
                 fontSize: '0.95rem',
                 letterSpacing: '1px',
                 textTransform: 'uppercase',
-                color: location.pathname === link.path ? '#D4A843' : '#aaa',
-                background: location.pathname === link.path ? 'rgba(212,168,67,0.08)' : 'transparent',
+                color: location.pathname === link.path ? '#62269E' : '#475569',
+                background: location.pathname === link.path ? 'rgba(98,38,158,0.08)' : 'transparent',
                 transition: 'all 0.2s',
                 display: 'block',
               }}
@@ -178,18 +177,18 @@ const UI_Nav = () => {
         </nav>
 
         {/* Drawer footer — Sign In OR user info+logout */}
-        <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid #222' }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           {auth.isAuthenticated ? (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(212,168,67,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <User size={18} color="#D4A843" />
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(98,38,158,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={18} color="#62269E" />
                 </div>
                 <div>
-                  <p style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem', margin: 0 }}>
+                  <p style={{ color: '#0F172A', fontWeight: 700, fontSize: '0.9rem', margin: 0 }}>
                     {auth.firstName ? `${auth.firstName} ${auth.lastName || ''}`.trim() : auth.email?.split('@')[0]}
                   </p>
-                  <p style={{ color: '#D4A843', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>{auth.role}</p>
+                  <p style={{ color: '#62269E', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', margin: 0 }}>{auth.role}</p>
                 </div>
               </div>
               <button
@@ -200,9 +199,8 @@ const UI_Nav = () => {
               </button>
             </div>
           ) : (
-            <Link
               to="/e-store/login"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '1rem', background: '#D4A843', color: '#111', borderRadius: '0.75rem', textDecoration: 'none', fontWeight: 800, fontSize: '1rem' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '1rem', background: '#62269E', color: '#FDFBF7', borderRadius: '0.75rem', textDecoration: 'none', fontWeight: 800, fontSize: '1rem' }}
             >
               <LogIn size={18} /> Sign In
             </Link>

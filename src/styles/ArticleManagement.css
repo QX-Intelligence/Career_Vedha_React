@@ -33,12 +33,12 @@
 .am-title i {
     width: 44px;
     height: 44px;
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     border-radius: 12px;
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+    background: linear-gradient(135deg, #62269E 0%, #eab308 100%);
     color: #0f172a;
     border-radius: 14px;
     display: flex;
@@ -49,13 +49,13 @@
 }
 
 .am-btn-primary {
-    background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+    background: linear-gradient(135deg, #62269E 0%, #eab308 100%);
     color: #0f172a;
     padding: 0.85rem 1.75rem;
     border-radius: 14px;
     font-weight: 800;
     border: none;
-    box-shadow: 0 8px 20px -6px rgba(250, 204, 21, 0.5);
+    box-shadow: 0 8px 20px -6px rgba(123, 63, 228, 0.5);
     display: flex;
     align-items: center;
     gap: 0.85rem;
@@ -65,7 +65,7 @@
 
 .am-btn-primary:hover {
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 28px -8px rgba(250, 204, 21, 0.6);
+    box-shadow: 0 12px 28px -8px rgba(123, 63, 228, 0.6);
 }
 
 .am-btn-primary:disabled {
@@ -183,13 +183,13 @@
 }
 
 .custom-checkbox label:hover {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
     background-color: var(--cv-primary-light);
 }
 
 .custom-checkbox input:checked + label {
-    background-color: var(--primary-yellow);
-    border-color: var(--primary-yellow);
+    background-color: var(--cv-primary);
+    border-color: var(--cv-primary);
     box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
 }
 
@@ -218,7 +218,7 @@
 }
 
 .am-search-wrapper:focus-within {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
 }
 
 .am-search-icon {
@@ -237,7 +237,7 @@
     color: var(--slate-900);
     font-weight: 400;
     width: 100%; /* Ensure it fills wrapper */
-    caret-color: var(--primary-yellow-hover);
+    caret-color: var(--cv-primary-dark);
 }
 
 .am-search-input::placeholder {
@@ -386,13 +386,13 @@
     font-size: 0.95rem;
     transition: all 0.2s;
     outline: none;
-    caret-color: var(--primary-yellow-hover);
+    caret-color: var(--cv-primary-dark);
 }
 
 .am-input:focus {
-    border-color: #fbbf24;
+    border-color: #62269E;
     background: white;
-    box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.1);
+    box-shadow: 0 0 0 4px rgba(123, 63, 228, 0.1);
 }
 
 .am-form-row {
@@ -494,7 +494,7 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: #f59e0b; /* Default warning orange */
+    background: #62269E; /* Default warning orange */
     color: white;
     display: flex;
     align-items: center;
@@ -602,7 +602,7 @@
 
 .am-cal-trigger.active {
     background: var(--cv-primary-light); /* Light yellow background */
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
     color: var(--slate-900);
 }
 
@@ -696,13 +696,13 @@
 }
 
 .am-cal-day.selected {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     font-weight: 700;
 }
 
 .am-cal-day.today {
-    border: 1px solid var(--primary-yellow);
+    border: 1px solid var(--cv-primary);
 }
 
 .am-cal-day.empty {
@@ -717,15 +717,15 @@
 }
 
 .am-btn-pin:hover {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
-    border-color: #fcd34d;
+    border-color: #62269E;
 }
 
 .am-btn-pin.pinned {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
-    border-color: #fcd34d;
+    border-color: #62269E;
     box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
 }
 
@@ -757,12 +757,12 @@
 }
 
 .custom-checkbox label:hover {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
 }
 
 .custom-checkbox input:checked + label {
-    background-color: var(--primary-yellow);
-    border-color: var(--primary-yellow);
+    background-color: var(--cv-primary);
+    border-color: var(--cv-primary);
 }
 
 .custom-checkbox input:checked + label:after {
@@ -919,16 +919,16 @@
 }
 
 .time-opt:hover {
-    background: rgba(250, 204, 21, 0.15);
+    background: rgba(123, 63, 228, 0.15);
     color: var(--slate-900);
 }
 
 .time-opt.selected {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     font-weight: 800;
     font-size: 1rem;
-    box-shadow: 0 2px 4px rgba(250, 204, 21, 0.3);
+    box-shadow: 0 2px 4px rgba(123, 63, 228, 0.3);
 }
 
 /* Mobile Responsiveness */
@@ -968,12 +968,12 @@
 
 /* Scheduled Tab Styling */
 .am-tab.scheduled.active {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #62269E 0%, #62269E 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
 }
 
 .am-tab.scheduled:hover {
     background: rgba(251, 191, 36, 0.1);
-    border-color: #fbbf24;
+    border-color: #62269E;
 }

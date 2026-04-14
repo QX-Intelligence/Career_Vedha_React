@@ -45,7 +45,7 @@ const Header = ({ onToggleMenu, isMenuOpen }) => {
                 <div className="header-content">
                     <Link to="/" className="logo-box">
                         <img 
-                            src="/Career Vedha logo.png" 
+                            src="/Career Vedha logo1.png" 
                             alt="Career Vedha Logo" 
                             className="site-logo"
                         />

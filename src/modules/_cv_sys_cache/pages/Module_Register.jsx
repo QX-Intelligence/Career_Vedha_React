@@ -106,44 +106,44 @@ const Module_Register = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem', fontFamily: "'Playfair Display', serif" }}>
+        <div style={{ minHeight: '100vh', background: '#FDFBF7', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem', fontFamily: "'Outfit', sans-serif" }}>
             <Motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 style={{ 
                     maxWidth: '550px', 
                     width: '100%', 
-                    background: '#1a1a1a', 
+                    background: '#FFFFFF', 
                     padding: '3.5rem', 
                     borderRadius: '2.5rem',
-                    border: '1px solid #222',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                    border: '1px solid #F1F5F9',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)'
                 }}
             >
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <div style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #D4A843 0%, #B8860B 100%)', borderRadius: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                        <UserPlus size={32} color="#111" />
+                    <div style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #62269e 0%, #4b1d7d 100%)', borderRadius: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <UserPlus size={32} color="#FDFBF7" />
                     </div>
-                    <h2 style={{ color: '#fff', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Create Account</h2>
-                    <p style={{ color: '#888', fontFamily: 'sans-serif', fontSize: '0.95rem' }}>Join our community of book lovers</p>
+                    <h2 style={{ color: '#0F172A', fontSize: '2.5rem', marginBottom: '0.5rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Create Account</h2>
+                    <p style={{ color: '#475569', fontFamily: "'Inter', sans-serif", fontSize: '0.95rem' }}>Join our community of book lovers</p>
                 </div>
 
                 {step === 1 ? (
                     <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                <label style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>First Name</label>
-                                <input type="text" name="firstName" placeholder="John" value={formData.firstName} onChange={handleChange} required style={{ width: '100%', padding: '1.1rem', background: '#222', border: '1px solid #333', borderRadius: '0.85rem', color: '#fff', outline: 'none', fontFamily: 'sans-serif' }} />
+                                <label style={{ color: '#475569', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>First Name</label>
+                                <input type="text" name="firstName" placeholder="John" value={formData.firstName} onChange={handleChange} required style={{ width: '100%', padding: '1.1rem', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.85rem', color: '#0F172A', outline: 'none', fontFamily: "'Inter', sans-serif" }} onFocus={(e) => e.target.style.borderColor = '#62269e'} onBlur={(e) => e.target.style.borderColor = '#E2E8F0'} />
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                <label style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Last Name</label>
-                                <input type="text" name="lastName" placeholder="Doe" value={formData.lastName} onChange={handleChange} required style={{ width: '100%', padding: '1.1rem', background: '#222', border: '1px solid #333', borderRadius: '0.85rem', color: '#fff', outline: 'none', fontFamily: 'sans-serif' }} />
+                                <label style={{ color: '#475569', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Last Name</label>
+                                <input type="text" name="lastName" placeholder="Doe" value={formData.lastName} onChange={handleChange} required style={{ width: '100%', padding: '1.1rem', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.85rem', color: '#0F172A', outline: 'none', fontFamily: "'Inter', sans-serif" }} onFocus={(e) => e.target.style.borderColor = '#62269e'} onBlur={(e) => e.target.style.borderColor = '#E2E8F0'} />
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                            <label style={{ color: '#aaa', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Email Address</label>
-                            <input type="email" name="email" placeholder="email@example.com" value={formData.email} onChange={handleChange} required style={{ width: '100%', padding: '1.1rem', background: '#222', border: '1px solid #333', borderRadius: '0.85rem', color: '#fff', outline: 'none', fontFamily: 'sans-serif' }} />
+                            <label style={{ color: '#475569', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Email Address</label>
+                            <input type="email" name="email" placeholder="email@example.com" value={formData.email} onChange={handleChange} required style={{ width: '100%', padding: '1.1rem', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.85rem', color: '#0F172A', outline: 'none', fontFamily: "'Inter', sans-serif" }} onFocus={(e) => e.target.style.borderColor = '#62269e'} onBlur={(e) => e.target.style.borderColor = '#E2E8F0'} />
                         </div>
 
                         <button 
@@ -152,8 +152,8 @@ const Module_Register = () => {
                             style={{ 
                                 marginTop: '1rem',
                                 padding: '1.25rem', 
-                                background: '#D4A843', 
-                                color: '#111', 
+                                background: '#62269e', 
+                                color: '#FDFBF7', 
                                 border: 'none', 
                                 borderRadius: '1rem', 
                                 fontWeight: 800, 
@@ -162,14 +162,14 @@ const Module_Register = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '0.75rem',
-                                boxShadow: '0 10px 20px rgba(212, 168, 67, 0.2)'
+                                boxShadow: '0 10px 20px rgba(98, 38, 158, 0.2)'
                             }}
                         >
                             {loading ? <Loader2 className="animate-spin" size={20} /> : <>Verify Email & Continue <ArrowRight size={20} /></>}
                         </button>
 
-                        <p style={{ textAlign: 'center', color: '#666', fontSize: '0.9rem', fontFamily: 'sans-serif' }}>
-                            Already a member? <Link to="/e-store/login" style={{ color: '#D4A843', textDecoration: 'none', fontWeight: 600 }}>Sign In</Link>
+                        <p style={{ textAlign: 'center', color: '#94A3B8', fontSize: '0.9rem', fontFamily: "'Inter', sans-serif" }}>
+                            Already a member? <Link to="/e-store/login" style={{ color: '#62269e', textDecoration: 'none', fontWeight: 600 }}>Sign In</Link>
                         </p>
                     </form>
                 ) : (
@@ -185,7 +185,7 @@ const Module_Register = () => {
                                     onKeyDown={e => handleKeyDown(e, index)}
                                     ref={el => otpInputRefs.current[index] = el}
                                     disabled={loading}
-                                    style={{ width: '45px', height: '55px', background: '#222', border: '1px solid #333', borderRadius: '0.75rem', color: '#fff', fontSize: '1.5rem', fontWeight: 700, textAlign: 'center', outline: 'none', fontFamily: 'sans-serif' }}
+                                    style={{ width: '45px', height: '55px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.75rem', color: '#0F172A', fontSize: '1.5rem', fontWeight: 700, textAlign: 'center', outline: 'none', fontFamily: 'sans-serif' }}
                                     className="store-otp-input"
                                 />
                             ))}
@@ -193,15 +193,15 @@ const Module_Register = () => {
 
                         <div style={{ textAlign: 'center' }}>
                             {resendTimer > 0 ? (
-                                <p style={{ color: '#666', fontSize: '0.85rem', fontFamily: 'sans-serif' }}>Resend in {resendTimer}s</p>
+                                <p style={{ color: '#94A3B8', fontSize: '0.85rem', fontFamily: "'Inter', sans-serif" }}>Resend in {resendTimer}s</p>
                             ) : (
-                                <button type="button" onClick={handleSendOtp} disabled={loading} style={{ background: 'none', border: 'none', color: '#D4A843', fontWeight: 600, cursor: 'pointer' }}>Resend Code</button>
+                                <button type="button" onClick={handleSendOtp} disabled={loading} style={{ background: 'none', border: 'none', color: '#62269e', fontWeight: 600, cursor: 'pointer' }}>Resend Code</button>
                             )}
                         </div>
 
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button type="button" onClick={() => setStep(1)} disabled={loading} style={{ flex: 1, padding: '1.25rem', background: 'transparent', color: '#888', border: '1px solid #333', borderRadius: '1rem', fontWeight: 700, cursor: 'pointer' }}>Edit Data</button>
-                            <button type="submit" disabled={loading} style={{ flex: 2, padding: '1.25rem', background: '#D4A843', color: '#111', border: 'none', borderRadius: '1rem', fontWeight: 800, cursor: 'pointer' }}>
+                            <button type="button" onClick={() => setStep(1)} disabled={loading} style={{ flex: 1, padding: '1.25rem', background: 'transparent', color: '#64748B', border: '1px solid #E2E8F0', borderRadius: '1rem', fontWeight: 700, cursor: 'pointer' }}>Edit Data</button>
+                            <button type="submit" disabled={loading} style={{ flex: 2, padding: '1.25rem', background: '#62269e', color: '#FDFBF7', border: 'none', borderRadius: '1rem', fontWeight: 800, cursor: 'pointer' }}>
                                 {loading ? <Loader2 className="animate-spin" /> : 'Complete Registration'}
                             </button>
                         </div>

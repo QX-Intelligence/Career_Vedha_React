@@ -216,6 +216,17 @@ const CMSSidebar = ({
                                 <span>Previous Papers</span>
                             </button>
                         )}
+
+                        {checkAccess(MODULES.SERVICES_MANAGEMENT) && (
+                            <button
+                                className={`menu-item ${activeSection === 'services-management' ? 'active' : ''}`}
+                                onClick={() => navigate('/cms/our-services')}
+                                style={{ paddingLeft: '40px' }}
+                            >
+                                <i className="fas fa-hand-holding-heart"></i>
+                                <span>Our Services</span>
+                            </button>
+                        )}
                         
                         {/* E-Store Admin Integration */}
                         {(userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') && (

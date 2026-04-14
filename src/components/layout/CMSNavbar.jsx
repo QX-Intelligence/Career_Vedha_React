@@ -232,7 +232,7 @@ const CMSNavbar = ({
                                                 ))}
                                                 {hasNextArticlesPage && (
                                                     <div ref={articleSentinelRef} style={{ height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
-                                                        <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                                        <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                                     </div>
                                                 )}
                                             </>

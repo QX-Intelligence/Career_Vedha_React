@@ -24,10 +24,10 @@ const CV_Store_Module = () => {
   return (
     <DomainGuard>
       <CacheProvider>
-        <div className="CV_Store_Root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#111' }}>
+        <div className="CV_Store_Root" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#FDFBF7' }}>
           <UI_Nav />
           <main style={{ flexGrow: 1 }}>
-            <Suspense fallback={<div style={{ padding: '10rem', textAlign: 'center', color: '#666' }}>Loading Secure Module...</div>}>
+            <Suspense fallback={<div style={{ padding: '10rem', textAlign: 'center', color: '#94A3B8' }}>Loading Secure Module...</div>}>
               <Routes>
                 <Route path="/" element={<Module_Entry />} />
                 <Route path="/shop" element={<Module_List />} />

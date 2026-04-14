@@ -10,7 +10,7 @@
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    background-color: #111;
+    background-color: #FDFBF7;
     position: relative;
     overflow-x: hidden;
 }
@@ -25,7 +25,7 @@
 /* Reset for Store Module */
 .CV_Store_Root {
     font-family: 'Inter', sans-serif;
-    color: #fff;
+    color: #0F172A;
     line-height: 1.5;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .CV_Store_Root ::-webkit-scrollbar-track {
-    background: #111;
+    background: #FDFBF7;
 }
 
 .CV_Store_Root ::-webkit-scrollbar-thumb {
@@ -44,7 +44,7 @@
 }
 
 .CV_Store_Root ::-webkit-scrollbar-thumb:hover {
-    background: #D4A843;
+    background: #62269E;
 }
 
 /* Typography */

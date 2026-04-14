@@ -844,7 +844,7 @@ const ArticleManagement = ({ activeLanguage }) => {
                             </div>
 
                             <div style={{ marginTop: '1.5rem', background: 'var(--cv-primary-light)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(98, 38, 158, 0.15)' }}>
-                                <p style={{ fontSize: '0.8rem', color: '#92400e', margin: 0 }}>
+                                <p style={{ fontSize: '0.8rem', color: '#4b1d7d', margin: 0 }}>
                                     <i className="fas fa-info-circle"></i> This article will appear in the selected featured block on the website.
                                 </p>
                             </div>

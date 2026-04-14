@@ -17,7 +17,7 @@
 .job-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
 }
 
 .job-card-header {
@@ -134,7 +134,7 @@
 }
 
 .job-detail-item i {
-    color: var(--primary-yellow); /* Yellow Icons */
+    color: var(--cv-primary); /* Yellow Icons */
     font-size: 1.1rem;
 }
 
@@ -185,7 +185,7 @@
 
 .btn-apply-card {
     background: #FFFFFF;
-    border: 1px solid var(--primary-yellow);
+    border: 1px solid var(--cv-primary);
     color: var(--gray-900);
     padding: 10px 20px;
     border-radius: 8px;
@@ -199,7 +199,7 @@
 }
 
 .btn-apply-card:hover {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: #FFFFFF; /* Black text on yellow might be better contrast, generally standard for this theme */
     /* Screenshot implies button might be white with yellow border, let's stick to that default state */
 }

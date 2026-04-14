@@ -62,9 +62,9 @@ const Footer = () => {
                         <div className="footer-bottom-flex">
                             <div className="footer-brand-mini">
                                 <img 
-                                    src="/Career Vedha logo.png" 
+                                    src="/Career Vedha logo1.png" 
                                     alt="Career Vedha" 
-                                    style={{ height: '140px', width: 'auto', marginBottom: '10px' }}
+                                    style={{ height: '50px', width: 'auto', marginBottom: '10px' }}
                                 />
                                 <p>Trusted Educational Partner</p>
                             </div>

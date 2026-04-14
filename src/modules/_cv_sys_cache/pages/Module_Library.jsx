@@ -82,21 +82,21 @@ const Module_Library = () => {
     );
 
     if (loading) return (
-        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#111', minHeight: '100vh', color: '#fff' }}>
-            <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 1.5rem', color: '#D4A843' }} />
-            <p style={{ color: '#666', fontSize: '1.2rem' }}>Opening your digital library...</p>
+        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#0c0216', minHeight: '100vh', color: '#0F172A' }}>
+            <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 1.5rem', color: '#62269e' }} />
+            <p style={{ color: '#475569', fontSize: '1.2rem', fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>Opening your digital library...</p>
         </div>
     );
 
     return (
-        <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#0a0a0a', minHeight: '100vh' }}>
+        <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#0c0216', minHeight: '100vh' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
                 
                 {/* Header Section */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem', flexWrap: 'wrap', gap: '2rem' }}>
                     <div>
-                        <h1 style={{ fontFamily: "'Inter', sans-serif", fontSize: '2.5rem', fontWeight: 800, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>My Library</h1>
-                        <p style={{ color: '#666', fontSize: '1rem' }}>Your collection of purchased digital content.</p>
+                        <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '2.5rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>My Library</h1>
+                        <p style={{ color: '#94A3B8', fontSize: '1rem' }}>Your collection of purchased digital content.</p>
                     </div>
                     
                     <div className="store-search-wrapper" style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
@@ -112,7 +112,7 @@ const Module_Library = () => {
                                 background: '#141414', 
                                 border: '1px solid rgba(255,255,255,0.08)', 
                                 borderRadius: '0.75rem', 
-                                color: '#fff', 
+                                color: '#0F172A', 
                                 fontSize: '0.9rem', 
                                 outline: 'none', 
                                 transition: 'all 0.2s ease' 
@@ -122,17 +122,17 @@ const Module_Library = () => {
                 </div>
 
                 {library.length === 0 ? (
-                    <div style={{ padding: '6rem 2rem', textAlign: 'center', background: '#0f0f0f', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
-                        <div style={{ width: '60px', height: '60px', background: 'rgba(212, 168, 67, 0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                            <BookOpen size={28} color="#D4A843" />
+                    <div style={{ padding: '6rem 2rem', textAlign: 'center', background: 'rgba(255,255,255,0.01)', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
+                        <div style={{ width: '60px', height: '60px', background: 'rgba(98, 38, 158, 0.08)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                            <BookOpen size={28} color="#62269e" />
                         </div>
-                        <h2 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.75rem' }}>Your library is empty</h2>
-                        <p style={{ color: '#555', maxWidth: '350px', margin: '0 auto 2rem', fontSize: '0.9rem' }}>Digital purchases will appear here automatically after payment confirmation.</p>
+                        <h2 style={{ color: '#0F172A', fontSize: '1.25rem', marginBottom: '0.75rem', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>Your library is empty</h2>
+                        <p style={{ color: '#475569', maxWidth: '350px', margin: '0 auto 2rem', fontSize: '0.9rem', fontFamily: "'Inter', sans-serif" }}>Digital purchases will appear here automatically after payment confirmation.</p>
                         <Motion.button 
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => window.location.href = '/e-store/shop'}
-                            style={{ padding: '0.75rem 2rem', background: '#D4A843', color: '#000', border: 'none', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}
+                            style={{ padding: '0.75rem 2rem', background: '#62269e', color: '#0F172A', border: 'none', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
                         >
                             Browse Collection
                         </Motion.button>
@@ -153,14 +153,14 @@ const Module_Library = () => {
                                     background: '#141414', 
                                     borderRadius: '1rem', 
                                     overflow: 'hidden', 
-                                    border: Number(highlightId) === Number(book.bookId) ? '2px solid #D4A843' : '1px solid rgba(255,255,255,0.05)', 
+                                    border: Number(highlightId) === Number(book.bookId) ? '2px solid #62269e' : '1px solid rgba(255,255,255,0.05)', 
                                     display: 'flex', 
                                     flexDirection: 'column', 
                                     position: 'relative',
-                                    boxShadow: Number(highlightId) === Number(book.bookId) ? '0 0 30px rgba(212, 168, 67, 0.2)' : 'none'
+                                    boxShadow: Number(highlightId) === Number(book.bookId) ? '0 0 30px rgba(98, 38, 158, 0.2)' : 'none'
                                 }}
                             >
-                                <div style={{ height: '280px', background: '#1a1a1a', position: 'relative', overflow: 'hidden' }}>
+                                <div style={{ height: '280px', background: '#FFFFFF', position: 'relative', overflow: 'hidden' }}>
                                     {book.coverPhotoUrl ? (
                                         <img src={book.coverPhotoUrl} alt={book.bookName} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} className="lib-img" />
                                     ) : (
@@ -170,7 +170,7 @@ const Module_Library = () => {
                                     )}
 
                                     {Number(highlightId) === Number(book.bookId) && (
-                                        <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#D4A843', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                                        <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#62269e', color: '#0F172A', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
                                             <Star size={12} fill="currentColor" /> NEWLY ADDED
                                         </div>
                                     )}
@@ -181,8 +181,8 @@ const Module_Library = () => {
                                             style={{ 
                                                 width: '160px',
                                                 padding: '0.6rem', 
-                                                background: '#D4A843', 
-                                                color: '#000', 
+                                                background: '#62269e', 
+                                                color: '#0F172A', 
                                                 borderRadius: '0.5rem', 
                                                 fontSize: '0.8rem', 
                                                 fontWeight: 800, 
@@ -203,11 +203,11 @@ const Module_Library = () => {
                                                 width: '160px',
                                                 padding: '0.6rem', 
                                                 background: 'transparent', 
-                                                color: '#D4A843', 
+                                                color: '#62269e', 
                                                 borderRadius: '0.5rem', 
                                                 fontSize: '0.8rem', 
                                                 fontWeight: 800, 
-                                                border: '1px solid rgba(212, 168, 67, 0.4)',
+                                                border: '1px solid rgba(98, 38, 158, 0.4)',
                                                 cursor: downloading === book.bookId ? 'wait' : 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -224,11 +224,11 @@ const Module_Library = () => {
                                     </div>
                                 </div>
                                 <div style={{ padding: '1.25rem', flexGrow: 1 }}>
-                                    <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: 700, marginBottom: '0.4rem', lineHeight: '1.4', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }} title={book.bookName}>
+                                    <h3 style={{ color: '#0F172A', fontSize: '1rem', fontWeight: 700, marginBottom: '0.4rem', lineHeight: '1.4', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }} title={book.bookName}>
                                         {book.bookName}
                                     </h3>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <p style={{ color: '#D4A843', fontSize: '0.75rem', fontWeight: 600 }}>{book.author || 'Career Vedha'}</p>
+                                        <p style={{ color: '#62269e', fontSize: '0.75rem', fontWeight: 600 }}>{book.author || 'Career Vedha'}</p>
                                         <p style={{ color: '#444', fontSize: '0.7rem' }}>E-Book</p>
                                     </div>
                                 </div>
@@ -251,18 +251,18 @@ const Module_Library = () => {
                 }}>
                     <div style={{ 
                         padding: '1rem 2rem', 
-                        background: '#111', 
+                        background: '#FDFBF7', 
                         borderBottom: '1px solid #222', 
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center' 
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ padding: '0.5rem', background: 'rgba(212, 168, 67, 0.1)', borderRadius: '0.5rem' }}>
-                                <BookOpen size={20} color="#D4A843" />
+                            <div style={{ padding: '0.5rem', background: 'rgba(98, 38, 158, 0.12)', borderRadius: '0.5rem' }}>
+                                <BookOpen size={20} color="#62269e" />
                             </div>
                             <div>
-                                <h2 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>{selectedBook.bookName}</h2>
+                                <h2 style={{ color: '#0F172A', fontSize: '1.1rem', fontWeight: 700 }}>{selectedBook.bookName}</h2>
                                 <p style={{ color: '#555', fontSize: '0.75rem' }}>Secure Reading Mode</p>
                             </div>
                         </div>
@@ -271,11 +271,11 @@ const Module_Library = () => {
                                 onClick={() => handleDownload(selectedBook)}
                                 disabled={downloading === selectedBook.bookId}
                                 style={{ 
-                                    background: 'rgba(212, 168, 67, 0.1)', 
-                                    border: '1px solid rgba(212, 168, 67, 0.3)', 
+                                    background: 'rgba(98, 38, 158, 0.12)', 
+                                    border: '1px solid rgba(98, 38, 158, 0.3)', 
                                     padding: '0.6rem 1.25rem',
                                     borderRadius: '0.5rem', 
-                                    color: '#D4A843', 
+                                    color: '#62269e', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     gap: '0.5rem',
@@ -285,8 +285,8 @@ const Module_Library = () => {
                                     transition: 'all 0.2s',
                                     opacity: downloading === selectedBook.bookId ? 0.7 : 1
                                 }}
-                                onMouseEnter={(e) => !downloading && (e.target.style.background = 'rgba(212, 168, 67, 0.2)')}
-                                onMouseLeave={(e) => !downloading && (e.target.style.background = 'rgba(212, 168, 67, 0.1)')}
+                                onMouseEnter={(e) => !downloading && (e.target.style.background = 'rgba(98, 38, 158, 0.2)')}
+                                onMouseLeave={(e) => !downloading && (e.target.style.background = 'rgba(98, 38, 158, 0.12)')}
                             >
                                 {downloading === selectedBook.bookId ? (
                                     <>
@@ -306,7 +306,7 @@ const Module_Library = () => {
                                     width: '40px', 
                                     height: '40px', 
                                     borderRadius: '50%', 
-                                    color: '#fff', 
+                                    color: '#0F172A', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'center', 
@@ -320,7 +320,7 @@ const Module_Library = () => {
                             </button>
                         </div>
                     </div>
-                    <div style={{ flex: 1, position: 'relative', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    <div style={{ flex: 1, position: 'relative', background: '#FDFBF7', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                         {pdfLoading && (
                             <div style={{ 
                                 position: 'absolute', 
@@ -336,26 +336,26 @@ const Module_Library = () => {
                                 <div style={{ 
                                     width: '80px', 
                                     height: '80px', 
-                                    background: 'rgba(212, 168, 67, 0.05)', 
+                                    background: 'rgba(98, 38, 158, 0.08)', 
                                     borderRadius: '50%', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'center', 
                                     marginBottom: '2rem',
-                                    border: '1px solid rgba(212, 168, 67, 0.1)',
-                                    boxShadow: '0 0 40px rgba(212, 168, 67, 0.1)'
+                                    border: '1px solid rgba(98, 38, 158, 0.12)',
+                                    boxShadow: '0 0 40px rgba(98, 38, 158, 0.1)'
                                 }}>
-                                    <Loader2 size={40} className="animate-spin" style={{ color: '#D4A843' }} />
+                                    <Loader2 size={40} className="animate-spin" style={{ color: '#62269e' }} />
                                 </div>
-                                <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '0.02em' }}>Fetching Digital Assets</h3>
-                                <p style={{ color: '#666', fontSize: '0.9rem', fontWeight: 500 }}>Decrypting and rendering your secure document...</p>
+                                <h3 style={{ color: '#0F172A', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '0.02em' }}>Fetching Digital Assets</h3>
+                                <p style={{ color: '#94A3B8', fontSize: '0.9rem', fontWeight: 500 }}>Decrypting and rendering your secure document...</p>
                                 
                                 <div style={{ marginTop: '3rem', width: '200px', height: '2px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
                                     <Motion.div 
                                         initial={{ x: '-100%' }}
                                         animate={{ x: '100%' }}
                                         transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                                        style={{ width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, #D4A843, transparent)' }}
+                                        style={{ width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, #62269e, transparent)' }}
                                     />
                                 </div>
                             </div>
@@ -370,7 +370,7 @@ const Module_Library = () => {
                                 width: '100%', 
                                 height: '100%', 
                                 border: 'none',
-                                background: '#1a1a1a',
+                                background: '#FFFFFF',
                                 opacity: pdfLoading ? 0 : 1,
                                 visibility: pdfLoading ? 'hidden' : 'visible',
                                 transition: 'opacity 0.5s ease'
@@ -378,7 +378,7 @@ const Module_Library = () => {
                             title={selectedBook.bookName}
                         />
                         {/* Security Overlay to discourage right click if needed, though toolbar=0 handles some */}
-                        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem', padding: '0.75rem 1.5rem', background: 'rgba(212, 168, 67, 0.1)', borderRadius: '1rem', color: '#D4A843', fontSize: '0.8rem', fontWeight: 600, border: '1px solid rgba(212, 168, 67, 0.2)', pointerEvents: 'none' }}>
+                        <div style={{ position: 'absolute', bottom: '2rem', right: '2rem', padding: '0.75rem 1.5rem', background: 'rgba(98, 38, 158, 0.12)', borderRadius: '1rem', color: '#62269e', fontSize: '0.8rem', fontWeight: 800, border: '1px solid rgba(98, 38, 158, 0.2)', pointerEvents: 'none', fontFamily: "'Outfit', sans-serif" }}>
                             Career Vedha Secure View
                         </div>
                     </div>
@@ -391,16 +391,16 @@ const Module_Library = () => {
                 }
                 .lib-card:hover {
                     transform: translateY(-5px);
-                    border-color: rgba(212, 168, 67, 0.4);
-                    background: #1a1a1a;
+                    border-color: rgba(98, 38, 158, 0.5);
+                    background: #FFFFFF;
                 }
                 .lib-card.highlighted {
                     animation: pulse-glow 2s infinite;
                 }
                 @keyframes pulse-glow {
-                    0% { box-shadow: 0 0 15px rgba(212, 168, 67, 0.1); border-color: rgba(212, 168, 67, 0.3); }
-                    50% { box-shadow: 0 0 30px rgba(212, 168, 67, 0.3); border-color: rgba(212, 168, 67, 0.8); }
-                    100% { box-shadow: 0 0 15px rgba(212, 168, 67, 0.1); border-color: rgba(212, 168, 67, 0.3); }
+                    0% { box-shadow: 0 0 15px rgba(98, 38, 158, 0.1); border-color: rgba(98, 38, 158, 0.3); }
+                    50% { box-shadow: 0 0 30px rgba(98, 38, 158, 0.4); border-color: rgba(98, 38, 158, 0.9); }
+                    100% { box-shadow: 0 0 15px rgba(98, 38, 158, 0.1); border-color: rgba(98, 38, 158, 0.3); }
                 }
                 .lib-card:hover .lib-overlay {
                     opacity: 1 !important;
@@ -410,7 +410,7 @@ const Module_Library = () => {
                 }
                 .lib-overlay a:hover {
                     transform: scale(1.05);
-                    box-shadow: 0 5px 15px rgba(212, 168, 67, 0.3);
+                    box-shadow: 0 5px 15px rgba(98, 38, 158, 0.4);
                 }
             ` }} />
         </div>

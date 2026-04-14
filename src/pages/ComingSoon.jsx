@@ -42,7 +42,7 @@ const ComingSoon = () => {
                         width: '400px',
                         height: '400px',
                         borderRadius: '50%',
-                        background: 'var(--primary-yellow)',
+                        background: 'var(--cv-primary)',
                         filter: 'blur(100px)',
                         zIndex: 0
                     }}
@@ -81,7 +81,7 @@ const ComingSoon = () => {
                             backdropFilter: 'blur(10px)',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                             marginBottom: '32px',
-                            color: 'var(--primary-yellow)'
+                            color: 'var(--cv-primary)'
                         }}>
                             <ShoppingCart size={48} strokeWidth={1.5} />
                         </div>
@@ -97,7 +97,7 @@ const ComingSoon = () => {
                             lineHeight: 1.1
                         }}>
                             E-Store <br />
-                            <span style={{ color: 'var(--primary-yellow)', WebkitTextFillColor: 'var(--primary-yellow)' }}>Coming Soon</span>
+                            <span style={{ color: 'var(--cv-primary)', WebkitTextFillColor: 'var(--cv-primary)' }}>Coming Soon</span>
                         </h1>
 
                         <p style={{ 
@@ -121,7 +121,7 @@ const ComingSoon = () => {
                                     gap: '12px',
                                     padding: '16px 32px',
                                     borderRadius: '50px',
-                                    background: 'var(--primary-yellow)',
+                                    background: 'var(--cv-primary)',
                                     color: '#000',
                                     fontWeight: 700,
                                     border: 'none',
@@ -178,7 +178,7 @@ const ComingSoon = () => {
                                         textAlign: 'left'
                                     }}
                                 >
-                                    <div style={{ color: 'var(--primary-yellow)', marginBottom: '12px' }}>{feature.icon}</div>
+                                    <div style={{ color: 'var(--cv-primary)', marginBottom: '12px' }}>{feature.icon}</div>
                                     <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '4px' }}>{feature.title}</h3>
                                     <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>{feature.desc}</p>
                                 </motion.div>

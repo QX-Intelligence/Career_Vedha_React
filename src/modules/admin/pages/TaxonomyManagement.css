@@ -25,7 +25,7 @@
 .am-title-icon-wrapper {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, var(--cv-primary) 0%, #F59E0B 100%);
+    background: linear-gradient(135deg, var(--cv-primary) 0%, #62269E 100%);
     color: #0f172a;
     border-radius: 16px;
     display: flex;
@@ -150,7 +150,7 @@
 }
 
 .am-btn-l1 {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #62269E 0%, #62269E 100%);
     color: #fff;
     box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
 }
@@ -185,13 +185,13 @@
 .am-btn-l4:hover { box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4); }
 
 .am-btn-primary {
-    background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+    background: linear-gradient(135deg, #62269E 0%, #eab308 100%);
     color: #0f172a;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
     font-weight: 700;
     border: none;
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+    box-shadow: 0 4px 12px rgba(123, 63, 228, 0.3);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -201,7 +201,7 @@
 
 .am-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(250, 204, 21, 0.4);
+    box-shadow: 0 6px 16px rgba(123, 63, 228, 0.4);
 }
 
 .am-btn-primary:disabled {
@@ -248,9 +248,9 @@
 }
 
 .am-input:focus {
-    border-color: #fbbf24;
+    border-color: #62269E;
     background: white;
-    box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.1);
+    box-shadow: 0 0 0 4px rgba(123, 63, 228, 0.1);
 }
 
 .am-form-row {
@@ -337,13 +337,13 @@
 .am-btn-secondary.elevated {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    color: #fbbf24;
+    color: #62269E;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .am-btn-secondary.elevated:hover {
     background: #fff;
-    border-color: #fbbf24;
+    border-color: #62269E;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(251, 191, 36, 0.1);
 }
@@ -532,7 +532,7 @@
 }
 
 .premium-toggle input:checked + .toggle-slider {
-    background-color: #fbbf24;
+    background-color: #62269E;
 }
 
 .premium-toggle input:checked + .toggle-slider:before {
@@ -561,11 +561,11 @@
 }
 
 .elevated {
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
+    box-shadow: 0 4px 12px rgba(123, 63, 228, 0.2);
 }
 
 .elevated:hover {
-    box-shadow: 0 8px 16px rgba(250, 204, 21, 0.3);
+    box-shadow: 0 8px 16px rgba(123, 63, 228, 0.3);
 }
 
 .premium-footer {
@@ -605,7 +605,7 @@
     background: var(--cv-primary-light);
     padding: 1rem;
     border-radius: 12px;
-    border: 1px dashed #fcd34d;
+    border: 1px dashed #62269E;
 }
 
 .am-modal-header {
@@ -662,11 +662,11 @@
 }
 
 input:checked + .am-slider {
-    background-color: #fbbf24;
+    background-color: #62269E;
 }
 
 input:focus + .am-slider {
-    box-shadow: 0 0 1px #fbbf24;
+    box-shadow: 0 0 1px #62269E;
 }
 
 input:checked + .am-slider:before {
@@ -803,9 +803,9 @@ code {
 }
 
 .am-expand-btn:hover {
-    background: #fbbf24;
+    background: #62269E;
     color: white;
-    border-color: #fbbf24;
+    border-color: #62269E;
     transform: scale(1.1);
 }
 
@@ -839,15 +839,15 @@ code {
 }
 
 @keyframes soft-glow {
-    0% { box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2); }
-    50% { box-shadow: 0 4px 20px rgba(250, 204, 21, 0.4); }
-    100% { box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2); }
+    0% { box-shadow: 0 4px 12px rgba(123, 63, 228, 0.2); }
+    50% { box-shadow: 0 4px 20px rgba(123, 63, 228, 0.4); }
+    100% { box-shadow: 0 4px 12px rgba(123, 63, 228, 0.2); }
 }
 
 .am-toggle-btn.active {
     background: white;
-    color: #fbbf24;
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2), 0 2px 4px rgba(0, 0, 0, 0.05);
+    color: #62269E;
+    box-shadow: 0 4px 12px rgba(123, 63, 228, 0.2), 0 2px 4px rgba(0, 0, 0, 0.05);
     transform: scale(1.05);
     animation: soft-glow 3s infinite ease-in-out;
 }
@@ -859,7 +859,7 @@ code {
 
 .am-expand-btn.active {
     background: #0f172a;
-    color: #fbbf24;
+    color: #62269E;
     border-color: #0f172a;
 }
 
@@ -895,7 +895,7 @@ code {
 
 .tab-btn.active {
     background: white;
-    color: #fbbf24;
+    color: #62269E;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
@@ -959,8 +959,8 @@ code {
 
 .am-loading-spinner i {
     font-size: 2.5rem;
-    color: #fbbf24;
-    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.4));
+    color: #62269E;
+    filter: drop-shadow(0 0 8px rgba(123, 63, 228, 0.4));
 }
 
 /* Responsive Adjustments */

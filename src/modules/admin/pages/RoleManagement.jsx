@@ -181,7 +181,7 @@ const RoleManagement = () => {
                                             padding: 12,
                                             titleFont: { size: 14, weight: '700' },
                                             bodyFont: { size: 13 },
-                                            borderColor: '#facc15',
+                                            borderColor: '#62269E',
                                             borderWidth: 1,
                                             callbacks: {
                                                 label: function(context) {

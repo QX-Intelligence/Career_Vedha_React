@@ -2,6 +2,7 @@ import apiClient from './api.service';
 import djangoApi from './djangoApi';
 import API_CONFIG from '../config/api.config';
 import { academicsService } from './academicsService';
+import { ourServicesService } from './ourServicesService';
 
 
 // News Service
@@ -1081,7 +1082,7 @@ export const searchService = {
 };
 
 // Export academicsService
-export { academicsService };
+export { academicsService, ourServicesService };
 
 // Taxonomy Service
 export const taxonomyService = {

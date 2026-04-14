@@ -58,7 +58,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     border: none;
     border-radius: 8px;
     color: var(--gray-900);

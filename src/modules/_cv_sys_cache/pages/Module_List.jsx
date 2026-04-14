@@ -87,20 +87,20 @@ const Module_List = () => {
   }));
 
   if (loading) return (
-    <div style={{ padding: '15rem 0', textAlign: 'center', background: '#111', minHeight: '100vh', color: '#fff' }}>
-      <Loader2 size={48} style={{ margin: '0 auto 1.5rem', color: '#D4A843' }} />
-      <p style={{ color: '#666', fontSize: '1.2rem' }}>Curating your collection...</p>
+    <div style={{ padding: '15rem 0', textAlign: 'center', background: '#FDFBF7', minHeight: '100vh', color: '#0F172A' }}>
+      <Loader2 size={48} style={{ margin: '0 auto 1.5rem', color: '#62269E' }} />
+      <p style={{ color: '#94A3B8', fontSize: '1.2rem' }}>Curating your collection...</p>
     </div>
   );
 
   return (
-    <div style={{ paddingTop: '7rem', paddingBottom: '5rem', background: '#111', minHeight: '100vh' }}>
+    <div style={{ paddingTop: '7rem', paddingBottom: '5rem', background: '#FDFBF7', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1.5rem' }}>
         
         <div className="store-list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3.5rem', flexWrap: 'wrap', gap: '2rem' }}>
           <Motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="store-list-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 700, color: '#fff', marginBottom: '0.5rem', letterSpacing: '-1px' }}>The Collection</h1>
-            <p style={{ color: '#555', fontSize: '1rem' }}>Showing {filteredProducts.length} high-quality professional titles</p>
+            <h1 className="store-list-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 900, color: '#0F172A', marginBottom: '0.5rem', letterSpacing: '-1px' }}>The Collection</h1>
+            <p style={{ color: '#475569', fontSize: '1rem', fontWeight: 600 }}>Showing {filteredProducts.length} high-quality professional titles</p>
           </Motion.div>
 
           <div className="store-list-filters" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
@@ -111,15 +111,15 @@ const Module_List = () => {
                 placeholder="Search title or author..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '100px', padding: '0.85rem 1.5rem 0.85rem 3.5rem', color: '#fff', width: '320px', outline: 'none', fontSize: '0.9rem', transition: 'all 0.3s' }}
-                onFocus={(e) => e.target.style.borderColor = 'rgba(212, 168, 67, 0.4)'}
-                onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.05)'}
+                style={{ background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '100px', padding: '0.85rem 1.5rem 0.85rem 3.5rem', color: '#0F172A', width: '320px', outline: 'none', fontSize: '0.9rem', transition: 'all 0.3s' }}
+                onFocus={(e) => e.target.style.borderColor = '#62269E'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(0,0,0,0.08)'}
               />
             </div>
             <select 
               value={sortParam}
               onChange={(e) => setSearchParams({ category: categoryParam, language: languageParam, sort: e.target.value })}
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '100px', padding: '0.85rem 1.5rem', color: '#aaa', outline: 'none', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.3s' }}
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '100px', padding: '0.85rem 1.5rem', color: '#475569', outline: 'none', cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.3s' }}
             >
               <option value="featured">Sort by: Featured</option>
               <option value="price-low">Price: Low to High</option>
@@ -130,8 +130,8 @@ const Module_List = () => {
 
         <div className="store-list-container" style={{ display: 'flex', gap: '3rem' }}>
           <aside className="store-list-sidebar" style={{ width: '280px', flexShrink: 0 }}>
-            <div style={{ background: 'rgba(255,255,255,0.01)', padding: '2.5rem', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.03)', position: 'sticky', top: '10rem' }}>
-              <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#D4A843', marginBottom: '1.75rem', textTransform: 'uppercase', letterSpacing: '3px', opacity: 0.8 }}>Specializations</h3>
+            <div style={{ background: '#FFFFFF', padding: '2.5rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.05)', position: 'sticky', top: '10rem', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' }}>
+              <h3 style={{ fontSize: '0.75rem', fontWeight: 900, color: '#62269E', marginBottom: '1.75rem', textTransform: 'uppercase', letterSpacing: '3px', opacity: 0.9 }}>Specializations</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '3rem' }}>
                   {categories.map((cat) => (
                     <button 
@@ -143,8 +143,8 @@ const Module_List = () => {
                         alignItems: 'center',
                         padding: '1rem 1.25rem', 
                         borderRadius: '0.85rem', 
-                        background: categoryParam === cat.id ? 'rgba(212, 168, 67, 0.12)' : 'transparent', 
-                        color: categoryParam === cat.id ? '#D4A843' : '#666', 
+                        background: categoryParam === cat.id ? 'rgba(98, 38, 158, 0.12)' : 'transparent', 
+                        color: categoryParam === cat.id ? '#62269E' : '#666', 
                         border: 'none', 
                         cursor: 'pointer', 
                         textAlign: 'left',
@@ -161,7 +161,7 @@ const Module_List = () => {
                   ))}
               </div>
 
-              <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#D4A843', marginBottom: '1.75rem', textTransform: 'uppercase', letterSpacing: '3px', opacity: 0.8 }}>Languages</h3>
+              <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#62269E', marginBottom: '1.75rem', textTransform: 'uppercase', letterSpacing: '3px', opacity: 0.8 }}>Languages</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {['all', ...Array.from(new Set(products.map(p => p.language))).filter(Boolean)].map((lang) => (
                     <button 
@@ -173,8 +173,8 @@ const Module_List = () => {
                         alignItems: 'center',
                         padding: '1rem 1.25rem', 
                         borderRadius: '0.85rem', 
-                        background: languageParam === lang ? 'rgba(212, 168, 67, 0.12)' : 'transparent', 
-                        color: languageParam === lang ? '#D4A843' : '#666', 
+                        background: languageParam === lang ? 'rgba(98, 38, 158, 0.12)' : 'transparent', 
+                        color: languageParam === lang ? '#62269E' : '#666', 
                         border: 'none', 
                         cursor: 'pointer', 
                         textAlign: 'left',
@@ -207,34 +207,34 @@ const Module_List = () => {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.4, delay: idx * 0.03, ease: [0.23, 1, 0.32, 1] }}
                     style={{ 
-                      background: 'rgba(255,255,255,0.01)', 
+                      background: '#FFFFFF', 
                       borderRadius: '1.25rem', 
                       overflow: 'hidden', 
-                      border: '1px solid rgba(255,255,255,0.04)', 
+                      border: '1px solid rgba(0,0,0,0.05)', 
                       transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
                       position: 'relative'
                     }}
                     whileHover={{ 
                       y: -12, 
-                      backgroundColor: 'rgba(255,255,255,0.03)',
-                      borderColor: 'rgba(212, 168, 67, 0.25)',
-                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#62269E',
+                      boxShadow: '0 25px 50px -12px rgba(98, 38, 158, 0.12)'
                     }}
                   >
                     <Link to={`/e-store/view/${p.id}`} style={{ textDecoration: 'none' }}>
                       <div style={{ position: 'relative', height: '260px', overflow: 'hidden' }}>
                         <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)' }} className="store-card-img" />
-                        <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#D4A843', border: '1px solid rgba(212, 168, 67, 0.2)', textTransform: 'uppercase' }}>
+                        <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#FDFBF7', border: '1px solid rgba(253, 251, 247, 0.2)', textTransform: 'uppercase' }}>
                           {p.category}
                         </div>
                       </div>
                     </Link>
                     <div style={{ padding: '1.25rem' }}>
-                      <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</h3>
+                      <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</h3>
                       <p style={{ fontSize: '0.75rem', color: '#555', marginBottom: '1.25rem', fontWeight: 500 }}>{p.author}</p>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ color: '#D4A843', fontWeight: 800, fontSize: '1.15rem' }}>₹{p.price}</span>
+                          <span style={{ color: '#62269E', fontWeight: 800, fontSize: '1.15rem' }}>₹{p.price}</span>
                           <span style={{ fontSize: '0.6rem', color: '#333', textTransform: 'uppercase', letterSpacing: '1px' }}>{p.category?.toUpperCase() === 'PHYSICAL' ? 'Physical Book' : 'Premium Edition'}</span>
                         </div>
                         {p.category?.toUpperCase() === 'PHYSICAL' ? (
@@ -262,8 +262,8 @@ const Module_List = () => {
                           <button 
                             onClick={() => add(p)} 
                             style={{ 
-                              background: 'rgba(212, 168, 67, 0.1)', 
-                              border: '1px solid rgba(212, 168, 67, 0.2)', 
+                              background: 'rgba(98, 38, 158, 0.1)', 
+                              border: '1px solid rgba(98, 38, 158, 0.2)', 
                               borderRadius: '0.75rem', 
                               width: '42px', 
                               height: '42px',
@@ -274,15 +274,15 @@ const Module_List = () => {
                               transition: 'all 0.3s cubic-bezier(0.23, 1, 0.32, 1)'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#D4A843';
-                              e.currentTarget.querySelector('svg').style.color = '#111';
+                              e.currentTarget.style.background = '#62269E';
+                              e.currentTarget.querySelector('svg').style.color = '#FDFBF7';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'rgba(212, 168, 67, 0.1)';
-                              e.currentTarget.querySelector('svg').style.color = '#D4A843';
+                              e.currentTarget.style.background = 'rgba(98, 38, 158, 0.1)';
+                              e.currentTarget.querySelector('svg').style.color = '#62269E';
                             }}
                           >
-                            <ShoppingBag size={18} color="#D4A843" style={{ transition: 'color 0.3s' }} />
+                            <ShoppingBag size={18} color="#62269E" style={{ transition: 'color 0.3s' }} />
                           </button>
                         )}
                       </div>
@@ -305,7 +305,7 @@ const Module_List = () => {
           .store-grid { margin-top: 1rem; }
           .store-card-img:hover { transform: scale(1.08); }
           input::placeholder { color: #333; }
-          select option { background: #111; color: #fff; }
+          select option { background: #FDFBF7; color: #0F172A; }
           aside::-webkit-scrollbar { width: 4px; }
           aside::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
       `}} />

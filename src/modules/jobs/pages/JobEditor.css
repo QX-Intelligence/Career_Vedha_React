@@ -2,7 +2,7 @@
 
 :root {
     --luxury-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    --gold-glow: 0 0 20px rgba(250, 204, 21, 0.2);
+    --gold-glow: 0 0 20px rgba(123, 63, 228, 0.2);
     --glass-accent: rgba(255, 255, 255, 0.05);
 }
 
@@ -33,7 +33,7 @@
     left: 0;
     width: 60px;
     height: 3px;
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     border-radius: 3px;
 }
 
@@ -77,14 +77,14 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+    background: linear-gradient(135deg, #62269E 0%, #eab308 100%);
     color: #0f172a;
-    box-shadow: 0 8px 20px -6px rgba(250, 204, 21, 0.5);
+    box-shadow: 0 8px 20px -6px rgba(123, 63, 228, 0.5);
 }
 
 .btn-primary:hover:not(:disabled) {
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 28px -8px rgba(250, 204, 21, 0.6);
+    box-shadow: 0 12px 28px -8px rgba(123, 63, 228, 0.6);
 }
 
 .btn-secondary {
@@ -208,15 +208,15 @@
 .form-section select:focus,
 .form-section textarea:focus {
     background: white;
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 5px var(--primary-yellow-light), 
-                0 4px 12px rgba(250, 204, 21, 0.1);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 5px var(--cv-primary-light), 
+                0 4px 12px rgba(123, 63, 228, 0.1);
     transform: translateY(-2px);
 }
 
 .premium-gold-glow:focus-within {
-    border-color: var(--primary-yellow) !important;
-    box-shadow: 0 0 25px rgba(250, 204, 21, 0.25) !important;
+    border-color: var(--cv-primary) !important;
+    box-shadow: 0 0 25px rgba(123, 63, 228, 0.25) !important;
 }
 
 .form-section input::placeholder,
@@ -307,7 +307,7 @@ input:checked + .slider:before {
 .luxury-checkbox input {
     width: 20px;
     height: 20px;
-    accent-color: var(--primary-yellow);
+    accent-color: var(--cv-primary);
 }
 
 /* Responsive Overrides */
@@ -341,7 +341,7 @@ input:checked + .slider:before {
 
 .cms-loading-overlay i {
     font-size: 2.5rem;
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 /* Responsive Overrides */

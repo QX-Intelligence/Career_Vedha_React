@@ -31,7 +31,7 @@
 .clear-btn {
     background: none;
     border: none;
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
@@ -39,7 +39,7 @@
 }
 
 .clear-btn:hover {
-    color: var(--dark-yellow);
+    color: var(--cv-primary-dark);
     text-decoration: underline;
 }
 
@@ -101,12 +101,12 @@
 }
 
 .custom-checkbox:hover input ~ .checkmark {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
 }
 
 .custom-checkbox input:checked ~ .checkmark {
-    background-color: var(--primary-yellow);
-    border-color: var(--primary-yellow);
+    background-color: var(--cv-primary);
+    border-color: var(--cv-primary);
 }
 
 .checkmark:after {

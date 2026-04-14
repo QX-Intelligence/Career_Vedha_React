@@ -194,7 +194,7 @@ const DashboardOverview = ({
                                 </div>
 
                                 {/* Trending List */}
-                                <div className="m-card" style={{ borderLeft: '4px solid var(--primary-yellow)' }}>
+                                <div className="m-card" style={{ borderLeft: '4px solid var(--cv-primary)' }}>
                                     <div className="m-card-title">Trending Now ({homeData.trending?.length || 0})</div>
                                     <div className="m-card-body" style={{ maxHeight: '250px', overflowY: 'auto' }}>
                                         {homeData.trending?.map(t => (
@@ -235,7 +235,7 @@ const DashboardOverview = ({
                                                 notificationStats.rejected
                                             ],
                                             backgroundColor: [
-                                                '#facc15', // primary-yellow
+                                                '#62269E', // primary-yellow
                                                 '#10b981', // success
                                                 '#ef4444'  // danger
                                             ],
@@ -260,7 +260,7 @@ const DashboardOverview = ({
                                                 padding: 12,
                                                 titleFont: { size: 13, weight: '700' },
                                                 bodyFont: { size: 12 },
-                                                borderColor: '#facc15',
+                                                borderColor: '#62269E',
                                                 borderWidth: 1
                                             }
                                         }
@@ -290,7 +290,7 @@ const DashboardOverview = ({
                                                 ? [articlesCount, mediaCount]
                                                 : [articlesCount, mediaCount, quizzesCount, jobsCount],
                                             backgroundColor: [
-                                                'var(--primary-yellow)', 
+                                                'var(--cv-primary)', 
                                                 'var(--success-green)', 
                                                 '#444afc', 
                                                 'var(--danger)'
@@ -309,7 +309,7 @@ const DashboardOverview = ({
                                                 padding: 12,
                                                 titleFont: { size: 13, weight: '700' },
                                                 bodyFont: { size: 12 },
-                                                borderColor: '#facc15',
+                                                borderColor: '#62269E',
                                                 borderWidth: 1
                                             }
                                         },

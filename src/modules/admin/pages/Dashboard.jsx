@@ -1054,14 +1054,14 @@ const Dashboard = () => {
                                     {/* Loading Indicators */}
                                     {isLoadingPending && (
                                         <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                             <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Opening pending list...</p>
                                         </div>
                                     )}
 
                                     {loadingMorePending && (
                                         <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                             <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Searching for more...</p>
                                         </div>
                                     )}
@@ -1124,14 +1124,14 @@ const Dashboard = () => {
 
                                     {isLoadingArticles && (
                                         <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                             <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Fetching alerts...</p>
                                         </div>
                                     )}
 
                                     {loadingMoreArticles && (
                                         <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                             <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Loading more...</p>
                                         </div>
                                     )}
@@ -1144,7 +1144,7 @@ const Dashboard = () => {
 
                                     {hasMoreArticles && (
                                         <div ref={articleSentinelRef} style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)', opacity: 0.5 }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)', opacity: 0.5 }}></i>
                                         </div>
                                     )}
                                 </div>
@@ -1195,14 +1195,14 @@ const Dashboard = () => {
                                     {/* Archive Loading Indicators */}
                                     {isLoadingArchive && (
                                         <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                             <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Opening archive...</p>
                                         </div>
                                     )}
 
                                     {loadingMoreArchive && (
                                         <div className="empty-state-card" style={{ padding: '1rem', background: 'transparent' }}>
-                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--primary-yellow)' }}></i>
+                                            <i className="fas fa-spinner fa-spin" style={{ color: 'var(--cv-primary)' }}></i>
                                             <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>Searching history...</p>
                                         </div>
                                     )}

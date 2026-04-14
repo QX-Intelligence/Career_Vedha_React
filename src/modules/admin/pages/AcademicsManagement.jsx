@@ -880,7 +880,7 @@ const AcademicsManagement = ({ initialTab = 'hierarchy', hideOtherTabs = false }
                                                 </div>
                                             ) : type === 'doc' ? (
                                                  <div className="mm-branded-skeleton">
-                                                     <div className="mm-skeleton-icon" style={{color: 'var(--primary-yellow-hover)', background: 'var(--primary-yellow-light)'}}><i className="fas fa-file-alt"></i></div>
+                                                     <div className="mm-skeleton-icon" style={{color: 'var(--cv-primary-dark)', background: 'var(--cv-primary-light)'}}><i className="fas fa-file-alt"></i></div>
                                                 </div>
                                             ) : type === 'image' ? (
 
@@ -1356,8 +1356,8 @@ const AcademicsManagement = ({ initialTab = 'hierarchy', hideOtherTabs = false }
                                                 <span className={`badge source-badge ${link.source}`} style={{
                                                     fontSize: '0.65rem',
                                                     padding: '2px 6px',
-                                                    background: link.source === 'library' ? 'var(--primary-yellow-light)' : 'var(--slate-100)',
-                                                    color: link.source === 'library' ? 'var(--primary-yellow-hover)' : 'var(--slate-600)',
+                                                    background: link.source === 'library' ? 'var(--cv-primary-light)' : 'var(--slate-100)',
+                                                    color: link.source === 'library' ? 'var(--cv-primary-dark)' : 'var(--slate-600)',
                                                     border: 'none'
                                                 }}>
                                                     {link.source === 'library' ? 'Library' : 'System'}

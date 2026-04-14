@@ -36,7 +36,7 @@
 .um-title i {
     width: 44px;
     height: 44px;
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     border-radius: 12px;
     display: flex;
@@ -58,13 +58,13 @@
 }
 
 .um-stat-card {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     padding: 1rem 1.5rem;
     border-radius: 12px;
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 1px 3px rgba(250, 204, 21, 0.2);
+    box-shadow: 0 1px 3px rgba(123, 63, 228, 0.2);
     min-width: 160px;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .um-tab.active {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
 }
 
@@ -160,7 +160,7 @@
 }
 
 .um-search-wrapper:focus-within {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
 }
 
 .um-search-icon {
@@ -185,7 +185,7 @@
 }
 
 .um-search-btn {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     border: none;
     padding: 0.75rem 1.75rem;
@@ -233,7 +233,7 @@
     width: 40px;
     height: 40px;
     border: 3px solid var(--slate-200);
-    border-top-color: var(--primary-yellow);
+    border-top-color: var(--cv-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 1rem;
@@ -282,7 +282,7 @@
 
 .um-table thead th i {
     margin-right: 0.5rem;
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
     font-size: 0.85rem;
 }
 
@@ -326,7 +326,7 @@
 }
 
 .um-role-badge.admin {
-    background: #f59e0b;
+    background: #62269E;
     color: white;
 }
 
@@ -504,7 +504,7 @@
 }
 
 .um-page-current {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     padding: 0.4rem 0.875rem;
     border-radius: 6px;
@@ -655,8 +655,8 @@
 }
 
 .um-input:focus {
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.1);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 4px rgba(123, 63, 228, 0.1);
 }
 
 .um-form-grid {
@@ -722,9 +722,9 @@
 }
 
 .um-role-select:focus {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
     background-color: white;
-    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.15);
+    box-shadow: 0 0 0 3px rgba(123, 63, 228, 0.15);
 }
 
 /* Modal Footer */
@@ -760,7 +760,7 @@
 }
 
 .um-btn-save {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
 }
 
@@ -857,7 +857,7 @@
 
 .um-book-price {
     font-weight: 600;
-    color: #D4A843; /* Maintain the brand's price color */
+    color: #62269E; /* Maintain the brand's price color */
 }
 
 /* Order Management Specifics */
@@ -876,7 +876,7 @@
 
 .um-order-price {
     font-weight: 600;
-    color: #D4A843;
+    color: #62269E;
 }
 
 .um-view-items-btn {
@@ -907,11 +907,11 @@
 .um-detail-area {
     padding: 2rem;
     background: var(--slate-50);
-    border-left: 3px solid #D4A843;
+    border-left: 3px solid #62269E;
 }
 
 .um-detail-title {
-    color: #D4A843;
+    color: #62269E;
     margin-bottom: 1.25rem;
     font-size: 0.9rem;
     text-transform: uppercase;
@@ -1019,8 +1019,8 @@
 }
 
 .um-file-input-wrapper:hover {
-    border-color: var(--primary-yellow);
-    background: rgba(250, 204, 21, 0.02);
+    border-color: var(--cv-primary);
+    background: rgba(123, 63, 228, 0.02);
 }
 
 .um-file-input-wrapper input {
@@ -1096,9 +1096,9 @@
 }
 
 .um-add-row-btn:hover {
-    border-color: var(--primary-yellow);
-    color: var(--primary-yellow);
-    background: rgba(250, 204, 21, 0.02);
+    border-color: var(--cv-primary);
+    color: var(--cv-primary);
+    background: rgba(123, 63, 228, 0.02);
 }
 .um-item-info {
     flex: 1;
@@ -1149,11 +1149,11 @@
 
 .um-stat-card.premium-gold {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid rgba(212, 168, 67, 0.3);
+    border: 1px solid rgba(98, 38, 158, 0.3);
 }
 
 .um-stat-card.premium-gold .um-stat-value {
-    color: #D4A843;
+    color: #62269E;
 }
 
 .um-stat-card.premium-gold .um-stat-label {
@@ -1163,7 +1163,7 @@
 }
 
 .um-stat-card.premium-gold .um-stat-value {
-    color: #D4A843;
+    color: #62269E;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
@@ -1210,7 +1210,7 @@
 .um-btn-text {
     background: none;
     border: none;
-    color: #D4A843;
+    color: #62269E;
     font-weight: 700;
     font-size: 0.85rem;
     cursor: pointer;
@@ -1223,7 +1223,7 @@
 }
 
 .um-btn-text:hover {
-    background: rgba(212, 168, 67, 0.05);
+    background: rgba(98, 38, 158, 0.05);
     padding-right: 0.75rem;
 }
 
@@ -1251,8 +1251,8 @@
 
 .um-action-card:hover {
     background: white;
-    border-color: #D4A843;
-    color: #D4A843;
+    border-color: #62269E;
+    color: #62269E;
     transform: translateX(4px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
@@ -1310,9 +1310,9 @@
 }
 
 .um-tabs.compact .um-tab.active {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
-    box-shadow: 0 2px 4px rgba(250, 204, 21, 0.2);
+    box-shadow: 0 2px 4px rgba(123, 63, 228, 0.2);
 }
 
 .um-tabs.compact .um-tab:hover:not(.active) {
@@ -1348,8 +1348,8 @@
 
 .um-search-wrapper:focus-within {
     background: white;
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 3px rgba(123, 63, 228, 0.1);
 }
 
 .um-search-wrapper i {
@@ -1396,8 +1396,8 @@
 }
 
 .um-results-count {
-    background: rgba(212, 168, 67, 0.1);
-    color: #D4A843;
+    background: rgba(98, 38, 158, 0.1);
+    color: #62269E;
     padding: 4px 10px;
     border-radius: 6px;
 }
@@ -1493,7 +1493,7 @@
     padding-top: 12px;
     font-weight: 800;
     font-size: 1.25rem;
-    color: #D4A843;
+    color: #62269E;
 }
 
 .invoice-footer {
@@ -1631,7 +1631,7 @@
 .um-btn-text {
     background: transparent;
     border: none;
-    color: #D4A843;
+    color: #62269E;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
@@ -1639,15 +1639,15 @@
 
 .um-btn-text:hover {
     color: #b08a35;
-    background: rgba(212, 168, 67, 0.05);
+    background: rgba(98, 38, 158, 0.05);
 }
 
 tr.um-table-row.selected {
-    background: rgba(212, 168, 67, 0.05) !important;
+    background: rgba(98, 38, 158, 0.05) !important;
 }
 
 tr.um-table-row.selected td {
-    border-bottom: 1px solid rgba(212, 168, 67, 0.2) !important;
+    border-bottom: 1px solid rgba(98, 38, 158, 0.2) !important;
 }
 
 /* Load More Section */
@@ -1675,7 +1675,7 @@ tr.um-table-row.selected td {
 }
 
 .um-load-more-btn:hover:not(:disabled) {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
     background: var(--slate-50);
     transform: translateY(-2px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -1687,7 +1687,7 @@ tr.um-table-row.selected td {
 }
 
 .um-load-more-btn.loading i {
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 .um-no-more {
@@ -1710,7 +1710,7 @@ tr.um-table-row.selected td {
 }
 
 .um-infinite-loader i {
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 

@@ -153,7 +153,7 @@ const AdminOverview = () => {
                             </div>
                             <div className="um-stat-info">
                                 <span className="um-stat-label">Catalog Size</span>
-                                <span className="um-stat-value">{stats.totalBooks} <small style={{ fontSize: '0.9rem', fontWeight: 500, color: '#888' }}>Books</small></span>
+                                <span className="um-stat-value">{stats.totalBooks} <small style={{ fontSize: '0.9rem', fontWeight: 500, color: '#64748B' }}>Books</small></span>
                             </div>
                         </div>
 
@@ -200,7 +200,7 @@ const AdminOverview = () => {
                                     <tbody>
                                         {stats.recentOrders.length === 0 ? (
                                             <tr>
-                                                <td colSpan="4" style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>
+                                                <td colSpan="4" style={{ textAlign: 'center', padding: '3rem', color: '#64748B' }}>
                                                     <i className="fas fa-receipt" style={{ fontSize: '2rem', display: 'block', marginBottom: '1rem', opacity: 0.3 }}></i>
                                                     No recent orders found
                                                 </td>

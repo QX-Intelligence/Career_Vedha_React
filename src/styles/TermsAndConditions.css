@@ -27,7 +27,7 @@
     transform: translateX(-50%);
     width: 60px;
     height: 4px;
-    background-color: var(--primary-yellow);
+    background-color: var(--cv-primary);
     border-radius: 2px;
 }
 
@@ -89,14 +89,14 @@
     font-weight: 900;
     position: absolute;
     left: 0;
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 .contact-details {
     background-color: var(--gray-50);
     padding: 20px;
     border-radius: 12px;
-    border-left: 4px solid var(--primary-yellow);
+    border-left: 4px solid var(--cv-primary);
     margin-top: 20px;
 }
 

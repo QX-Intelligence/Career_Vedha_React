@@ -10,7 +10,7 @@ const HeroIntro = () => {
             ctaText: "Start Learning",
             link: "/academic-exams",
             image: "/hero_illustration.png", // Keeping the existing one for Exams
-            color: "var(--primary-yellow)",
+            color: "var(--cv-primary)",
             icon: "fas fa-graduation-cap"
         },
         {
@@ -74,7 +74,7 @@ const HeroIntro = () => {
                                 </span>
                                 <h1>{slide.title}</h1>
                                 <p>{slide.subtitle}</p>
-                                <Link to={slide.link} className="get-started-btn" style={{ background: slide.color === 'var(--primary-yellow)' ? null : slide.color, boxShadow: slide.color === 'var(--primary-yellow)' ? null : `0 10px 25px -5px ${slide.color}66`, color: slide.color === 'var(--primary-yellow)' ? null : '#fff' }}>
+                                <Link to={slide.link} className="get-started-btn" style={{ background: slide.color === 'var(--cv-primary)' ? null : slide.color, boxShadow: slide.color === 'var(--cv-primary)' ? null : `0 10px 25px -5px ${slide.color}66`, color: slide.color === 'var(--cv-primary)' ? null : '#fff' }}>
                                     {slide.ctaText}
                                 </Link>
                             </div>

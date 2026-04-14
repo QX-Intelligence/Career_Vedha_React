@@ -35,6 +35,6 @@
     transform: translateX(-50%);
     width: 20%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+    background: linear-gradient(90deg, transparent, #62269E, transparent);
     opacity: 0.5;
 }

@@ -65,6 +65,8 @@ const VideosPage = lazy(() => import("./pages/VideosPage"));
 const CV_Store_Module = lazy(() => import("./modules/_cv_sys_cache/index"));
 const EStoreAdminRoot = lazy(() => import("./modules/_cv_sys_cache/admin/EStoreAdminRoot"));
 const TopStoriesManagement = lazy(() => import('./modules/articles/pages/TopStoriesManagement'));
+const OurServicesManagement = lazy(() => import('./modules/ourServices/pages/OurServicesManagement'));
+const OurServicesEditor = lazy(() => import('./modules/ourServices/pages/OurServicesEditor'));
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import api, { setUserContext } from './services/api';
@@ -104,9 +106,9 @@ const PageLoader = () => (
         <div className="splash-content">
             <div className="splash-loading-logo">
                 <img 
-                    src="/Career Vedha logo.png" 
+                    src="/Career Vedha logo1.png" 
                     alt="Career Vedha" 
-                    style={{ height: '250px', width: 'auto', marginBottom: '40px' }}
+                    style={{ height: '60px', width: 'auto', marginBottom: '20px' }}
                 />
             </div>
             <div className="splash-loader">
@@ -346,15 +348,15 @@ function App() {
             <div className="premium-splash-screen">
                 <div className="splash-content">
                     <div className="splash-logo">
-                        <div style={{ overflow: 'hidden', height: '240px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+                        <div style={{ overflow: 'hidden', height: '100px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                             <img 
-                                src="/Career Vedha logo.png" 
+                                src="/Career Vedha logo1.png" 
                                 alt="Career Vedha" 
-                                style={{ height: '400px', width: 'auto', display: 'block' }}
+                                style={{ height: '60px', width: 'auto', display: 'block' }}
                             />
                         </div>
                         <div className="logo-text-container">
-                            <p style={{ letterSpacing: '4px', fontSize: '12px', fontWeight: 700, color: 'var(--primary-yellow)', marginTop: '0', marginBottom: '16px' }}>ADVANCED LEARNING PORTAL</p>
+                            <p style={{ letterSpacing: '4px', fontSize: '12px', fontWeight: 700, color: 'var(--cv-primary)', marginTop: '0', marginBottom: '16px' }}>ADVANCED LEARNING PORTAL</p>
                         </div>
                     </div>
                     <div className="splash-loader">
@@ -502,6 +504,23 @@ function App() {
                                         <Route path="/cms/papers" element={
                                             <ProtectedRoute module={MODULES.PAPERS_MANAGEMENT}>
                                                 <PapersManagement />
+                                            </ProtectedRoute>
+                                        } />
+
+                                        {/* Our Services CMS Routes */}
+                                        <Route path="/cms/our-services" element={
+                                            <ProtectedRoute module={MODULES.SERVICES_MANAGEMENT}>
+                                                <OurServicesManagement />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/cms/our-services/new" element={
+                                            <ProtectedRoute module={MODULES.SERVICES_MANAGEMENT}>
+                                                <OurServicesEditor />
+                                            </ProtectedRoute>
+                                        } />
+                                        <Route path="/cms/our-services/edit/:id" element={
+                                            <ProtectedRoute module={MODULES.SERVICES_MANAGEMENT}>
+                                                <OurServicesEditor />
                                             </ProtectedRoute>
                                         } />
 

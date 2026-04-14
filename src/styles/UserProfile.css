@@ -24,7 +24,7 @@
 .profile-page-divider {
     width: 40px;
     height: 4px;
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     margin: 0 auto 1rem;
     border-radius: 2px;
 }
@@ -182,8 +182,8 @@
 
 .form-input:focus {
     outline: none;
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 3px rgba(123, 63, 228, 0.1);
 }
 
 .form-input:disabled {

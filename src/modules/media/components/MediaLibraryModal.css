@@ -52,7 +52,7 @@
 }
 
 .mlm-title-area h3 i {
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 .mlm-title-area p {
@@ -116,8 +116,8 @@
 
 .mlm-search-box input:focus {
     background: #fff;
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 4px var(--primary-yellow-light);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 4px var(--cv-primary-light);
 }
 
 .mlm-purpose-select {
@@ -163,8 +163,8 @@
 }
 
 .mlm-card.selected {
-    border-color: var(--primary-yellow);
-    box-shadow: 0 0 0 4px var(--primary-yellow-light);
+    border-color: var(--cv-primary);
+    box-shadow: 0 0 0 4px var(--cv-primary-light);
 }
 
 .mlm-preview {
@@ -186,12 +186,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(250, 204, 21, 0.2);
+    background: rgba(123, 63, 228, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
-    color: var(--primary-yellow-dark);
+    color: var(--cv-primary-dark);
 }
 
 .mlm-info {
@@ -235,7 +235,7 @@
     display: flex;
     justify-content: center;
     padding: 1.5rem;
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 .mlm-footer {
@@ -263,7 +263,7 @@
 }
 
 .mlm-btn-select {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     border: none;
     padding: 0.75rem 1.5rem;
@@ -271,13 +271,13 @@
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
+    box-shadow: 0 4px 12px rgba(123, 63, 228, 0.2);
 }
 
 .mlm-btn-select:hover:not(:disabled) {
-    background: var(--primary-yellow-hover);
+    background: var(--cv-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(250, 204, 21, 0.3);
+    box-shadow: 0 6px 16px rgba(123, 63, 228, 0.3);
 }
 
 .mlm-btn-select:disabled {

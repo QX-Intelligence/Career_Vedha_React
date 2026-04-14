@@ -2,7 +2,7 @@
     --portal-bg: #f1f5f9;
     --portal-sidebar-width: 300px;
     --portal-header-height: 70px;
-    --portal-primary: #facc15;
+    --portal-primary: #62269E;
     --portal-dark: #0f172a;
     --portal-glass: rgba(255, 255, 255, 0.85);
 }
@@ -51,13 +51,13 @@
 .portal-brand .logo-icon {
     width: 38px;
     height: 38px;
-    background: linear-gradient(135deg, var(--portal-primary), #fbbf24);
+    background: linear-gradient(135deg, var(--portal-primary), #62269E);
     color: var(--portal-dark);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+    box-shadow: 0 4px 12px rgba(123, 63, 228, 0.3);
     font-size: 1.1rem;
 }
 
@@ -530,7 +530,7 @@
 }
 
 .user-pick.skipped {
-    border-left: 4px solid #f59e0b;
+    border-left: 4px solid #62269E;
 }
 
 .official-key {
@@ -610,9 +610,9 @@
 }
 
 .q-nav-item.audit-skipped {
-    background: #f59e0b !important;
+    background: #62269E !important;
     color: white !important;
-    border-color: #f59e0b !important;
+    border-color: #62269E !important;
 }
 
 .legend-dot {
@@ -631,7 +631,7 @@
 }
 
 .legend-dot.audit-skipped {
-    background: #f59e0b;
+    background: #62269E;
 }
 
 .audit-portal-card {
@@ -773,7 +773,7 @@
     border: none;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 6px 15px rgba(250, 204, 21, 0.2);
+    box-shadow: 0 6px 15px rgba(123, 63, 228, 0.2);
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
@@ -781,8 +781,8 @@
 
 .btn-hero-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 20px 25px -5px rgba(250, 204, 21, 0.5);
-    background: #fbbf24;
+    box-shadow: 0 20px 25px -5px rgba(123, 63, 228, 0.5);
+    background: #62269E;
 }
 
 .btn-hero-secondary {
@@ -819,9 +819,9 @@
     right: 0;
     bottom: 0;
     background: 
-        radial-gradient(at 0% 0%, rgba(250, 204, 21, 0.15) 0px, transparent 50%),
+        radial-gradient(at 0% 0%, rgba(123, 63, 228, 0.15) 0px, transparent 50%),
         radial-gradient(at 100% 0%, rgba(30, 64, 175, 0.2) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(250, 204, 21, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(123, 63, 228, 0.1) 0px, transparent 50%),
         radial-gradient(at 0% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
     filter: blur(80px);
     z-index: 0;
@@ -875,7 +875,7 @@
 .icon-circle-outer {
     position: absolute;
     inset: 0;
-    border: 2px dashed rgba(250, 204, 21, 0.3);
+    border: 2px dashed rgba(123, 63, 228, 0.3);
     border-radius: 50%;
     animation: spinSlow 15s linear infinite;
 }
@@ -883,12 +883,12 @@
 .icon-circle-inner {
     position: absolute;
     inset: 20px;
-    background: radial-gradient(circle at 30% 30%, #facc15, #ca8a04);
+    background: radial-gradient(circle at 30% 30%, #62269E, #ca8a04);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 40px rgba(250, 204, 21, 0.4);
+    box-shadow: 0 0 40px rgba(123, 63, 228, 0.4);
     color: #0f172a;
     font-size: 3.5rem;
 }
@@ -906,7 +906,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 14px;
-    border: 2px solid #facc15;
+    border: 2px solid #62269E;
     animation: toolWiggle 2s infinite ease-in-out;
 }
 
@@ -934,14 +934,14 @@
 .badge-coming-soon {
     display: inline-block;
     padding: 0.5rem 1.25rem;
-    background: rgba(250, 204, 21, 0.1);
-    color: #facc15;
+    background: rgba(123, 63, 228, 0.1);
+    color: #62269E;
     font-weight: 800;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 2px;
     border-radius: 50px;
-    border: 1px solid rgba(250, 204, 21, 0.3);
+    border: 1px solid rgba(123, 63, 228, 0.3);
     margin-bottom: 2rem;
 }
 
@@ -962,7 +962,7 @@
 }
 
 .content-box strong {
-    color: #facc15;
+    color: #62269E;
 }
 
 /* Actions */
@@ -972,7 +972,7 @@
 }
 
 .btn-creative-primary {
-    background: #facc15;
+    background: #62269E;
     color: #0f172a;
     padding: 1rem 2rem;
     border-radius: 16px;
@@ -983,12 +983,12 @@
     align-items: center;
     gap: 0.75rem;
     transition: all 0.3s;
-    box-shadow: 0 10px 20px rgba(250, 204, 21, 0.2);
+    box-shadow: 0 10px 20px rgba(123, 63, 228, 0.2);
 }
 
 .btn-creative-primary:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 30px rgba(250, 204, 21, 0.4);
+    box-shadow: 0 20px 30px rgba(123, 63, 228, 0.4);
 }
 
 .btn-creative-outline {

@@ -239,7 +239,7 @@ const AdminOrders = () => {
                                                     <button 
                                                         onClick={() => handleViewInvoice(order.orderId)}
                                                         className="um-view-items-btn"
-                                                        style={{ background: 'rgba(212, 168, 67, 0.1)', color: '#D4A843' }}
+                                                        style={{ background: 'rgba(98, 38, 158, 0.1)', color: '#62269E' }}
                                                         title="View Invoice"
                                                     >
                                                         <i className="fas fa-file-invoice-dollar"></i>
@@ -347,7 +347,7 @@ const AdminOrders = () => {
                                     <div className="invoice-content" id="printable-invoice">
                                         <div className="invoice-header">
                                             <div className="brand-section">
-                                                <h1 style={{ color: '#D4A843', margin: 0 }}>CAREER VEDHA</h1>
+                                                <h1 style={{ color: '#62269E', margin: 0 }}>CAREER VEDHA</h1>
                                                 <p className="um-item-subtext">Official Order Receipt</p>
                                             </div>
                                             <div className="order-meta">

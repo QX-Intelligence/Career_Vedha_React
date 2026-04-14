@@ -41,7 +41,7 @@ const DomainGuard = ({ children }) => {
         height: '100vh',
         width: '100vw',
         background: '#0a0a0a',
-        color: '#D4A843',
+        color: '#62269E',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

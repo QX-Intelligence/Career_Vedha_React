@@ -24,7 +24,7 @@
 }
 
 .mm-title i {
-  color: var(--primary-yellow);
+  color: var(--cv-primary);
 }
 
 .mm-subtitle {
@@ -67,13 +67,13 @@
 }
 
 .mm-select:focus, .mm-input:focus {
-  border-color: var(--primary-yellow);
+  border-color: var(--cv-primary);
   background: var(--white);
-  box-shadow: 0 0 0 3px var(--primary-yellow-light);
+  box-shadow: 0 0 0 3px var(--cv-primary-light);
 }
 
 .mm-upload-btn {
-  background: var(--primary-yellow);
+  background: var(--cv-primary);
   color: var(--slate-900);
   border: none;
   padding: 0.6rem 1.2rem;
@@ -88,9 +88,9 @@
 }
 
 .mm-upload-btn:hover {
-  background: var(--primary-yellow-hover);
+  background: var(--cv-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(250, 204, 21, 0.25);
+  box-shadow: 0 4px 12px rgba(123, 63, 228, 0.25);
 }
 
 /* Media Grid */
@@ -131,7 +131,7 @@
 
 .mm-card:hover {
   transform: translateY(-8px);
-  border-color: rgba(250, 204, 21, 0.3);
+  border-color: rgba(123, 63, 228, 0.3);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
@@ -219,7 +219,7 @@
 }
 
 .mm-meta i {
-    color: var(--primary-yellow-dark); /* Accent color for icons */
+    color: var(--cv-primary-dark); /* Accent color for icons */
     font-size: 0.8rem;
     width: auto;
 }
@@ -419,8 +419,8 @@
 }
 
 .mm-file-input:hover {
-    border-color: var(--primary-yellow);
-    background: var(--primary-yellow-light);
+    border-color: var(--cv-primary);
+    background: var(--cv-primary-light);
 }
 
 .mm-modal-footer {
@@ -450,7 +450,7 @@
 }
 
 .mm-btn-save {
-  background: var(--primary-yellow);
+  background: var(--cv-primary);
   border: none;
   color: var(--slate-900);
   padding: 0.6rem 1.5rem;
@@ -458,13 +458,13 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 6px rgba(250, 204, 21, 0.2);
+  box-shadow: 0 4px 6px rgba(123, 63, 228, 0.2);
 }
 
 .mm-btn-save:hover {
-  background: var(--primary-yellow-hover);
+  background: var(--cv-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(250, 204, 21, 0.3);
+  box-shadow: 0 6px 12px rgba(123, 63, 228, 0.3);
 }
 
 .mm-btn-save:disabled {
@@ -492,14 +492,14 @@
 .mm-skeleton-icon {
     width: 50px;
     height: 50px;
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    box-shadow: 0 4px 15px rgba(250, 204, 21, 0.3);
+    box-shadow: 0 4px 15px rgba(123, 63, 228, 0.3);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -616,11 +616,11 @@
     align-items: center;
     gap: 0.5rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid var(--primary-yellow);
+    border-bottom: 2px solid var(--cv-primary);
 }
 
 .mm-preview-title i {
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 .mm-metadata-grid {
@@ -647,7 +647,7 @@
 }
 
 .mm-metadata-item label i {
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
     font-size: 0.85rem;
 }
 
@@ -688,7 +688,7 @@
 }
 
 .mm-badge-purpose {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900) !important;
 }
 
@@ -763,7 +763,7 @@
 }
 
 .mm-pdf-controls button:hover:not(:disabled) {
-    color: var(--primary-yellow);
+    color: var(--cv-primary);
 }
 
 .mm-media-view {
@@ -798,7 +798,7 @@
 }
 
 .mm-load-more-btn {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
     border: none;
     padding: 0.75rem 2rem;
@@ -809,13 +809,13 @@
     align-items: center;
     gap: 0.5rem;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.25);
+    box-shadow: 0 4px 12px rgba(123, 63, 228, 0.25);
 }
 
 .mm-load-more-btn:hover:not(:disabled) {
-    background: var(--primary-yellow-hover);
+    background: var(--cv-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(250, 204, 21, 0.35);
+    box-shadow: 0 6px 20px rgba(123, 63, 228, 0.35);
 }
 
 .mm-load-more-btn:disabled {

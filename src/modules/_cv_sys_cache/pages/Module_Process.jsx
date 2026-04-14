@@ -205,7 +205,7 @@ const Module_Process = () => {
           }, 3000);
         }
       },
-      theme: { color: "#D4A843" },
+      theme: { color: "#62269e" },
       modal: {
         ondismiss: () => {
           // Silent — user knows they closed it
@@ -224,32 +224,32 @@ const Module_Process = () => {
   };
 
   if (items.length === 0 && !complete && !isRetryFlow) return (
-    <div style={{ padding: '12rem 1.5rem', textAlign: 'center', color: '#aaa', background: '#111', minHeight: '100vh' }}>
-      <h2 style={{ color: '#fff', marginBottom: '1rem' }}>Your cart is empty</h2>
-      <Link to="/e-store/shop" style={{ color: '#D4A843' }}>Return to Shop</Link>
+    <div style={{ padding: '12rem 1.5rem', textAlign: 'center', color: '#475569', background: '#0c0216', minHeight: '100vh' }}>
+      <h2 style={{ color: '#0F172A', marginBottom: '1rem', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>Your cart is empty</h2>
+      <Link to="/e-store/shop" style={{ color: '#62269e', fontWeight: 600 }}>Return to Shop</Link>
     </div>
   );
 
   if (complete) return (
-    <div style={{ padding: '10rem 1.5rem', textAlign: 'center', background: '#111', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ background: '#1a1a1a', padding: '4rem', borderRadius: '2rem', border: '1px solid rgba(212, 168, 67, 0.2)', maxWidth: '500px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
+    <div style={{ padding: '10rem 1.5rem', textAlign: 'center', background: '#0c0216', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ background: '#FFFFFF', padding: '4rem', borderRadius: '2rem', border: '1px solid rgba(98, 38, 158, 0.2)', maxWidth: '500px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
         <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem', color: '#10b981' }}>
           <CheckCircle2 size={48} />
         </div>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", color: '#fff', fontSize: '2.5rem', marginBottom: '1rem' }}>Order Placed!</h1>
-        <p style={{ color: '#888', marginBottom: '2rem', lineHeight: 1.6 }}>Your order has been confirmed. Order ID: #{orderId}</p>
+        <h1 style={{ fontFamily: "'Outfit', sans-serif", color: '#0F172A', fontSize: '2.5rem', marginBottom: '1rem', fontWeight: 800 }}>Order Placed!</h1>
+        <p style={{ color: '#64748B', marginBottom: '2rem', lineHeight: 1.6 }}>Your order has been confirmed. Order ID: #{orderId}</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {purchasedEbooks.length > 0 && (
             <Link
               to="/e-store/library"
               state={{ highlightId: purchasedEbooks[0] }}
-              style={{ padding: '1rem 2.5rem', background: '#D4A843', color: '#111', fontWeight: 800, borderRadius: '100px', textDecoration: 'none', display: 'inline-block' }}
+              style={{ padding: '1rem 2.5rem', background: '#62269e', color: '#0F172A', fontWeight: 800, borderRadius: '100px', textDecoration: 'none', display: 'inline-block' }}
             >
               Go to My Library
             </Link>
           )}
-          <Link to="/e-store" style={{ padding: '1rem 2.5rem', background: purchasedEbooks.length > 0 ? 'rgba(255,255,255,0.05)' : '#D4A843', color: purchasedEbooks.length > 0 ? '#fff' : '#111', fontWeight: 800, borderRadius: '100px', textDecoration: 'none', display: 'inline-block' }}>
+          <Link to="/e-store" style={{ padding: '1rem 2.5rem', background: purchasedEbooks.length > 0 ? 'rgba(255,255,255,0.05)' : '#62269e', color: purchasedEbooks.length > 0 ? '#fff' : '#fff', fontWeight: 800, borderRadius: '100px', textDecoration: 'none', display: 'inline-block' }}>
             Back to Store
           </Link>
         </div>
@@ -258,16 +258,16 @@ const Module_Process = () => {
   );
 
   return (
-    <div style={{ paddingTop: '8rem', paddingBottom: '8rem', background: '#111', minHeight: '100vh' }}>
+    <div style={{ paddingTop: '8rem', paddingBottom: '8rem', background: '#0c0216', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
 
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4rem', gap: '4rem' }}>
           {[1, 2].map(s => (
             <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', opacity: step >= s ? 1 : 0.3 }}>
-              <div style={{ width: '40px', height: '40px', background: step >= s ? '#D4A843' : '#1a1a1a', color: step >= s ? '#111' : '#fff', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, border: '2px solid', borderColor: step >= s ? '#D4A843' : '#333' }}>
+              <div style={{ width: '40px', height: '40px', background: step >= s ? '#62269e' : '#FFFFFF', color: '#0F172A', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, border: '2px solid', borderColor: step >= s ? '#62269e' : '#333' }}>
                 {s < step ? <CheckCircle2 size={18} /> : s}
               </div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: step >= s ? '#fff' : '#444' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: step >= s ? '#fff' : '#444' }}>
                 {s === 1 ? 'Payment' : 'Review & Pay'}
               </span>
             </div>
@@ -275,51 +275,51 @@ const Module_Process = () => {
         </div>
 
         <div className="store-process-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '4rem', alignItems: 'start' }}>
-          <div style={{ background: '#1a1a1a', padding: '3rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
+          <div style={{ background: '#FFFFFF', padding: '3rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <Motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                  <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#fff', fontSize: '2rem', marginBottom: '2rem' }}>Payment</h2>
+                  <h2 style={{ fontFamily: "'Outfit', sans-serif", color: '#0F172A', fontSize: '2rem', marginBottom: '2rem', fontWeight: 700 }}>Payment</h2>
                   <div style={{ display: 'grid', gap: '1.5rem' }}>
-                    <div style={{ padding: '1.5rem', border: '2px solid #D4A843', borderRadius: '1rem', background: 'rgba(212, 168, 67, 0.05)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ width: '20px', height: '20px', borderRadius: '100px', border: '6px solid #D4A843' }} />
+                    <div style={{ padding: '1.5rem', border: '2px solid #62269e', borderRadius: '1rem', background: 'rgba(98, 38, 158, 0.05)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ width: '20px', height: '20px', borderRadius: '100px', border: '6px solid #62269e' }} />
                       <div>
-                        <p style={{ color: '#fff', fontWeight: 600 }}>Secured Checkout</p>
-                        <p style={{ color: '#666', fontSize: '0.8rem' }}>Payment via Razorpay</p>
+                        <p style={{ color: '#0F172A', fontWeight: 600 }}>Secured Checkout</p>
+                        <p style={{ color: '#94A3B8', fontSize: '0.8rem' }}>Payment via Razorpay</p>
                       </div>
                     </div>
-                    <p style={{ color: '#888', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                    <p style={{ color: '#64748B', fontSize: '0.85rem', lineHeight: 1.6 }}>
                       Your ebooks will be available instantly in your library after successful payment.
                     </p>
-                    <button onClick={nextStep} style={{ marginTop: '1rem', width: '100%', padding: '1.25rem', background: '#D4A843', color: '#111', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Review Order</button>
+                    <button onClick={nextStep} style={{ marginTop: '1rem', width: '100%', padding: '1.25rem', background: '#62269e', color: '#0F172A', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Review Order</button>
                   </div>
                 </Motion.div>
               )}
 
               {step === 2 && (
                 <Motion.div key="step2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                  <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#fff', fontSize: '2rem', marginBottom: '2rem' }}>Review & Pay</h2>
-                  <div style={{ background: '#111', padding: '2rem', borderRadius: '1rem', border: '1px solid #333', marginBottom: '2rem' }}>
+                  <h2 style={{ fontFamily: "'Outfit', sans-serif", color: '#0F172A', fontSize: '2rem', marginBottom: '2rem', fontWeight: 700 }}>Review & Pay</h2>
+                  <div style={{ background: '#0a0a0a', padding: '2rem', borderRadius: '1rem', border: '1px solid #222', marginBottom: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
-                      <h4 style={{ color: '#D4A843', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>
+                      <h4 style={{ color: '#62269e', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>
                         Order Details
                       </h4>
                       {isRetryFlow ? (
-                        <p style={{ color: '#fff' }}>Retrying Payment for Order #{orderId}</p>
+                        <p style={{ color: '#0F172A' }}>Retrying Payment for Order #{orderId}</p>
                       ) : (
-                        <p style={{ color: '#888', fontSize: '0.9rem' }}>Digital delivery — your ebooks will appear in My Library immediately after payment.</p>
+                        <p style={{ color: '#64748B', fontSize: '0.9rem' }}>Digital delivery — your ebooks will appear in My Library immediately after payment.</p>
                       )}
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '2rem' }}>
                     {!isRetryFlow && (
-                      <button onClick={prevStep} style={{ flex: 1, padding: '1rem', background: 'none', color: '#666', fontWeight: 600, border: 'none' }}>Back</button>
+                      <button onClick={prevStep} style={{ flex: 1, padding: '1rem', background: 'none', color: '#94A3B8', fontWeight: 600, border: 'none' }}>Back</button>
                     )}
                     <button
                       onClick={handlePlaceOrder}
                       disabled={isProcessing}
-                      style={{ flex: 2, padding: '1.25rem', background: '#D4A843', color: '#111', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexDirection: 'column' }}
+                      style={{ flex: 2, padding: '1.25rem', background: '#62269e', color: '#0F172A', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexDirection: 'column' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         {isProcessing ? <Loader2 className="animate-spin" /> : `Pay ₹${finalTotal}`}
@@ -336,31 +336,31 @@ const Module_Process = () => {
           </div>
 
           <aside>
-            <div style={{ background: '#1a1a1a', padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '1.5rem' }}>Order Summary</h3>
+            <div style={{ background: '#FFFFFF', padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
+              <h3 style={{ color: '#0F172A', fontSize: '1.25rem', marginBottom: '1.5rem' }}>Order Summary</h3>
               <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '2rem', paddingRight: '0.5rem' }}>
                 {items.length > 0 ? items.map(i => (
                   <div key={i.id} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                     <img src={i.image} style={{ width: '40px', height: '54px', objectFit: 'cover', borderRadius: '4px' }} alt="" />
                     <div style={{ flex: 1 }}>
-                      <p style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 500 }}>{i.name}</p>
-                      <p style={{ color: '#666', fontSize: '0.75rem' }}>Qty: {i.qty}</p>
+                      <p style={{ color: '#0F172A', fontSize: '0.85rem', fontWeight: 500 }}>{i.name}</p>
+                      <p style={{ color: '#94A3B8', fontSize: '0.75rem' }}>Qty: {i.qty}</p>
                     </div>
-                    <span style={{ color: '#fff', fontSize: '0.85rem' }}>₹{i.price * i.qty}</span>
+                    <span style={{ color: '#0F172A', fontSize: '0.85rem' }}>₹{i.price * i.qty}</span>
                   </div>
                 )) : isRetryFlow ? (
-                  <div style={{ padding: '1rem', background: '#111', borderRadius: '0.5rem', textAlign: 'center', color: '#888', fontSize: '0.85rem' }}>
+                  <div style={{ padding: '1rem', background: '#FDFBF7', borderRadius: '0.5rem', textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
                     Items for Order #{orderId}
                   </div>
                 ) : null}
               </div>
 
               <div style={{ borderTop: '1px solid #222', paddingTop: '1.5rem', display: 'grid', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B', fontSize: '0.9rem' }}>
                   <span>Tax (GST)</span>
                   <span>₹{isRetryFlow ? (retryTotal - retryTotal / 1.18).toFixed(2) : tax}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#D4A843', fontSize: '1.25rem', fontWeight: 800, marginTop: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#62269e', fontSize: '1.25rem', fontWeight: 800, marginTop: '1rem' }}>
                   <span>Total</span>
                   <span>₹{finalTotal}</span>
                 </div>

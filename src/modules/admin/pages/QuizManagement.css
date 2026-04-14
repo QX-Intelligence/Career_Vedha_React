@@ -127,8 +127,8 @@
 }
 
 .btn-icon:hover {
-    border-color: var(--primary-yellow);
-    color: var(--primary-yellow-hover);
+    border-color: var(--cv-primary);
+    color: var(--cv-primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px var(--primary-yellow-glow);
 }
@@ -188,15 +188,15 @@
 }
 
 .form-input:focus, .form-select:focus {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
     background: white;
     outline: none;
     box-shadow: 0 0 0 4px var(--primary-yellow-glow);
 }
 
 .btn-primary {
-    background: var(--primary-yellow);
-    border: 1px solid var(--primary-yellow);
+    background: var(--cv-primary);
+    border: 1px solid var(--cv-primary);
     color: var(--slate-900);
     padding: 10px 24px;
     border-radius: 12px;
@@ -207,7 +207,7 @@
 }
 
 .btn-primary:hover {
-    background: var(--primary-yellow-hover);
+    background: var(--cv-primary-dark);
     transform: translateY(-2px);
 }
 
@@ -322,9 +322,9 @@
 }
 
 .option-tag.active {
-    background: var(--primary-yellow);
+    background: var(--cv-primary);
     color: var(--slate-900);
-    border-color: var(--primary-yellow-hover);
+    border-color: var(--cv-primary-dark);
     box-shadow: 0 4px 8px var(--primary-yellow-glow);
 }
 
@@ -361,9 +361,9 @@
 }
 
 .add-more-btn:hover {
-    border-color: var(--primary-yellow);
-    color: var(--primary-yellow-hover);
-    background: var(--primary-yellow-light);
+    border-color: var(--cv-primary);
+    color: var(--cv-primary-dark);
+    background: var(--cv-primary-light);
 }
 
 /* Aligning filters in main view */
@@ -390,8 +390,8 @@
 }
 
 .m-tag {
-    background: var(--primary-yellow-light);
-    color: var(--primary-yellow-hover);
+    background: var(--cv-primary-light);
+    color: var(--cv-primary-dark);
     padding: 2px 8px;
     border-radius: 6px;
     font-size: 0.7rem;
@@ -423,7 +423,7 @@
 }
 
 .bulk-textarea:focus {
-    border-color: var(--primary-yellow);
+    border-color: var(--cv-primary);
     background: white;
     box-shadow: 0 0 0 4px var(--primary-yellow-glow);
 }

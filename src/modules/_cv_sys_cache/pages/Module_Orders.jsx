@@ -33,16 +33,16 @@ const Module_Orders = () => {
   }, []);
 
   if (loading) return (
-    <div style={{ padding: '15rem 0', textAlign: 'center', background: '#111', minHeight: '100vh', color: '#fff' }}>
-      <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 1.5rem', color: '#D4A843' }} />
-      <p style={{ color: '#666', fontSize: '1.2rem' }}>Retrieving your history...</p>
+    <div style={{ padding: '15rem 0', textAlign: 'center', background: '#0c0216', minHeight: '100vh', color: '#0F172A' }}>
+      <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 1.5rem', color: '#62269e' }} />
+      <p style={{ color: '#475569', fontSize: '1.2rem', fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>Retrieving your history...</p>
     </div>
   );
 
   return (
-    <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#111', minHeight: '100vh' }}>
+    <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#0c0216', minHeight: '100vh' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.5rem', color: '#fff', marginBottom: '3rem' }}>Your Orders</h1>
+        <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '2.5rem', color: '#0F172A', marginBottom: '3rem', fontWeight: 800 }}>Your Orders</h1>
         
         <div style={{ display: 'grid', gap: '1.5rem' }}>
           {orders.map((order, i) => (
@@ -52,16 +52,16 @@ const Module_Orders = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 className="store-orders-row"
-                style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                whileHover={{ scale: 1.01, border: '1px solid rgba(212, 168, 67, 0.3)' }}
+                style={{ background: '#FFFFFF', padding: '2rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                whileHover={{ scale: 1.01, border: '1px solid rgba(98, 38, 158, 0.3)' }}
               >
                 <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                  <div style={{ width: '50px', height: '50px', background: '#111', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4A843', flexShrink: 0 }}>
+                  <div style={{ width: '50px', height: '50px', background: '#0a0a0a', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#62269e', flexShrink: 0, border: '1px solid rgba(0,0,0,0.05)' }}>
                     <Package size={24} />
                   </div>
                   <div>
                     <div className="store-orders-status-mobile" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem' }}>
-                      <h3 style={{ color: '#fff', fontSize: '1.1rem' }}>{order.id}</h3>
+                      <h3 style={{ color: '#0F172A', fontSize: '1.1rem' }}>{order.id}</h3>
                       <span style={{ 
                         fontSize: '0.7rem', 
                         padding: '0.2rem 0.6rem', 
@@ -74,7 +74,7 @@ const Module_Orders = () => {
                         {order.status}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', items: 'center', gap: '1rem', color: '#666', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', items: 'center', gap: '1rem', color: '#94A3B8', fontSize: '0.85rem' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Clock size={12} /> {order.date}</span>
                     </div>
                   </div>
@@ -82,19 +82,19 @@ const Module_Orders = () => {
                 
                 <div className="store-orders-totals-mobile" style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                   <div>
-                    <p style={{ color: '#888', fontSize: '0.75rem', marginBottom: '0.1rem' }}>Amount</p>
-                    <p style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>₹{order.total}</p>
+                    <p style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.1rem' }}>Amount</p>
+                    <p style={{ color: '#0F172A', fontWeight: 700, fontSize: '1.1rem' }}>₹{order.total}</p>
                   </div>
                   {order.status === 'FAILED' && (() => {
                     const expiry = order.expiryTime ? new Date(order.expiryTime) : 
                                    (new Date(order.rawCreatedAt).getTime() + 15 * 60000);
                     return new Date(expiry) > new Date();
                   })() ? (
-                    <div style={{ padding: '0.5rem 1rem', background: 'rgba(212, 168, 67, 0.1)', color: '#D4A843', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 800, border: '1px solid rgba(212, 168, 67, 0.3)' }}>
+                    <div style={{ padding: '0.5rem 1rem', background: 'rgba(98, 38, 158, 0.12)', color: '#62269e', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 800, border: '1px solid rgba(98, 38, 158, 0.3)' }}>
                       RETRY
                     </div>
                   ) : (
-                    <ChevronRight size={20} color="#D4A843" />
+                    <ChevronRight size={20} color="#62269e" />
                   )}
                 </div>
               </Motion.div>

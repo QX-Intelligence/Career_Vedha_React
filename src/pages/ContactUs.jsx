@@ -30,7 +30,7 @@ const ContactUsPage = () => {
                                 If you have any questions or concerns, feel free to reach out.
                             </p>
                             <p>
-                                <strong>Email:</strong> <a href="mailto:careervedha@gmail.com" style={{ color: 'var(--accent-color, #FACC15)' }}>careervedha@gmail.com</a>
+                                <strong>Email:</strong> <a href="mailto:careervedha@gmail.com" style={{ color: 'var(--accent-color, #62269E)' }}>careervedha@gmail.com</a>
                             </p>
                             <button 
                                 className="premium-contact-trigger"

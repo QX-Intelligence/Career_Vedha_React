@@ -34,7 +34,7 @@
 
 .btn-admin-post {
   background: var(--gray-900);
-  color: var(--primary-yellow);
+  color: var(--cv-primary);
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -95,8 +95,8 @@
 }
 
 .btn-load-more:hover {
-  background: var(--primary-yellow);
-  border-color: var(--primary-yellow);
+  background: var(--cv-primary);
+  border-color: var(--cv-primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow);
 }
@@ -129,7 +129,7 @@
 
 .btn-reset {
   background: var(--gray-900);
-  color: var(--primary-yellow);
+  color: var(--cv-primary);
   border: none;
   padding: 10px 24px;
   border-radius: 8px;

@@ -1,12 +1,12 @@
 /* E-Store Global Variables */
 :root {
-  --store-gold: #D4A843;
-  --store-bg: #111;
-  --store-surface: #1a1a1a;
-  --store-surface-hover: #222;
-  --store-text: #fff;
-  --store-text-muted: #888;
-  --store-border: rgba(212, 168, 67, 0.1);
+  --store-gold: #62269E;
+  --store-bg: #FDFBF7;
+  --store-surface: #FFFFFF;
+  --store-surface-hover: #F8F9FA;
+  --store-text: #0F172A;
+  --store-text-muted: #475569;
+  --store-border: rgba(98, 38, 158, 0.1);
 }
 
 /* Base Store Resets */
@@ -15,6 +15,7 @@
   min-height: 100vh;
   background-color: var(--store-bg);
   color: var(--store-text);
+  font-weight: 500; /* Thicker base fonts */
 }
 
 /* Navbar */
@@ -23,14 +24,15 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  background: rgba(10, 10, 10, 0.85);
-  backdrop-filter: blur(15px);
+  z-index: 1000;
+  background: rgba(253, 251, 247, 0.85); /* Wheat Glass */
+  backdrop-filter: blur(20px);
   padding: 1.25rem 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--store-border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
 .store-nav-brand {
@@ -40,7 +42,7 @@
   color: var(--store-gold);
   text-decoration: none;
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 1px;
 }
 
@@ -54,20 +56,22 @@
 }
 
 .store-nav-link {
-  color: var(--store-text-muted);
+  color: var(--store-text);
   text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 800; /* Thicker nav links */
   text-transform: uppercase;
   letter-spacing: 1.5px;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  opacity: 0.8;
 }
 
 .store-nav-link:hover, .store-nav-link.active {
   color: var(--store-gold);
+  opacity: 1;
 }
 
 .store-nav-actions {
@@ -80,7 +84,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-left: 1px solid #333;
+  border-left: 1px solid rgba(0,0,0,0.1);
   padding-left: 2rem;
 }
 
@@ -94,27 +98,27 @@
 
 /* Mobile Responsiveness */
 @media screen and (max-width: 768px) {
-  /* Navbar */
   .store-nav {
     padding: 1rem 1.5rem;
   }
   
   .store-nav-links {
-    display: none; /* Hide on mobile by default, maybe add a drawer later */
+    display: none;
   }
 
   .store-nav-profile {
-    display: none; /* Hide user details on mobile to save space */
+    display: none;
   }
   
   .store-nav-hamburger {
     display: block;
   }
 }
+
 /* Module_Entry Mobile Responsiveness */
 @media screen and (max-width: 768px) {
   .store-hero-content {
-    padding-top: 6rem !important; /* adjust for mobile nav */
+    padding-top: 6rem !important;
   }
   
   .store-hero-title {
@@ -229,7 +233,7 @@
     width: 100% !important;
     justify-content: space-between !important;
     margin-top: 1rem !important;
-    border-top: 1px solid rgba(255,255,255,0.1) !important;
+    border-top: 1px solid rgba(0,0,0,0.1) !important;
     padding-top: 1rem !important;
   }
 }
@@ -249,7 +253,7 @@
   .store-order-item-price {
     align-self: flex-end !important;
     padding-top: 0.5rem !important;
-    border-top: 1px dashed rgba(255,255,255,0.2) !important;
+    border-top: 1px dashed rgba(0,0,0,0.1) !important;
     width: 100% !important;
     text-align: right !important;
   }
@@ -276,7 +280,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 200;
   backdrop-filter: blur(4px);
 }
@@ -289,13 +293,13 @@
   width: 80vw;
   max-width: 320px;
   height: 100dvh;
-  background: #1a1a1a;
-  border-left: 1px solid #2a2a2a;
+  background: #FFFFFF;
+  border-left: 1px solid rgba(0,0,0,0.05);
   z-index: 300;
   transform: translateX(100%);
   transition: transform 0.3s ease;
   flex-direction: column;
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
 }
 
 .store-mobile-drawer.open {
@@ -309,13 +313,6 @@
 
   .store-mobile-drawer {
     display: flex;
-  }
-}
-
-/* Hide desktop cart icon on mobile (drawer handles it) */
-@media screen and (max-width: 768px) {
-  .store-nav-cart {
-    display: none !important;
   }
 }
 

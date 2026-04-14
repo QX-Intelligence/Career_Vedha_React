@@ -16,7 +16,7 @@
 }
 
 .snippet-badge {
-    background: #facc15;
+    background: #62269E;
     color: #1e1b4b;
     padding: 4px 12px;
     border-radius: 20px;
@@ -40,7 +40,7 @@
 }
 
 .snippet-link {
-    color: #facc15;
+    color: #62269E;
     text-decoration: none;
     font-weight: 600;
     display: flex;

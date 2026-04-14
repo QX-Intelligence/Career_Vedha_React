@@ -285,7 +285,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                     style={{ cursor: 'pointer', justifyContent: 'space-between' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <LayoutDashboard size={20} color="var(--primary-yellow)" />
+                      <LayoutDashboard size={20} color="var(--cv-primary)" />
                       <span style={{ fontWeight: '700', color: 'var(--gray-900)' }}>ADMIN CONSOLE</span>
                     </div>
                     {isAdminOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}

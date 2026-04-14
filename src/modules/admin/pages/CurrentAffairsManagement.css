@@ -154,7 +154,7 @@
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 700;
-    border: 1px solid #fcd34d;
+    border: 1px solid #62269E;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -214,7 +214,7 @@
 
 .icon-btn.edit:hover {
     background: var(--cv-primary-light);
-    border-color: #fcd34d;
+    border-color: #62269E;
     color: var(--cv-primary-dark);
 }
 
@@ -432,7 +432,7 @@
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 700;
-    border: 1px solid #fcd34d;
+    border: 1px solid #62269E;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -492,7 +492,7 @@
 
 .icon-btn.edit:hover {
     background: var(--cv-primary-light);
-    border-color: #fcd34d;
+    border-color: #62269E;
     color: var(--cv-primary-dark);
 }
 
