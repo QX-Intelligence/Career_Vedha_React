@@ -199,6 +199,7 @@ const UI_Nav = () => {
               </button>
             </div>
           ) : (
+            <Link
               to="/e-store/login"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '1rem', background: '#62269E', color: '#FDFBF7', borderRadius: '0.75rem', textDecoration: 'none', fontWeight: 800, fontSize: '1rem' }}
             >
