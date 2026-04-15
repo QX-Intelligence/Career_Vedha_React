@@ -70,16 +70,16 @@ const Module_OrderDetail = () => {
     }, [id]);
 
     if (loading) return (
-        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#0c0216', minHeight: '100vh', color: '#0F172A' }}>
+        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#f8fafc', minHeight: '100vh', color: '#0F172A' }}>
             <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 1.5rem', color: '#62269e' }} />
             <p style={{ color: '#475569', fontSize: '1.2rem', fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>Loading order details...</p>
         </div>
     );
 
     if (error || !order) return (
-        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#0c0216', minHeight: '100vh', color: '#0F172A' }}>
+        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#f8fafc', minHeight: '100vh', color: '#0F172A' }}>
             <p style={{ color: '#ef4444', fontSize: '1.2rem', marginBottom: '1rem' }}>{error || "Order not found"}</p>
-            <button onClick={() => navigate('/e-store/orders')} style={{ padding: '0.75rem 1.5rem', background: '#333', color: '#0F172A', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Back to Orders</button>
+            <button onClick={() => navigate('/e-store/orders')} style={{ padding: '0.75rem 1.5rem', background: '#FFFFFF', border: '1px solid #e2e8f0', color: '#0F172A', borderRadius: '0.5rem', cursor: 'pointer' }}>Back to Orders</button>
         </div>
     );
 
@@ -98,7 +98,7 @@ const Module_OrderDetail = () => {
     const canRetry = (order.status === 'FAILED' || order.status === 'INVENTORY_RESERVED') && order.status !== 'REPLACED' && !isExpired;
 
     return (
-        <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#0c0216', minHeight: '100vh' }}>
+        <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#f8fafc', minHeight: '100vh' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem' }}>
                 <Link to="/e-store/orders" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#64748B', fontWeight: 500, marginBottom: '2rem', textDecoration: 'none', fontSize: '0.85rem' }}>
                     <ArrowLeft size={16} /> Back to Orders
@@ -167,7 +167,7 @@ const Module_OrderDetail = () => {
                                     <div key={idx} className="store-order-item" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', padding: '1.25rem', background: '#FDFBF7', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', gap: '1.5rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                                             <div style={{ position: 'relative' }}>
-                                                <div style={{ width: '50px', height: '70px', background: '#222', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                                <div style={{ width: '50px', height: '70px', background: '#f1f5f9', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
                                                     {item.coverPhotoUrl ? (
                                                         <img src={item.coverPhotoUrl} alt={item.bookName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                     ) : (
@@ -235,7 +235,7 @@ const Module_OrderDetail = () => {
                                     <span>Subtotal</span>
                                     <span>₹{order.totalAmount}</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0F172A', fontSize: '1.2rem', fontWeight: 700, marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0F172A', fontSize: '1.2rem', fontWeight: 700, marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
                                     <span>Total Paid</span>
                                     <span style={{ color: '#62269e', fontWeight: 800 }}>₹{order.totalAmount}</span>
                                 </div>

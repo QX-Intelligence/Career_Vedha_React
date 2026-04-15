@@ -61,21 +61,23 @@ const ArticlesPage = () => {
         }
     }, [sectionParam, location.search]);
 
-    useEffect(() => {
-        if (categoryParam) {
-            setActiveCategory(categoryParam.toLowerCase());
-        }
-    }, [categoryParam]);
+    const [navContext, setNavContext] = useState(null);
 
-    // Resolve State/District/Segment names from cache for UI
+    useEffect(() => {
+        const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
+        const handleUpdate = (e) => {
+            if (e.detail) setNavContext(e.detail);
+        };
+        const eventName = `cv-nav-updated-${langCode}`;
+        window.addEventListener(eventName, handleUpdate);
+        return () => window.removeEventListener(eventName, handleUpdate);
+    }, [activeLanguage]);
+
+    // Resolve State/District/Segment names from dynamic nav context for UI
     const hierarchyNames = useMemo(() => {
-        if (!categoryParam) return null;
+        if (!categoryParam || !navContext || !navContext.data) return null;
         try {
-            const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
-            const cacheKey = `cv_nav_tree_v4_${langCode}`;
-            const cached = localStorage.getItem(cacheKey);
-            if (!cached) return null;
-            const { data } = JSON.parse(cached);
+            const { data } = navContext;
 
             // Try to find in any section that matches activeSection
             const mapSlugToKey = (slug) => {
@@ -100,7 +102,7 @@ const ArticlesPage = () => {
         } catch (e) {
             return null;
         }
-    }, [activeSection, categoryParam, subParam, segmentParam]);
+    }, [activeSection, categoryParam, subParam, segmentParam, navContext]);
 
     const filters = useMemo(() => ({
         lang: activeLanguage === 'telugu' ? 'te' : 'en',

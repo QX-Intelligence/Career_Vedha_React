@@ -224,15 +224,15 @@ const Module_Process = () => {
   };
 
   if (items.length === 0 && !complete && !isRetryFlow) return (
-    <div style={{ padding: '12rem 1.5rem', textAlign: 'center', color: '#475569', background: '#0c0216', minHeight: '100vh' }}>
+    <div style={{ padding: '12rem 1.5rem', textAlign: 'center', color: '#445566', background: '#f8fafc', minHeight: '100vh' }}>
       <h2 style={{ color: '#0F172A', marginBottom: '1rem', fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>Your cart is empty</h2>
       <Link to="/e-store/shop" style={{ color: '#62269e', fontWeight: 600 }}>Return to Shop</Link>
     </div>
   );
 
   if (complete) return (
-    <div style={{ padding: '10rem 1.5rem', textAlign: 'center', background: '#0c0216', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ background: '#FFFFFF', padding: '4rem', borderRadius: '2rem', border: '1px solid rgba(98, 38, 158, 0.2)', maxWidth: '500px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}>
+    <div style={{ padding: '10rem 1.5rem', textAlign: 'center', background: '#f8fafc', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ background: '#FFFFFF', padding: '4rem', borderRadius: '2rem', border: '1px solid rgba(98, 38, 158, 0.2)', maxWidth: '500px', boxShadow: '0 20px 50px rgba(0,0,0,0.06)' }}>
         <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem', color: '#10b981' }}>
           <CheckCircle2 size={48} />
         </div>
@@ -249,7 +249,7 @@ const Module_Process = () => {
               Go to My Library
             </Link>
           )}
-          <Link to="/e-store" style={{ padding: '1rem 2.5rem', background: purchasedEbooks.length > 0 ? 'rgba(255,255,255,0.05)' : '#62269e', color: purchasedEbooks.length > 0 ? '#fff' : '#fff', fontWeight: 800, borderRadius: '100px', textDecoration: 'none', display: 'inline-block' }}>
+          <Link to="/e-store" style={{ padding: '1rem 2.5rem', background: purchasedEbooks.length > 0 ? '#f1f5f9' : '#62269e', color: purchasedEbooks.length > 0 ? '#62269e' : '#ffffff', fontWeight: 800, borderRadius: '100px', textDecoration: 'none', display: 'inline-block', border: purchasedEbooks.length > 0 ? '1px solid #e2e8f0' : 'none' }}>
             Back to Store
           </Link>
         </div>
@@ -258,16 +258,16 @@ const Module_Process = () => {
   );
 
   return (
-    <div style={{ paddingTop: '8rem', paddingBottom: '8rem', background: '#0c0216', minHeight: '100vh' }}>
+    <div style={{ paddingTop: '8rem', paddingBottom: '8rem', background: '#f8fafc', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
 
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4rem', gap: '4rem' }}>
           {[1, 2].map(s => (
             <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', opacity: step >= s ? 1 : 0.3 }}>
-              <div style={{ width: '40px', height: '40px', background: step >= s ? '#62269e' : '#FFFFFF', color: '#0F172A', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, border: '2px solid', borderColor: step >= s ? '#62269e' : '#333' }}>
+              <div style={{ width: '40px', height: '40px', background: step >= s ? '#62269e' : '#FFFFFF', color: step >= s ? '#ffffff' : '#475569', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, border: '2px solid', borderColor: step >= s ? '#62269e' : '#e2e8f0' }}>
                 {s < step ? <CheckCircle2 size={18} /> : s}
               </div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: step >= s ? '#fff' : '#444' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: step >= s ? '#62269e' : '#94a3b8' }}>
                 {s === 1 ? 'Payment' : 'Review & Pay'}
               </span>
             </div>
@@ -275,7 +275,7 @@ const Module_Process = () => {
         </div>
 
         <div className="store-process-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '4rem', alignItems: 'start' }}>
-          <div style={{ background: '#FFFFFF', padding: '3rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
+          <div style={{ background: '#FFFFFF', padding: '3rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <Motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -291,7 +291,7 @@ const Module_Process = () => {
                     <p style={{ color: '#64748B', fontSize: '0.85rem', lineHeight: 1.6 }}>
                       Your ebooks will be available instantly in your library after successful payment.
                     </p>
-                    <button onClick={nextStep} style={{ marginTop: '1rem', width: '100%', padding: '1.25rem', background: '#62269e', color: '#0F172A', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Review Order</button>
+                    <button onClick={nextStep} style={{ marginTop: '1rem', width: '100%', padding: '1.25rem', background: '#62269e', color: '#ffffff', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>Review Order</button>
                   </div>
                 </Motion.div>
               )}
@@ -299,7 +299,7 @@ const Module_Process = () => {
               {step === 2 && (
                 <Motion.div key="step2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                   <h2 style={{ fontFamily: "'Outfit', sans-serif", color: '#0F172A', fontSize: '2rem', marginBottom: '2rem', fontWeight: 700 }}>Review & Pay</h2>
-                  <div style={{ background: '#0a0a0a', padding: '2rem', borderRadius: '1rem', border: '1px solid #222', marginBottom: '2rem' }}>
+                  <div style={{ background: '#f8fafc', padding: '2rem', borderRadius: '1rem', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
                       <h4 style={{ color: '#62269e', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem' }}>
                         Order Details
@@ -319,7 +319,7 @@ const Module_Process = () => {
                     <button
                       onClick={handlePlaceOrder}
                       disabled={isProcessing}
-                      style={{ flex: 2, padding: '1.25rem', background: '#62269e', color: '#0F172A', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexDirection: 'column' }}
+                      style={{ flex: 2, padding: '1.25rem', background: '#62269e', color: '#ffffff', fontWeight: 800, borderRadius: '0.75rem', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexDirection: 'column' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         {isProcessing ? <Loader2 className="animate-spin" /> : `Pay ₹${finalTotal}`}
@@ -336,7 +336,7 @@ const Module_Process = () => {
           </div>
 
           <aside>
-            <div style={{ background: '#FFFFFF', padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
+            <div style={{ background: '#FFFFFF', padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: '#0F172A', fontSize: '1.25rem', marginBottom: '1.5rem' }}>Order Summary</h3>
               <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '2rem', paddingRight: '0.5rem' }}>
                 {items.length > 0 ? items.map(i => (
@@ -355,7 +355,7 @@ const Module_Process = () => {
                 ) : null}
               </div>
 
-              <div style={{ borderTop: '1px solid #222', paddingTop: '1.5rem', display: 'grid', gap: '0.75rem' }}>
+              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem', display: 'grid', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B', fontSize: '0.9rem' }}>
                   <span>Tax (GST)</span>
                   <span>₹{isRetryFlow ? (retryTotal - retryTotal / 1.18).toFixed(2) : tax}</span>

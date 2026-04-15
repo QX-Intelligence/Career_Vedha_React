@@ -2,6 +2,8 @@ import React, { useState, useMemo, useCallback, Suspense } from 'react';
 import { lazyWithRetry } from '../utils/lazyLoading';
 import { Link } from 'react-router-dom';
 import { useHomeContent } from '../hooks/useHomeContent';
+import { useQuery } from '@tanstack/react-query';
+import { newsService } from '../services';
 import { getTranslations } from '../utils/translations';
 import { useLanguage } from '../context/LanguageContext';
 import TopBar from '../components/layout/TopBar';
@@ -15,7 +17,6 @@ import LatestArticles from '../components/home/LatestArticles';
 import SectionCategoryBlocks from '../components/home/SectionCategoryBlocks';
 import TopStoriesHero from '../components/home/TopStoriesHero';
 import MustRead from '../components/home/MustRead';
-import OurServicesPublic from '../components/home/OurServicesPublic';
 import Skeleton from '../components/ui/Skeleton';
 
 // Lazy load below-the-fold components
@@ -42,8 +43,15 @@ const Home = () => {
         hero: [],
         breaking: [],
         top_stories: [],
-        latest: { results: [], has_next: false }
     }, isLoading: loading } = useHomeContent(activeLanguage, 6);
+
+    const { data: currentAffairsData, isLoading: caLoading } = useQuery({
+        queryKey: ['home-current-affairs', activeLanguage],
+        queryFn: () => newsService.getCurrentAffairs({ 
+            lang: activeLanguage, 
+            limit: 12 
+        })
+    });
 
     const t = useMemo(() => getTranslations(activeLanguage), [activeLanguage]);
 
@@ -65,7 +73,7 @@ const Home = () => {
             <div className="responsive-hero-section">
                 <TopStoriesHero 
                     topStories={homeData.top_stories} 
-                    latestUpdates={homeData.latest?.results} 
+                    latestUpdates={homeData.latest?.results || currentAffairsData?.results?.slice(0, 5)} 
                     loading={loading}
                     activeLanguage={activeLanguage}
                     isHomePage={true}
@@ -75,8 +83,8 @@ const Home = () => {
 
             <div className="latest-updates-header container">
                 <div className="section-marker"></div>
-                <h2>{t.latestUpdates}</h2>
-                <Link to="/articles" className="see-all-btn">{t.seeAll} <i className="fas fa-chevron-right"></i></Link>
+                <h2>{t.navCurrentAffairs}</h2>
+                <Link to="/current-affairs" className="see-all-btn">{t.seeAll} <i className="fas fa-chevron-right"></i></Link>
             </div>
 
             <main className="main-content">
@@ -93,10 +101,12 @@ const Home = () => {
                             
                             <div className="latest-articles-full-width">
                                 <LatestArticles
-                                    latest={homeData.latest}
-                                    loading={loading}
+                                    latest={currentAffairsData}
+                                    loading={caLoading}
                                     activeLanguage={activeLanguage}
+                                    hidePagination={true}
                                 />
+                                
                             </div>
                         </div>
                         <div className="sidebar-container desktop-only">
@@ -111,19 +121,20 @@ const Home = () => {
             <SectionCategoryBlocks section="academics" title={t.latestFromAcademics} activeLanguage={activeLanguage} />
             <SectionCategoryBlocks section="jobs" title={t.careerOpportunities} activeLanguage={activeLanguage} />
 
-            <Suspense fallback={<SectionSkeleton />}>
+            {/* Hiding Explore More, Resources, and Videos as requested */}
+            {/* <Suspense fallback={<SectionSkeleton />}>
                 <ExploreMore activeLanguage={activeLanguage} />
             </Suspense>
             
             <Suspense fallback={<SectionSkeleton />}>
                 <PreviousPapers activeLanguage={activeLanguage} />
-            </Suspense>
+            </Suspense> */}
             
             {/* <Suspense fallback={<SectionSkeleton />}>
                 <MultiWidgets activeLanguage={activeLanguage} />
             </Suspense> */}
             
-            <section className="home-videos-wrapper bg-white py-5">
+            {/* <section className="home-videos-wrapper bg-white py-5">
                 <div className="container">
                     <div className="section-header-branded mb-5" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <h2 className="text-dark" style={{ fontSize: '32px', fontWeight: 800, paddingLeft: 0, margin: '0 0 16px 0', letterSpacing: '-0.02em' }}>Videos</h2>
@@ -139,9 +150,8 @@ const Home = () => {
                         <Shorts activeLanguage={activeLanguage} />
                     </Suspense>
                 </div>
-            </section>
+            </section> */}
             
-            <OurServicesPublic activeLanguage={activeLanguage} />
             
             <Footer />
         </div>

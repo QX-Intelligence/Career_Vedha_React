@@ -33,14 +33,14 @@ const Module_Orders = () => {
   }, []);
 
   if (loading) return (
-    <div style={{ padding: '15rem 0', textAlign: 'center', background: '#0c0216', minHeight: '100vh', color: '#0F172A' }}>
+    <div style={{ padding: '15rem 0', textAlign: 'center', background: '#f8fafc', minHeight: '100vh', color: '#0F172A' }}>
       <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 1.5rem', color: '#62269e' }} />
       <p style={{ color: '#475569', fontSize: '1.2rem', fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>Retrieving your history...</p>
     </div>
   );
 
   return (
-    <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#0c0216', minHeight: '100vh' }}>
+    <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#f8fafc', minHeight: '100vh' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem' }}>
         <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '2.5rem', color: '#0F172A', marginBottom: '3rem', fontWeight: 800 }}>Your Orders</h1>
         
@@ -52,11 +52,11 @@ const Module_Orders = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
                 className="store-orders-row"
-                style={{ background: '#FFFFFF', padding: '2rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                style={{ background: '#FFFFFF', padding: '2rem', borderRadius: '1.25rem', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
                 whileHover={{ scale: 1.01, border: '1px solid rgba(98, 38, 158, 0.3)' }}
               >
                 <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                  <div style={{ width: '50px', height: '50px', background: '#0a0a0a', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#62269e', flexShrink: 0, border: '1px solid rgba(0,0,0,0.05)' }}>
+                  <div style={{ width: '50px', height: '50px', background: 'rgba(98,38,158,0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#62269e', flexShrink: 0, border: '1px solid rgba(98,38,158,0.15)' }}>
                     <Package size={24} />
                   </div>
                   <div>
@@ -103,8 +103,8 @@ const Module_Orders = () => {
         </div>
 
         {orders.length === 0 && (
-          <div style={{ marginTop: '4rem', textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.01)', borderRadius: '1.5rem', border: '1px dashed #222' }}>
-             <p style={{ color: '#444' }}>No orders found in your history</p>
+          <div style={{ marginTop: '4rem', textAlign: 'center', padding: '3rem', background: '#ffffff', borderRadius: '1.5rem', border: '1px solid #e2e8f0' }}>
+             <p style={{ color: '#64748b' }}>No orders found in your history</p>
           </div>
         )}
       </div>

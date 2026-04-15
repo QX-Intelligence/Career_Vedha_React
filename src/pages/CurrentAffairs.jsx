@@ -64,8 +64,6 @@ const CurrentAffairs = () => {
 
     const [hasMore, setHasMore] = useState(false);
     // Cursor pagination state
-    const [cursorTime, setCursorTime] = useState(null);
-    const [cursorId, setCursorId] = useState(null);
     const [djangoCursor, setDjangoCursor] = useState(null);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState(null); // Document viewer state
@@ -109,114 +107,47 @@ const CurrentAffairs = () => {
 
     useEffect(() => {
         setNews([]);
-        setCursorTime(null);
-        setCursorId(null);
         setDjangoCursor(null);
-        fetchNews(null, null, null, true);
+        fetchNews(null, true);
     }, [activeLanguage, categoryParam, subParam, segmentParam]);
 
-    const fetchNews = async (cTime = null, cId = null, dCursor = null, isFresh = false) => {
+    const fetchNews = async (cursor = null, isFresh = false) => {
         try {
             if (isFresh) setLoading(true);
             else setIsFetchingMore(true);
             
-            // 1. Prepare Params
-            const springParams = { 
-                language: langUpper, 
-                limit: (categoryParam === 'INDIA' || categoryParam === 'national') ? 20 : LIMIT 
+            // Prepare Params
+            const params = {
+                lang: activeLanguage,
+                limit: LIMIT,
+                cursor: cursor || '',
+                category: categoryParam,
+                sub_category: subParam,
+                segment: segmentParam
             };
-            if (cTime) springParams.cursorTime = cTime;
-            if (cId) springParams.cursorId = cId;
 
-            // 2. Fetch from Django Source
-            let djangoArticles = [];
-            let nextDjangoCursor = null;
+            const response = await newsService.getCurrentAffairs(params);
             
-            // Only fetch Django if we are starting fresh or have a cursor for more
-            if (isFresh || dCursor) {
-                try {
-                    const djangoParams = {
-                        section: 'current-affairs',
-                        lang: lang,
-                        limit: 15,
-                        cursor: dCursor
-                    };
-                    
-                    if (categoryParam) djangoParams.category = categoryParam;
-                    if (subParam) djangoParams.sub_category = subParam;
-                    if (segmentParam) djangoParams.segment = segmentParam;
-                    
-                    if (categoryParam === 'INDIA' || categoryParam === 'national') djangoParams.category = 'national';
-                    
-                    const djangoRes = await newsService.getPublicArticles(djangoParams);
-                    djangoArticles = (djangoRes.results || []).map(art => ({
-                        ...art,
-                        isDjango: true,
-                        title: art.headline || art.title,
-                        creationorupdationDate: art.published_at,
-                        region: categoryParam === 'national' ? 'India' : (categoryParam || 'General')
-                    }));
-                    nextDjangoCursor = djangoRes.next_cursor || null;
-                } catch (djangoErr) {
-                    console.error('Error fetching Django current affairs:', djangoErr);
-                }
-            }
+            const mappedResults = (response.results || []).map(art => ({
+                ...art,
+                isDjango: true, // New endpoint is Django-based
+                title: art.headline || art.title,
+                creationorupdationDate: art.published_at || art.created_at,
+                region: art.category_name || categoryParam === 'national' ? 'India' : (categoryParam || 'General')
+            }));
 
-            // 3. Fetch from Spring Source
-            let springArticles = [];
-            let nextSTime = null;
-            let nextSId = null;
-
-            // Only fetch Spring if we are fresh OR we have a Spring cursor (avoid re-fetching Spring if we only have Django more)
-            // But usually we fetch both in parallel for combined feeds
-            if (isFresh || (cTime && cId)) {
-                try {
-                    let springResponse;
-                    const springRegion = categoryParam || LEVEL_TO_SPRING_REGION[categoryParam] || LEVEL_TO_SPRING_REGION[subParam];
-
-                    if (!springRegion || springRegion === 'ALL') {
-                        springResponse = await currentAffairsService.getAllAffairs(springParams);
-                    } else if (springRegion === 'INDIA') {
-                        springResponse = await currentAffairsService.getAllAffairs(springParams);
-                    } else {
-                        springResponse = await currentAffairsService.getByRegion(springRegion, springParams);
-                    }
-                    
-                    springArticles = Array.isArray(springResponse) ? springResponse : [];
-                    if (springArticles.length > 0) {
-                        const lastSpringItem = springArticles[springArticles.length - 1];
-                        nextSTime = lastSpringItem.creationorupdationDate;
-                        nextSId = lastSpringItem.id;
-                    }
-                } catch (springErr) {
-                    console.error('Error fetching Spring current affairs:', springErr);
-                }
-            }
-
-            console.log(`[CurrentAffairs] Batch Fetched - Django: ${djangoArticles.length}, Spring: ${springArticles.length}`);
-            
-            const combinedBatch = [...djangoArticles, ...springArticles];
-            
             if (isFresh) {
-                setNews(combinedBatch);
+                setNews(mappedResults);
             } else {
-                setNews(prev => [...prev, ...combinedBatch]);
+                setNews(prev => [...prev, ...mappedResults]);
             }
             
             // Update cursors for next fetch
-            setDjangoCursor(nextDjangoCursor);
-            setCursorTime(nextSTime);
-            setCursorId(nextSId);
-
-            // We have more if EITHER source returned a full batch or has a next cursor
-            const springLimitUsed = (springParams.limit || LIMIT);
-            const hasMoreSpring = springArticles.length >= springLimitUsed;
-            const hasMoreDjango = !!nextDjangoCursor;
-            
-            setHasMore(hasMoreSpring || hasMoreDjango);
+            setDjangoCursor(response.next_cursor || null);
+            setHasMore(response.has_next);
             setError(null);
         } catch (err) {
-            console.error('Error fetching news:', err);
+            console.error('Error fetching current affairs news:', err);
             setError(t.error);
         } finally {
             setLoading(false);
@@ -226,7 +157,7 @@ const CurrentAffairs = () => {
 
     const handleLoadMore = () => {
         if (loading || isFetchingMore) return;
-        fetchNews(cursorTime, cursorId, djangoCursor);
+        fetchNews(djangoCursor);
     };
 
     const stripHtml = (html) => {

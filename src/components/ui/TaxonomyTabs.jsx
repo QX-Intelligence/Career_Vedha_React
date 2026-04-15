@@ -21,33 +21,26 @@ const TaxonomyTabs = ({ sectionSlug }) => {
         return slug;
     };
 
-    const [cacheHash, setCacheHash] = useState(0);
+    const [navContext, setNavContext] = useState(null);
     
     useEffect(() => {
-        const handleUpdate = () => setCacheHash(prev => prev + 1);
+        const handleUpdate = (e) => {
+            if (e.detail) setNavContext(e.detail);
+        };
         const eventName = `cv-nav-updated-${langCode}`;
-        const cacheKey = `cv_nav_tree_v4_${langCode}`;
         
         window.addEventListener(eventName, handleUpdate);
-        // Also listen for storage from other tabs for consistency
-        const storageHandler = (e) => {
-            if (e.key === cacheKey) handleUpdate();
-        };
-        window.addEventListener('storage', storageHandler);
         
         return () => {
             window.removeEventListener(eventName, handleUpdate);
-            window.removeEventListener('storage', storageHandler);
         };
     }, [langCode]);
 
     const tabsInfo = useMemo(() => {
         try {
-            const cacheKey = `cv_nav_tree_v4_${langCode}`;
-            const cached = localStorage.getItem(cacheKey);
-            if (!cached) return { tabs: [], parent: null, depth: 0 };
+            if (!navContext || !navContext.data) return { tabs: [], parent: null, depth: 0 };
             
-            const { data } = JSON.parse(cached);
+            const { data } = navContext;
             const sectionKey = mapSlugToKey(sectionSlug);
             const sectionData = data[sectionKey];
             if (!sectionData) return { tabs: [], parent: null, depth: 0 };
@@ -83,7 +76,7 @@ const TaxonomyTabs = ({ sectionSlug }) => {
             console.error("Failed to parse taxonomy cache for tabs:", error);
             return { tabs: [], parent: null, depth: 0 };
         }
-    }, [sectionSlug, categorySlug, subSlug, cacheHash]);
+    }, [sectionSlug, categorySlug, subSlug]);
 
     const { tabs, parent, depth } = tabsInfo;
     const scrollRef = useRef(null);

@@ -82,14 +82,14 @@ const Module_Library = () => {
     );
 
     if (loading) return (
-        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#0c0216', minHeight: '100vh', color: '#0F172A' }}>
+        <div style={{ padding: '15rem 0', textAlign: 'center', background: '#f8fafc', minHeight: '100vh', color: '#0F172A' }}>
             <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 1.5rem', color: '#62269e' }} />
             <p style={{ color: '#475569', fontSize: '1.2rem', fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>Opening your digital library...</p>
         </div>
     );
 
     return (
-        <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#0c0216', minHeight: '100vh' }}>
+        <div style={{ paddingTop: '8rem', paddingBottom: '5rem', background: '#f8fafc', minHeight: '100vh' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
                 
                 {/* Header Section */}
@@ -109,8 +109,8 @@ const Module_Library = () => {
                             style={{ 
                                 width: '100%', 
                                 padding: '0.75rem 1rem 0.75rem 2.75rem', 
-                                background: '#141414', 
-                                border: '1px solid rgba(255,255,255,0.08)', 
+                                background: '#ffffff', 
+                                border: '1px solid #e2e8f0', 
                                 borderRadius: '0.75rem', 
                                 color: '#0F172A', 
                                 fontSize: '0.9rem', 
@@ -122,7 +122,7 @@ const Module_Library = () => {
                 </div>
 
                 {library.length === 0 ? (
-                    <div style={{ padding: '6rem 2rem', textAlign: 'center', background: 'rgba(255,255,255,0.01)', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.03)' }}>
+                    <div style={{ padding: '6rem 2rem', textAlign: 'center', background: '#ffffff', borderRadius: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                         <div style={{ width: '60px', height: '60px', background: 'rgba(98, 38, 158, 0.08)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                             <BookOpen size={28} color="#62269e" />
                         </div>
@@ -150,10 +150,10 @@ const Module_Library = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 className={`lib-card ${Number(highlightId) === Number(book.bookId) ? 'highlighted' : ''}`}
                                 style={{ 
-                                    background: '#141414', 
+                                    background: '#ffffff', 
                                     borderRadius: '1rem', 
                                     overflow: 'hidden', 
-                                    border: Number(highlightId) === Number(book.bookId) ? '2px solid #62269e' : '1px solid rgba(255,255,255,0.05)', 
+                                    border: Number(highlightId) === Number(book.bookId) ? '2px solid #62269e' : '1px solid #e2e8f0', 
                                     display: 'flex', 
                                     flexDirection: 'column', 
                                     position: 'relative',
@@ -229,7 +229,7 @@ const Module_Library = () => {
                                     </h3>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <p style={{ color: '#62269e', fontSize: '0.75rem', fontWeight: 600 }}>{book.author || 'Career Vedha'}</p>
-                                        <p style={{ color: '#444', fontSize: '0.7rem' }}>E-Book</p>
+                                        <p style={{ color: '#94a3b8', fontSize: '0.7rem' }}>E-Book</p>
                                     </div>
                                 </div>
                             </Motion.div>
@@ -330,7 +330,7 @@ const Module_Library = () => {
                                 flexDirection: 'column', 
                                 alignItems: 'center', 
                                 justifyContent: 'center', 
-                                background: '#0a0a0a',
+                                background: '#f8fafc',
                                 backdropFilter: 'blur(5px)'
                             }}>
                                 <div style={{ 
@@ -391,8 +391,9 @@ const Module_Library = () => {
                 }
                 .lib-card:hover {
                     transform: translateY(-5px);
-                    border-color: rgba(98, 38, 158, 0.5);
-                    background: #FFFFFF;
+                    border-color: rgba(98, 38, 158, 0.4);
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+                    background: #ffffff;
                 }
                 .lib-card.highlighted {
                     animation: pulse-glow 2s infinite;

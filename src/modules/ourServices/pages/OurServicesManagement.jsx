@@ -1,18 +1,25 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ourServicesService } from '../../../services';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import Skeleton, { SkeletonTable } from '../../../components/ui/Skeleton';
+import CMSLayout from '../../../components/layout/CMSLayout';
+import useGlobalSearch from '../../../hooks/useGlobalSearch';
+import { getUserContext } from '../../../services/api';
+import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/accessControl.config.js';
 import '../../../styles/ArticleManagement.css'; // Reuse existing table styles
+
 
 const OurServicesManagement = () => {
     const { showSnackbar } = useSnackbar();
     const navigate = useNavigate();
+    const { role: userRole } = getUserContext();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
+    const [isCmsOpen, setIsCmsOpen] = useState(true);
 
     const fetchServices = async () => {
         try {
@@ -61,8 +68,50 @@ const OurServicesManagement = () => {
         );
     }, [services, searchQuery]);
 
+    const {
+        query: globalSearchQuery,
+        results: globalSearchResults,
+        search: handleGlobalSearchInput,
+        clearSearch: clearGlobalSearch,
+        isSearching: showGlobalSearchResults,
+        setIsSearching: setShowGlobalSearchResults
+    } = useGlobalSearch();
+
+    const handleGlobalSearch = (e) => {
+        handleGlobalSearchInput(e.target.value);
+    };
+
+    const navigateToGlobalResult = (item) => {
+        navigate(`/dashboard?tab=${item.section}`);
+        clearGlobalSearch();
+    };
+
+    const checkAccess = useCallback((module) => {
+        return checkAccessGlobal(userRole, module);
+    }, [userRole]);
+
+    const sidebarProps = {
+        activeSection: 'services-management',
+        checkAccess,
+        MODULES,
+        onLogout: () => navigate('/admin-login'),
+        isCmsOpen,
+        setIsCmsOpen
+    };
+
+    const navbarProps = {
+        title: "Our Services",
+        searchQuery: globalSearchQuery,
+        handleSearch: handleGlobalSearch,
+        showSearchResults: showGlobalSearchResults,
+        searchResults: globalSearchResults,
+        navigateToResult: navigateToGlobalResult,
+        setShowSearchResults: setShowGlobalSearchResults,
+        onProfileClick: () => navigate('/dashboard?tab=profile')
+    };
+
     return (
-        <div className="section-fade-in" style={{ padding: '2rem' }}>
+        <CMSLayout sidebarProps={sidebarProps} navbarProps={navbarProps}>
             <div className="am-header">
                 <div className="am-title-section">
                     <h1 className="am-title">
@@ -160,7 +209,7 @@ const OurServicesManagement = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </CMSLayout>
     );
 };
 

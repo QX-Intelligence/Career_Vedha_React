@@ -5,7 +5,6 @@ import { newsService } from '../../services';
 import { useLanguage } from '../../context/LanguageContext';
 
 const NAV_CACHE_BASE = 'cv_nav_tree_v4';
-const NAV_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours caching to avoid 7s load
 
 // ─── Slugs that use tree (multi-level) vs levels (flat) ───────────────────────
 const TREE_SECTIONS = ['academics', 'news', 'current-affairs', 'jobs', 'campus-pages', 'exams'];
@@ -109,23 +108,15 @@ const PrimaryNav = ({ isOpen }) => {
     // ── Fetch ──────────────────────────────────────────────────────────────────
     useEffect(() => {
         const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
-        const NAV_CACHE_KEY = `${NAV_CACHE_BASE}_${langCode}`;
+        
+        // One-time cleanup of stale cache keys if they exist
+        try {
+            localStorage.removeItem(`${NAV_CACHE_BASE}_en`);
+            localStorage.removeItem(`${NAV_CACHE_BASE}_te`);
+        } catch (_) {}
 
         const fetchNavData = async () => {
-            // 1. Try localStorage cache
-            try {
-                const cached = localStorage.getItem(NAV_CACHE_KEY);
-                if (cached) {
-                    const { data, sections, timestamp } = JSON.parse(cached);
-                    if (Date.now() - timestamp < NAV_CACHE_TTL) {
-                        if (data) setNavData(data);
-                        if (sections) setAllSections(sections);
-                        setIsLoading(false);
-                        // If it's very fresh, we skip the API call
-                        if (Date.now() - timestamp < 5 * 60 * 1000) return;
-                    }
-                }
-            } catch (_) { /* ignore */ }
+            setIsLoading(true);
 
             // 2. Fetch from API
             try {
@@ -153,18 +144,8 @@ const PrimaryNav = ({ isOpen }) => {
                 setNavData(prev => ({ ...prev, ...newData }));
                 setAllSections(sectionsData || []);
                 
-                // Dispatch event so components like TaxonomyTabs can refresh from cache
-                // We suffix with langCode to ensure targeted updates
-                window.dispatchEvent(new CustomEvent(`cv-nav-updated-${langCode}`, { detail: newData }));
-
-                // 3. Cache it
-                try {
-                    localStorage.setItem(NAV_CACHE_KEY, JSON.stringify({
-                        data: newData,
-                        sections: sectionsData || [],
-                        timestamp: Date.now()
-                    }));
-                } catch (_) { /* storage full */ }
+                // Dispatch event so components like TaxonomyTabs can refresh
+                window.dispatchEvent(new CustomEvent(`cv-nav-updated-${langCode}`, { detail: { data: newData, sections: sectionsData || [] } }));
 
             } catch (error) {
                 console.error('[PrimaryNav] Error fetching nav data:', error);

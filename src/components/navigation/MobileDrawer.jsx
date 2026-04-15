@@ -9,7 +9,6 @@ import { checkAccess, MODULES } from '../../config/accessControl.config';
 import MobileNavAccordion from './mobile/MobileNavAccordion';
 
 const NAV_CACHE_BASE = 'cv_nav_tree_v4';
-const NAV_CACHE_TTL = 1000 * 60 * 60; // 1 hour
 const TREE_SECTIONS = ['academics', 'news', 'current-affairs', 'jobs', 'campus-pages', 'exams'];
 const LEVEL_SECTIONS = [];
 
@@ -50,23 +49,15 @@ const MobileDrawer = ({ isOpen, onClose }) => {
     if (!isOpen) return;
     
     const langCode = activeLanguage === 'telugu' ? 'te' : 'en';
-    const NAV_CACHE_KEY = `${NAV_CACHE_BASE}_${langCode}`;
+    
+    // One-time cleanup of stale cache keys if they exist
+    try {
+        localStorage.removeItem(`${NAV_CACHE_BASE}_en`);
+        localStorage.removeItem(`${NAV_CACHE_BASE}_te`);
+    } catch (_) {}
 
     const fetchNavData = async () => {
         setIsLoading(true);
-        // 1. Try localStorage cache
-        try {
-            const cached = localStorage.getItem(NAV_CACHE_KEY);
-            if (cached) {
-                const { data, timestamp, allSects } = JSON.parse(cached);
-                if (Date.now() - timestamp < NAV_CACHE_TTL) {
-                    setNavData(data);
-                    if (allSects) setAllSections(allSects);
-                    setIsLoading(false);
-                    if (Date.now() - timestamp < 5 * 60 * 1000) return;
-                }
-            }
-        } catch (_) { /* ignore */ }
 
         // 2. Fetch from API
         try {
@@ -103,15 +94,6 @@ const MobileDrawer = ({ isOpen, onClose }) => {
 
             setNavData(prev => ({ ...prev, ...newData }));
             setAllSections(sectionsData || []);
-
-            // 3. Cache it
-            try {
-                localStorage.setItem(NAV_CACHE_KEY, JSON.stringify({
-                    data: newData,
-                    timestamp: Date.now(),
-                    allSects: sectionsData || []
-                }));
-            } catch (_) { /* storage full */ }
 
         } catch (error) {
             console.error('[MobileDrawer] Error fetching nav data:', error);

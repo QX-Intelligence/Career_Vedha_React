@@ -4,7 +4,7 @@ import { newsService } from '../../services';
 import { useLanguage } from '../../context/LanguageContext';
 import Skeleton from '../ui/Skeleton';
 
-const LatestArticles = memo(({ latest: initialLatest, loading: initialLoading }) => {
+const LatestArticles = memo(({ latest: initialLatest, loading: initialLoading, hidePagination = false }) => {
     const { activeLanguage, langCode } = useLanguage();
     const [articles, setArticles] = useState(initialLatest?.results || []);
     const [totalCount, setTotalCount] = useState(initialLatest?.count || 0);
@@ -122,7 +122,7 @@ const LatestArticles = memo(({ latest: initialLatest, loading: initialLoading })
                 ))}
             </div>
 
-            {totalPages > 1 && (
+            {!hidePagination && totalPages > 1 && (
                 <div className="pagination-container">
                     <button
                         className="pagination-btn nav-btn"

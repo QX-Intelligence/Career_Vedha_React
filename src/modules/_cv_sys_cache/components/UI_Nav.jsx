@@ -44,7 +44,7 @@ const UI_Nav = () => {
       { label: 'My Library', path: '/e-store/library' },
       { label: 'My Orders', path: '/e-store/orders' }
     ] : []),
-    { label: 'Our Story', path: '/e-store/about' },
+    { label: 'Our Services', path: '/e-store/about' },
   ];
 
   return (

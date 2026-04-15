@@ -1,17 +1,24 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { ourServicesService } from '../../../services';
 import { useSnackbar } from '../../../context/SnackbarContext';
+import CMSLayout from '../../../components/layout/CMSLayout';
+import useGlobalSearch from '../../../hooks/useGlobalSearch';
+import { getUserContext } from '../../../services/api';
+import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/accessControl.config.js';
+
 import '../../../styles/Dashboard.css';
 
 const OurServicesEditor = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { showSnackbar } = useSnackbar();
+    const { role: userRole } = getUserContext();
     const quillRef = useRef(null);
     const isEditMode = !!id;
+    const [isCmsOpen, setIsCmsOpen] = useState(true);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -20,6 +27,8 @@ const OurServicesEditor = () => {
     });
     const [loading, setLoading] = useState(isEditMode);
     const [saving, setSaving] = useState(false);
+    const [imageMap, setImageMap] = useState({}); // Maps local object URLs to S3 keys
+
 
     useEffect(() => {
         if (isEditMode) {
@@ -63,19 +72,28 @@ const OurServicesEditor = () => {
             if (file) {
                 try {
                     showSnackbar('Uploading image...', 'info');
+                    // Upload to get the real S3 key immediately
                     const key = await ourServicesService.uploadImage(file);
                     
                     const quill = quillRef.current.getEditor();
                     const range = quill.getSelection();
-                    // We insert the KEY as the source. 
-                    // The backend processHtml will swap this for a signed URL during GET.
-                    quill.insertEmbed(range.index, 'image', key);
+                    
+                    // Create a local blob URL for immediate preview
+                    const localUrl = URL.createObjectURL(file);
+                    
+                    // Insert the local preview immediately so the user sees it
+                    quill.insertEmbed(range.index, 'image', localUrl);
+                    
+                    // Store the mapping from temporary blob URL to real S3 key
+                    setImageMap(prev => ({ ...prev, [localUrl]: key }));
+                    
                     showSnackbar('Image uploaded successfully', 'success');
                 } catch (error) {
                     showSnackbar('Image upload failed', 'error');
                 }
             }
         };
+
     };
 
     const modules = useMemo(() => ({
@@ -103,14 +121,24 @@ const OurServicesEditor = () => {
 
         setSaving(true);
         try {
+            // Swap out temporary blob URLs with the actual S3 keys before saving
+            let finalContent = formData.content;
+            Object.entries(imageMap).forEach(([localUrl, key]) => {
+                // Using split/join to replace all occurrences just in case
+                finalContent = finalContent.split(localUrl).join(key);
+            });
+
+            const payload = { ...formData, content: finalContent };
+
             if (isEditMode) {
-                await ourServicesService.update(id, formData);
+                await ourServicesService.update(id, payload);
                 showSnackbar('Service updated successfully', 'success');
             } else {
-                await ourServicesService.create(formData);
+                await ourServicesService.create(payload);
                 showSnackbar('Service created successfully', 'success');
             }
             navigate('/cms/our-services');
+
         } catch (error) {
             showSnackbar('Save failed. Please check your input.', 'error');
         } finally {
@@ -118,10 +146,55 @@ const OurServicesEditor = () => {
         }
     };
 
+    const {
+        query: globalSearchQuery,
+        results: globalSearchResults,
+        search: handleGlobalSearchInput,
+        clearSearch: clearGlobalSearch,
+        isSearching: showGlobalSearchResults,
+        setIsSearching: setShowGlobalSearchResults
+    } = useGlobalSearch();
+
+    const handleGlobalSearch = (e) => {
+        handleGlobalSearchInput(e.target.value);
+    };
+
+    const navigateToGlobalResult = (item) => {
+        navigate(`/dashboard?tab=${item.section}`);
+        clearGlobalSearch();
+    };
+
+    const checkAccess = useCallback((module) => {
+        return checkAccessGlobal(userRole, module);
+    }, [userRole]);
+
+    const sidebarProps = {
+        activeSection: 'services-management',
+        checkAccess,
+        MODULES,
+        onLogout: () => navigate('/admin-login'),
+        isCmsOpen,
+        setIsCmsOpen
+    };
+
+    const navbarProps = {
+        title: isEditMode ? 'Edit Service' : 'Create New Service',
+        searchQuery: globalSearchQuery,
+        handleSearch: handleGlobalSearch,
+        showSearchResults: showGlobalSearchResults,
+        searchResults: globalSearchResults,
+        navigateToResult: navigateToGlobalResult,
+        setShowSearchResults: setShowGlobalSearchResults,
+        onProfileClick: () => navigate('/dashboard?tab=profile'),
+        showBack: true,
+        onBack: () => navigate('/cms/our-services')
+    };
+
     if (loading) return <div className="p-8 text-center">Loading Service...</div>;
 
     return (
-        <div className="section-fade-in" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+        <CMSLayout sidebarProps={sidebarProps} navbarProps={navbarProps}>
+            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <div className="am-header">
                 <div className="am-title-section">
                     <h1 className="am-title">
@@ -185,7 +258,8 @@ const OurServicesEditor = () => {
                     </button>
                 </div>
             </form>
-        </div>
+            </div>
+        </CMSLayout>
     );
 };
 

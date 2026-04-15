@@ -88,6 +88,7 @@ const API_CONFIG = {
     DJANGO_ENDPOINTS: {
         HOME_ARTICLES: 'cms/articles/home/',
         PUBLISHED_ARTICLES: 'cms/articles/published/',
+        CURRENT_AFFAIRS_CURSOR: 'articles/current-affairs/',
         ARTICLE_FILTERS: 'cms/articles/filters/',
         ARTICLE_CREATE: 'cms/articles/',
         

@@ -20,6 +20,7 @@ const Module_Login = lazyWithRetry(() => import('./pages/Module_Login'));
 const Module_Register = lazyWithRetry(() => import('./pages/Module_Register'));
 const Module_OrderDetail = lazyWithRetry(() => import('./pages/Module_OrderDetail'));
 const Module_Library = lazyWithRetry(() => import('./pages/Module_Library'));
+const Module_ServiceDetail = lazyWithRetry(() => import('./pages/Module_ServiceDetail'));
 
 const CV_Store_Module = () => {
   return (
@@ -39,6 +40,7 @@ const CV_Store_Module = () => {
                 <Route path="/orders/:id" element={<Module_OrderDetail />} />
                 <Route path="/library" element={<Module_Library />} />
                 <Route path="/about" element={<Module_Info />} />
+                <Route path="/service/:id" element={<Module_ServiceDetail />} />
                 <Route path="/login" element={<Module_Login />} />
                 <Route path="/register" element={<Module_Register />} />
               </Routes>

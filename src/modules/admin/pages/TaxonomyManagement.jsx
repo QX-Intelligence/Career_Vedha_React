@@ -262,7 +262,9 @@ const TaxonomyManagement = () => {
                 const sectionObj = Array.isArray(sections) 
                     ? sections.find(s => String(s.id) === String(data.section_id || data.section) || String(s.slug) === String(data.section_id || data.section))
                     : null;
-                const resolvedSectionId = sectionObj ? parseInt(sectionObj.id, 10) : (data.section_id || data.section);
+                
+                const targetSection = data.section_id || data.section || activeSection;
+                const resolvedSectionId = sectionObj ? parseInt(sectionObj.id, 10) : (parseInt(targetSection, 10) || targetSection);
 
                 setCurrentCategory({
                     id: data.id,
@@ -276,12 +278,29 @@ const TaxonomyManagement = () => {
                     isLevel4: !!data.content
                 });
                 
-                if (!data.parent_id) {
+                // Set modal mode and populate hierarchy based on depth
+                if (depth === 0) {
                     setModalMode('CATEGORY');
-                } else if (data.content) {
-                    setModalMode('TOPIC');
-                } else {
+                } else if (depth === 1) {
                     setModalMode('SUB_CATEGORY');
+                    setSelLevel2(data.parent_id || '');
+                } else if (depth === 2) {
+                    setModalMode('SEGMENT');
+                    setSelLevel3(data.parent_id || '');
+                    // Note: selLevel2 (grandparent) might be missing but is locked/disabled during edit
+                } else if (depth >= 3 || mode === 'TOPIC') {
+                    setModalMode('TOPIC');
+                    setSelLevel4(data.parent_id || '');
+                } else {
+                    // Fallback detection
+                    if (!data.parent_id) {
+                        setModalMode('CATEGORY');
+                    } else if (data.content || depth >= 3) {
+                        setModalMode('TOPIC');
+                    } else {
+                        setModalMode('SUB_CATEGORY');
+                        setSelLevel2(data.parent_id);
+                    }
                 }
             } else {
                 const activeSectionObj = Array.isArray(sections) 
@@ -385,12 +404,16 @@ const TaxonomyManagement = () => {
             // Section creation moved to SectionManagement.jsx
 
             // 2. Resolve section_id (must be integer)
-            let sectionId = parseInt(currentCategory.section, 10);
-            if (isNaN(sectionId)) {
+            let rawSection = currentCategory.section;
+            let sectionId = parseInt(rawSection, 10);
+
+            // If direct parse fails, try searching in the sections list using slug or raw ID
+            if (isNaN(sectionId) || !rawSection) {
+                const searchTarget = rawSection || activeSection;
                 const sectionObj = Array.isArray(sections)
                     ? sections.find(s => 
-                        String(s.slug) === String(currentCategory.section) || 
-                        String(s.id) === String(currentCategory.section)
+                        String(s.slug) === String(searchTarget) || 
+                        String(s.id) === String(searchTarget)
                     )
                     : null;
                 if (sectionObj) {
@@ -398,7 +421,8 @@ const TaxonomyManagement = () => {
                 }
             }
 
-            if (!sectionId || isNaN(sectionId)) {
+            if (sectionId === null || sectionId === undefined || isNaN(sectionId)) {
+                console.error('[TaxonomyManagement] Validation Failed: sectionId is invalid', { rawSection, activeSection, sectionId });
                 showSnackbar('Please select a valid section', 'error');
                 setActionLoading(false);
                 return;
@@ -417,14 +441,20 @@ const TaxonomyManagement = () => {
             const finalParentId = resolvedParentId ? parseInt(resolvedParentId, 10) : 
                                  (isEditing ? (currentCategory.parent_id ? parseInt(currentCategory.parent_id, 10) : null) : null);
 
-            const payload = { 
-                section_id: sectionId,
+            // Construct payload dynamically
+            const payload = {
                 name: currentCategory.name,
                 slug: currentCategory.slug,
-                parent_id: finalParentId,
                 rank: parseInt(currentCategory.rank || 0, 10),
                 is_active: currentCategory.is_active
             };
+
+            // Only include hierarchy fields when CREATING a new category
+            // During EDIT, omitting them ensures the backend (PATCH) preserves existing database values
+            if (!isEditing) {
+                payload.section_id = sectionId;
+                payload.parent_id = finalParentId;
+            }
 
             // HTML content for topics
             if (currentCategory.isLevel4 || modalMode === 'TOPIC') {
@@ -674,7 +704,6 @@ const TaxonomyManagement = () => {
                                             <th>ID</th>
                                             <th>Name</th>
                                             <th>Slug</th>
-                                            <th>Parent</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -721,26 +750,6 @@ const TaxonomyManagement = () => {
                                                                 <td style={{ fontSize: '0.85rem', color: '#64748b' }}>
                                                                     <code>{item.slug}</code>
                                                                 </td>
-                                                                <td>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                        <span className={`am-status-badge ${item.is_active ? 'active' : 'inactive'}`}>
-                                                                            {item.is_active ? 'Active' : 'Inactive'}
-                                                                        </span>
-                                                                        <LuxuryTooltip content={item.parent_id ? `Parent Category ID: ${item.parent_id}` : "Root Category"}>
-                                                                            {item.parent_id ? (
-                                                                                <span 
-                                                                                    className="am-status-badge review" 
-                                                                                    style={{ cursor: 'pointer', fontSize: '10px' }}
-                                                                                    onClick={() => setParentFilter(item.parent_id)}
-                                                                                >
-                                                                                    PID: {item.parent_id}
-                                                                                </span>
-                                                                            ) : (
-                                                                                <span className="am-status-badge draft" style={{ fontSize: '10px' }}>ROOT</span>
-                                                                            )}
-                                                                        </LuxuryTooltip>
-                                                                    </div>
-                                                                </td>
                                                                 <td className="am-actions-cell">
                                                                     <div className="am-action-group">
                                                                         <LuxuryTooltip content={`Add ${level === 0 ? 'Sub-Category' : level === 1 ? 'Segment' : 'Topic'}`}>
@@ -785,7 +794,7 @@ const TaxonomyManagement = () => {
                                             })
                                         ) : (
                                             <tr>
-                                                <td colSpan="5" className="am-empty-state">
+                                                <td colSpan="4" className="am-empty-state">
                                                     <i className="fas fa-tags"></i>
                                                     <h3>No taxonomy records found</h3>
                                                 </td>
@@ -897,7 +906,7 @@ const TaxonomyManagement = () => {
                         
                         <form onSubmit={handleSaveCategory} className="am-modal-form">
                             <div className="am-modal-body slim-scrollbar">
-                                {modalMode !== 'SECTION' && (
+                                {modalMode !== 'SECTION' && !isEditing && (
                                     <div className="form-section">
                                         <h3 className="section-title">Hierarchy Selection</h3>
                                         

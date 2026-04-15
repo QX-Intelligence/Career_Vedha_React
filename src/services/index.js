@@ -83,6 +83,32 @@ export const newsService = {
             return { results: [], next_cursor: null, has_next: false, total: 0 };
         }
     },
+    // Get Current Affairs (Special dedicated cursor endpoint)
+    getCurrentAffairs: async (params = {}) => {
+        try {
+            // Mapping for backend language codes
+            const langCode = params.lang === 'telugu' ? 'te' : (params.lang === 'english' ? 'en' : params.lang);
+            
+            const queryParams = {
+                lang: langCode || 'te',
+                cursor: params.cursor || '',
+                limit: params.limit || 10
+            };
+
+            const response = await djangoApi.get(API_CONFIG.DJANGO_ENDPOINTS.CURRENT_AFFAIRS_CURSOR, { params: queryParams });
+            const data = response.data;
+            
+            return {
+                results: data.results || (Array.isArray(data) ? data : []),
+                next_cursor: data.next_cursor || data.next || null,
+                has_next: data.has_next || !!(data.next_cursor || data.next),
+                count: data.count || 0
+            };
+        } catch (error) {
+            console.error('Error fetching current affairs cursor:', error);
+            return { results: [], next_cursor: null, has_next: false, count: 0 };
+        }
+    },
 
     // Get Articles for Admin Management (protected)
     getAdminArticles: async (params = {}) => {
