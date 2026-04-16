@@ -15,7 +15,7 @@
     --cv-accent-purple: var(--cv-primary-dark);
     
     /* Semantic names */
-    --cv-primary: var(--cv-primary);
+    --primary: var(--cv-primary);
     --cv-primary-hover: var(--cv-primary-dark);
     --cv-primary-bg: var(--cv-primary-light);
     --accent-purple: #9333EA;

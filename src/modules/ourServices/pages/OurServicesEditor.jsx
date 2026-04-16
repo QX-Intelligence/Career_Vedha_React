@@ -27,7 +27,7 @@ const OurServicesEditor = () => {
     });
     const [loading, setLoading] = useState(isEditMode);
     const [saving, setSaving] = useState(false);
-    const [imageMap, setImageMap] = useState({}); // Maps local object URLs to S3 keys
+    const [uploadedImages, setUploadedImages] = useState([]); // Tracks images for gallery/deletion
 
 
     useEffect(() => {
@@ -35,11 +35,26 @@ const OurServicesEditor = () => {
             const fetchService = async () => {
                 try {
                     const data = await ourServicesService.getById(id);
+                    const htmlContent = data.content || '';
                     setFormData({
                         title: data.title || '',
                         description: data.description || '',
-                        content: data.content || ''
+                        content: htmlContent
                     });
+                    
+                    // Extract rendered image URLs to populate the gallery
+                    if (htmlContent) {
+                        try {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(htmlContent, 'text/html');
+                            const imgs = Array.from(doc.querySelectorAll('img')).map(img => img.src);
+                            if (imgs.length > 0) {
+                                setUploadedImages(imgs);
+                            }
+                        } catch(e) {
+                            console.error('Failed to parse images', e);
+                        }
+                    }
                 } catch (error) {
                     showSnackbar('Failed to load service data', 'error');
                     navigate('/cms/our-services');
@@ -72,20 +87,23 @@ const OurServicesEditor = () => {
             if (file) {
                 try {
                     showSnackbar('Uploading image...', 'info');
-                    // Upload to get the real S3 key immediately
-                    const key = await ourServicesService.uploadImage(file);
+                    // Upload to get the real S3 URL immediately
+                    const url = await ourServicesService.uploadImage(file);
                     
                     const quill = quillRef.current.getEditor();
-                    const range = quill.getSelection();
+                    let range = quill.getSelection();
+                    if (!range) {
+                        range = { index: quill.getLength() };
+                    }
                     
-                    // Create a local blob URL for immediate preview
-                    const localUrl = URL.createObjectURL(file);
+                    // Insert the uploaded URL directly so we avoid unsafe:blob issues
+                    quill.insertEmbed(range.index, 'image', url);
                     
-                    // Insert the local preview immediately so the user sees it
-                    quill.insertEmbed(range.index, 'image', localUrl);
-                    
-                    // Store the mapping from temporary blob URL to real S3 key
-                    setImageMap(prev => ({ ...prev, [localUrl]: key }));
+                    // Add to uploaded images gallery
+                    setUploadedImages(prev => {
+                        if (!prev.includes(url)) return [...prev, url];
+                        return prev;
+                    });
                     
                     showSnackbar('Image uploaded successfully', 'success');
                 } catch (error) {
@@ -94,6 +112,31 @@ const OurServicesEditor = () => {
             }
         };
 
+    };
+
+    const handleDeleteUploadedImage = async (url) => {
+        if (window.confirm("Are you sure you want to delete this image? It will be removed from S3 permanently.")) {
+            try {
+                // Delete from Backend/S3
+                await ourServicesService.deleteImage(url);
+                
+                // Remove from gallery state
+                setUploadedImages(prev => prev.filter(img => img !== url));
+                
+                // Remove from Editor Content manually to avoid orphaned tags
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(formData.content, 'text/html');
+                const imgs = doc.querySelectorAll(`img[src="${url}"]`);
+                if (imgs.length > 0) {
+                    imgs.forEach(img => img.remove());
+                    setFormData(prev => ({ ...prev, content: doc.body.innerHTML }));
+                }
+                
+                showSnackbar('Image deleted successfully', 'success');
+            } catch (error) {
+                showSnackbar('Failed to delete image. It may have already been deleted.', 'error');
+            }
+        }
     };
 
     const modules = useMemo(() => ({
@@ -121,14 +164,8 @@ const OurServicesEditor = () => {
 
         setSaving(true);
         try {
-            // Swap out temporary blob URLs with the actual S3 keys before saving
-            let finalContent = formData.content;
-            Object.entries(imageMap).forEach(([localUrl, key]) => {
-                // Using split/join to replace all occurrences just in case
-                finalContent = finalContent.split(localUrl).join(key);
-            });
-
-            const payload = { ...formData, content: finalContent };
+            // Use the actual content since we inserted real URLs instead of blob URLs
+            const payload = { ...formData };
 
             if (isEditMode) {
                 await ourServicesService.update(id, payload);
@@ -244,6 +281,30 @@ const OurServicesEditor = () => {
                         />
                     </div>
                 </div>
+
+                {uploadedImages.length > 0 && (
+                    <div className="am-form-group" style={{ marginTop: '20px' }}>
+                        <label className="am-label" style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--slate-700)', display: 'block', marginBottom: '10px' }}>
+                            <i className="fas fa-images"></i> Manage Uploaded Images
+                        </label>
+                        <p style={{ fontSize: '12px', color: 'var(--slate-500)', marginBottom: '15px' }}>Images inserted into the editor are shown here. Click the delete icon to permanently remove an image from S3.</p>
+                        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            {uploadedImages.map((url, index) => (
+                                <div key={index} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', background: 'white' }}>
+                                    <img src={url} alt={`Uploaded ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleDeleteUploadedImage(url)}
+                                        style={{ position: 'absolute', top: '5px', right: '5px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+                                        title="Delete from Editor & S3"
+                                    >
+                                        <i className="fas fa-trash-alt" style={{ fontSize: '10px' }}></i>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="am-modal-footer" style={{ background: 'transparent', padding: '1rem 0 0 0', border: 'none' }}>
                     <button type="button" className="am-btn-secondary" onClick={() => navigate('/cms/our-services')}>
