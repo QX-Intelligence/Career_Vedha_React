@@ -1,4 +1,4 @@
-name: Build and Deploy Frontend
+name: Build and Deploy Frontend (Debug)
 
 on:
   push:
@@ -17,53 +17,76 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
-      #  Force clean workspace
+      # 2. Debug environment
+      - name: Debug environment variables
+        run: |
+          echo "AWS_REGION=$AWS_REGION"
+          echo "EC2_TARGET_DIR=$EC2_TARGET_DIR"
+          echo "INSTANCE_ID=${{ secrets.EC2_INSTANCE_ID }}"
+
+      # 3. Clean workspace
       - name: Clean workspace
         run: |
           rm -rf node_modules
-
           rm -rf ~/.npm
           rm -rf ~/.cache
 
+      # 4. Create env file
       - name: Create .env file
         run: echo "${{ secrets.REACT_ENV_FILE }}" > .env
 
+      # 5. Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-
-      #  Clean install (recommended)
+      # 6. Install deps
       - name: Install Dependencies
         run: npm ci
-        
+
       - name: Cache Verify
         run: npm cache verify
 
+      # 7. Build
       - name: Build React App
         run: npm run build
 
+      # 8. Verify build output
+      - name: Verify build output
+        run: |
+          ls -la
+          ls -la dist
+
+      # 9. Archive build
       - name: Archive build
         run: |
           tar -czf frontend.tar.gz -C dist .
+          ls -lh frontend.tar.gz
 
-
+      # 10. Set release tag
       - name: Set release tag
-        run: echo "RELEASE_TAG=cvedha-${GITHUB_SHA}" >> $GITHUB_ENV
+        run: echo "RELEASE_TAG=mhmarbles-${GITHUB_SHA}" >> $GITHUB_ENV
 
+      # 11. Debug release tag
+      - name: Debug release tag
+        run: echo "RELEASE_TAG=$RELEASE_TAG"
+
+      # 12. Create Release
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          name: CVedha_By_QI ${{ github.sha }}
+          name: MHMarbles_By_QI ${{ github.sha }}
           files: frontend.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # 13. Configure AWS creds
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -71,21 +94,56 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # 14. Verify AWS identity
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
 
-      - name: Deploy to EC2 via SSM
+      # 15. Verify instance is reachable by SSM
+      - name: Check SSM instance
         run: |
-          aws ssm send-command \
-            --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+          aws ssm describe-instance-information \
+            --query "InstanceInformationList[*].InstanceId" \
+            --region $AWS_REGION
+
+      # 16. Send command
+      - name: Deploy via SSM
+        id: deploy
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy frontend via GitHub release" \
-            --parameters commands="
-              RELEASE_URL=https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_TAG }}/frontend.tar.gz,
-              rm -rf /tmp/frontend,
-              mkdir -p /tmp/frontend,
-              curl -L \$RELEASE_URL -o /tmp/frontend/frontend.tar.gz,
-              rm -rf $EC2_TARGET_DIR/*,
-              mkdir -p $EC2_TARGET_DIR,
-              tar -xzf /tmp/frontend/frontend.tar.gz -C $EC2_TARGET_DIR,
-              rm -rf /tmp/frontend,
-              ls -la $EC2_TARGET_DIR
-            "
+            --parameters 'commands=[
+              "set -e",
+              "echo STARTING DEPLOY",
+              "RELEASE_URL=https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_TAG }}/frontend.tar.gz",
+              "echo Downloading from $RELEASE_URL",
+              "rm -rf /tmp/frontend",
+              "mkdir -p /tmp/frontend",
+              "curl -L $RELEASE_URL -o /tmp/frontend/frontend.tar.gz",
+              "ls -lh /tmp/frontend",
+              "rm -rf '"$EC2_TARGET_DIR"'/*",
+              "mkdir -p '"$EC2_TARGET_DIR"'",
+              "tar -xzf /tmp/frontend/frontend.tar.gz -C '"$EC2_TARGET_DIR"'",
+              "rm -rf /tmp/frontend",
+              "echo FINAL CONTENT:",
+              "ls -la '"$EC2_TARGET_DIR"'"
+            ]' \
+            --region $AWS_REGION \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "COMMAND_ID=$COMMAND_ID"
+          echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
+
+      # 17. Wait and fetch status
+      - name: Check command status
+        run: |
+          sleep 10
+
+          aws ssm list-command-invocations \
+            --command-id "$COMMAND_ID" \
+            --details \
+            --region $AWS_REGION
+
+      ###End of the Pipeline###
