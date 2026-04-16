@@ -16,20 +16,49 @@ const OurServicesManagement = () => {
     const { role: userRole } = getUserContext();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [cursor, setCursor] = useState(null);
+    const PAGE_SIZE = 5;
     const [searchQuery, setSearchQuery] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
     const [isCmsOpen, setIsCmsOpen] = useState(true);
 
-    const fetchServices = async () => {
+    const fetchServices = async (loadMore = false) => {
         try {
-            setLoading(true);
-            const data = await ourServicesService.getAll();
-            setServices(data || []);
+            if (loadMore) {
+                setLoadingMore(true);
+            } else {
+                setLoading(true);
+                setCursor(null);
+            }
+            const cursorToUse = loadMore ? cursor : null;
+            const data = await ourServicesService.getAll(cursorToUse, PAGE_SIZE);
+            const items = data || [];
+
+            if (loadMore) {
+                setServices(prev => [...prev, ...items]);
+            } else {
+                setServices(items);
+            }
+
+            // If we got fewer items than PAGE_SIZE, there are no more to load
+            if (items.length < PAGE_SIZE) {
+                setHasMore(false);
+            } else {
+                setHasMore(true);
+            }
+
+            // Update cursor to last item's id for next call
+            if (items.length > 0) {
+                setCursor(items[items.length - 1].id);
+            }
         } catch (error) {
             showSnackbar('Failed to fetch services', 'error');
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
 
@@ -47,9 +76,11 @@ const OurServicesManagement = () => {
         try {
             await ourServicesService.delete(serviceToDelete.id);
             showSnackbar('Service deleted successfully', 'success');
-            fetchServices();
+            // Remove locally instead of refetching to preserve cursor state
+            setServices(prev => prev.filter(s => s.id !== serviceToDelete.id));
         } catch (error) {
-            showSnackbar('Delete failed', 'error');
+            const backendMsg = error.response?.data?.message || error.response?.data?.error;
+            showSnackbar(backendMsg || 'Delete failed', 'error');
         } finally {
             setShowDeleteModal(false);
             setServiceToDelete(null);
@@ -187,6 +218,29 @@ const OurServicesManagement = () => {
                     </table>
                 )}
             </div>
+
+            {!loading && hasMore && filteredServices.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0' }}>
+                    <button 
+                        className="am-btn-primary" 
+                        onClick={() => fetchServices(true)} 
+                        disabled={loadingMore}
+                        style={{ minWidth: '180px' }}
+                    >
+                        {loadingMore ? (
+                            <><i className="fas fa-spinner fa-spin"></i> Loading...</>
+                        ) : (
+                            <><i className="fas fa-arrow-down"></i> Load More</>  
+                        )}
+                    </button>
+                </div>
+            )}
+
+            {!loading && !hasMore && services.length > 0 && (
+                <p style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '1rem 0', fontSize: '14px' }}>
+                    — All services loaded —
+                </p>
+            )}
 
             {showDeleteModal && (
                 <div className="am-modal-overlay">

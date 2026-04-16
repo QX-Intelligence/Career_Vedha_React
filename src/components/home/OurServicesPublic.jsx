@@ -5,18 +5,46 @@ import Skeleton from '../ui/Skeleton';
 const OurServicesPublic = ({ activeLanguage }) => {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [cursor, setCursor] = useState(null);
+    const PAGE_SIZE = 6;
+
+    const fetchServices = async (loadMore = false) => {
+        try {
+            if (loadMore) {
+                setLoadingMore(true);
+            } else {
+                setLoading(true);
+            }
+            const cursorToUse = loadMore ? cursor : null;
+            const data = await ourServicesService.getAll(cursorToUse, PAGE_SIZE);
+            const items = data || [];
+
+            if (loadMore) {
+                setServices(prev => [...prev, ...items]);
+            } else {
+                setServices(items);
+            }
+
+            if (items.length < PAGE_SIZE) {
+                setHasMore(false);
+            } else {
+                setHasMore(true);
+            }
+
+            if (items.length > 0) {
+                setCursor(items[items.length - 1].id);
+            }
+        } catch (err) {
+            console.error("Failed to load services", err);
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchServices = async () => {
-            try {
-                const data = await ourServicesService.getAll(null, 6);
-                setServices(data || []);
-            } catch (err) {
-                console.error("Failed to load services", err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchServices();
     }, []);
 
@@ -122,6 +150,43 @@ const OurServicesPublic = ({ activeLanguage }) => {
                         </div>
                     ))}
                 </div>
+
+                {!loading && hasMore && displayServices.length > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2.5rem' }}>
+                        <button 
+                            onClick={() => fetchServices(true)} 
+                            disabled={loadingMore}
+                            style={{
+                                background: 'linear-gradient(135deg, var(--cv-primary), var(--cv-primary-dark))',
+                                color: 'white',
+                                border: 'none',
+                                padding: '14px 36px',
+                                borderRadius: '12px',
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                cursor: loadingMore ? 'not-allowed' : 'pointer',
+                                opacity: loadingMore ? 0.7 : 1,
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 14px rgba(98, 38, 158, 0.3)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            {loadingMore ? (
+                                <><i className="fas fa-spinner fa-spin"></i> Loading...</>
+                            ) : (
+                                <><i className="fas fa-arrow-down"></i> Load More Services</>
+                            )}
+                        </button>
+                    </div>
+                )}
+
+                {!loading && !hasMore && services.length > 0 && (
+                    <p style={{ textAlign: 'center', color: '#94a3b8', padding: '1.5rem 0', fontSize: '14px', fontWeight: 500 }}>
+                        — You've seen all our services —
+                    </p>
+                )}
             </div>
         </section>
     );
