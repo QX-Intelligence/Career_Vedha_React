@@ -249,7 +249,7 @@ const ArticleEditor = () => {
                 tel_title: article.tel_title || telTrans?.title || (article.language === 'te' ? article.title : ''),
                 tel_content: article.tel_content || telTrans?.content || (article.language === 'te' ? article.content : ''),
                 tel_summary: article.tel_summary || telTrans?.summary || (article.language === 'te' ? article.summary : ''),
-                category_ids: article.article_categories ? article.article_categories.map(c => c.category_id) : (article.categories ? article.categories.map(c => c.id) : []),
+                category_ids: (article.article_categories && article.article_categories.length > 0) ? article.article_categories.map(c => c.category_id) : (article.categories ? article.categories.map(c => c.id) : []),
                 youtube_url: article.youtube_url || '',
                 is_top_story: article.is_top_story || (article.features && article.features.some(f => f.feature_type === 'TOP')) || false,
                 additional_sections: article.additional_sections || [],
@@ -298,7 +298,7 @@ const ArticleEditor = () => {
         if (isEditMode && fullHierarchy?.length > 0 && articleData && level1 && !prefillDoneRef.current) {
             console.log(`[Prefill] Starting match for IDs:`, articleData.category_ids || articleData.categories);
             
-            const rawIds = articleData.article_categories 
+            const rawIds = (articleData.article_categories && articleData.article_categories.length > 0)
                 ? articleData.article_categories.map(c => c.category_id) 
                 : (articleData.categories ? articleData.categories.map(c => (c.id || c.category_id)) : []);
             
@@ -314,11 +314,22 @@ const ArticleEditor = () => {
                         section: m.section 
                     })));
                     
-                    // Trace deepest path in CURRENT section if available
-                    const currentSectionItems = matched.filter(m => m.section === level1);
-                    const maxLevelItem = currentSectionItems.reduce((max, item) => (item.level || 0) > (max.level || 0) ? item : max, { level: 0 });
+                    // Trace deepest path — use case-insensitive match for current section first
+                    const currentSectionItems = matched.filter(m => 
+                        (m.section || '').toLowerCase() === (level1 || '').toLowerCase()
+                    );
+                    
+                    // Fallback: if no categories match current section, use ALL matched items
+                    const itemsToTrace = currentSectionItems.length > 0 ? currentSectionItems : matched;
+                    const maxLevelItem = itemsToTrace.reduce((max, item) => (item.level || 0) > (max.level || 0) ? item : max, { level: 0 });
                     
                     if (maxLevelItem && maxLevelItem.level > 1) {
+                        // If categories are from a different section, switch Level 1 to match
+                        if (currentSectionItems.length === 0 && maxLevelItem.section) {
+                            console.log(`[Prefill] Switching Level 1 from "${level1}" to "${maxLevelItem.section}" to match category section`);
+                            setLevel1(maxLevelItem.section);
+                        }
+                        
                         let curr = maxLevelItem;
                         let l5 = '', l4 = '', l3 = '', l2 = '';
                         
