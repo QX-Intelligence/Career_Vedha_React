@@ -2096,6 +2096,17 @@ section {
 
     .must-read-item p {
         font-size: 12px; /* Smaller text */
+        white-space: normal;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .must-read-item {
+        white-space: normal;
+        border-radius: 12px;
     }
 
     .must-read-wrapper {
@@ -4789,9 +4800,9 @@ section {
     /* Row 1: Logo (Left) + Lang/Menu (Right) */
     .header-content {
         display: grid !important;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: 1fr auto;
         grid-template-areas:
-            "logo lang menu";
+            "logo right";
         align-items: center;
         gap: 12px !important;
     }
@@ -4818,10 +4829,13 @@ section {
         display: none;
     }
 
-    /* Simplify logo */
+    .header-right {
+        grid-area: right;
+        padding-right: 0;
+        gap: 8px;
+    }
 
     .language-toggle {
-        grid-area: lang;
         width: auto;
         /* Compact Toggle */
         padding: 2px;
