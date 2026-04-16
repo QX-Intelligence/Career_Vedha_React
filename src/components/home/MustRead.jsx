@@ -56,6 +56,7 @@ const MustRead = ({ activeLanguage = 'telugu', articles: propArticles }) => {
     if (loading || articles.length === 0) return null;
 
     const item = articles[currentIndex];
+    if (!item) return null;
 
     // Normalize keys (handle both Article object and Feature object from results)
     const title = item.article_title || item.title;
