@@ -88,16 +88,16 @@ const API_CONFIG = {
     DJANGO_ENDPOINTS: {
         HOME_ARTICLES: 'cms/articles/home/',
         PUBLISHED_ARTICLES: 'cms/articles/published/',
-        CURRENT_AFFAIRS_CURSOR: 'articles/current-affairs/',
+        CURRENT_AFFAIRS_CURSOR: 'cms/articles/current-affairs/',
         ARTICLE_FILTERS: 'cms/articles/filters/',
         ARTICLE_CREATE: 'cms/articles/',
-        
+
         // Taxonomy CMS (CONTRIBUTOR+)
         TAXONOMY_SECTIONS_CMS: 'cms/taxonomy/cms-sections/',
         TAXONOMY_SECTIONS_CREATE: 'cms/taxonomy/sections/create/',
         TAXONOMY_SECTION_DETAIL: (id) => `cms/taxonomy/sections/${id}/`,
         TAXONOMY_SECTION_DELETE: (id) => `cms/taxonomy/sections/${id}/delete/`,
-        
+
         TAXONOMY_CATEGORIES_CMS: 'cms/taxonomy/categories/',
         TAXONOMY_CATEGORIES_CREATE: 'cms/taxonomy/categories/create/',
         TAXONOMY_CATEGORY_DETAIL: (id) => `cms/taxonomy/categories/${id}/`,
