@@ -674,8 +674,10 @@ const ArticleEditor = () => {
             formDataToSubmit.append('slug', formData.slug);
             formDataToSubmit.append('section', formData.section);
 
-            // Check if English title accidentally contains Telugu script
-            const isEngTelugu = /[ఀ-౿]/.test(formData.eng_title || '');
+            // Smart language detection: auto-correct misplaced content
+            const teluguRegex = /[\u0c00-\u0c7f]/;
+            const isEngTelugu = teluguRegex.test(formData.eng_title || '');
+            const isTelEnglish = (formData.tel_title || '').trim() && !teluguRegex.test(formData.tel_title || '');
             let finalEngTitle = formData.eng_title || '';
             let finalEngContent = formData.eng_content || '';
             let finalEngSummary = formData.eng_summary || '';
@@ -684,14 +686,21 @@ const ArticleEditor = () => {
             let finalTelSummary = formData.tel_summary || '';
 
             if (isEngTelugu) {
-                // Rescue text to Telugu fields if Telugu is empty
+                // Telugu script found in English fields — move to Telugu
                 if (!finalTelTitle) finalTelTitle = finalEngTitle;
                 if (!finalTelContent) finalTelContent = finalEngContent;
                 if (!finalTelSummary) finalTelSummary = finalEngSummary;
-                // Clear the English fields
                 finalEngTitle = '';
                 finalEngContent = '';
                 finalEngSummary = '';
+            } else if (isTelEnglish && !finalEngTitle.trim()) {
+                // English text found in Telugu fields with no English content — move to English
+                finalEngTitle = finalTelTitle;
+                finalEngContent = finalTelContent;
+                finalEngSummary = finalTelSummary;
+                finalTelTitle = '';
+                finalTelContent = '';
+                finalTelSummary = '';
             }
 
             formDataToSubmit.append('tel_title', finalTelTitle);
@@ -813,8 +822,10 @@ const ArticleEditor = () => {
             formDataToSubmit.append('slug', formData.slug);
             formDataToSubmit.append('section', formData.section);
 
-            // Check if English title accidentally contains Telugu script
-            const isEngTelugu = /[\u0c00-\u0c7f]/.test(formData.eng_title || '');
+            // Smart language detection: auto-correct misplaced content
+            const teluguRegex = /[\u0c00-\u0c7f]/;
+            const isEngTelugu = teluguRegex.test(formData.eng_title || '');
+            const isTelEnglish = (formData.tel_title || '').trim() && !teluguRegex.test(formData.tel_title || '');
             let finalEngTitle = formData.eng_title || '';
             let finalEngContent = formData.eng_content || '';
             let finalEngSummary = formData.eng_summary || '';
@@ -823,14 +834,21 @@ const ArticleEditor = () => {
             let finalTelSummary = formData.tel_summary || '';
 
             if (isEngTelugu) {
-                // Rescue text to Telugu fields if Telugu is empty
+                // Telugu script found in English fields — move to Telugu
                 if (!finalTelTitle) finalTelTitle = finalEngTitle;
                 if (!finalTelContent) finalTelContent = finalEngContent;
                 if (!finalTelSummary) finalTelSummary = finalEngSummary;
-                // Clear the English fields
                 finalEngTitle = '';
                 finalEngContent = '';
                 finalEngSummary = '';
+            } else if (isTelEnglish && !finalEngTitle.trim()) {
+                // English text found in Telugu fields with no English content — move to English
+                finalEngTitle = finalTelTitle;
+                finalEngContent = finalTelContent;
+                finalEngSummary = finalTelSummary;
+                finalTelTitle = '';
+                finalTelContent = '';
+                finalTelSummary = '';
             }
 
             formDataToSubmit.append('tel_title', finalTelTitle);
