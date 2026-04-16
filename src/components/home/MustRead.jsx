@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTranslations } from '../../utils/translations';
@@ -9,48 +9,92 @@ const MustRead = ({ activeLanguage = 'telugu', articles: propArticles }) => {
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const intervalRef = useRef(null);
 
-    // Fetch MUST_READ articles using the TOP feature list as requested
+    // Fetch MUST_READ articles using the TOP feature list
     useEffect(() => {
+        let cancelled = false;
+
         const fetchArticles = async () => {
             try {
-                // Determine language code (backend expects 'te' or 'en')
                 const lang = activeLanguage === 'telugu' ? 'te' : 'en';
-                
-                // Fetch from the features API with TOP type as requested
-                // This gives us the pinned articles with article_title and article_slug
+
+                // Fetch from the features API with TOP type
                 const response = await newsService.getPinnedArticles({ 
                     feature_type: 'TOP', 
                     lang: lang 
                 });
 
-                if (Array.isArray(response) && response.length > 0) {
-                    setArticles(response);
-                } else if (propArticles && propArticles.length > 0) {
-                    // Fallback to propArticles if available
-                    setArticles(propArticles);
+                if (cancelled) return;
+
+                // Combine API results with propArticles, deduplicate by id
+                const apiArticles = Array.isArray(response) ? response : [];
+                const fallbackArticles = Array.isArray(propArticles) ? propArticles : [];
+                
+                // Merge: API articles first, then propArticles that aren't already in API results
+                const combined = [...apiArticles];
+                const existingIds = new Set(apiArticles.map(a => a.article_id || a.id));
+                
+                fallbackArticles.forEach(article => {
+                    const artId = article.article_id || article.id;
+                    if (artId && !existingIds.has(artId)) {
+                        combined.push(article);
+                        existingIds.add(artId);
+                    }
+                });
+
+                if (combined.length > 0) {
+                    setArticles(combined);
+                } else if (fallbackArticles.length > 0) {
+                    setArticles(fallbackArticles);
                 }
             } catch (error) {
+                if (cancelled) return;
                 console.warn('[MustRead] Failed to fetch featured articles:', error);
                 if (propArticles && propArticles.length > 0) {
                     setArticles(propArticles);
                 }
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
         fetchArticles();
-    }, [activeLanguage, propArticles]);
+        return () => { cancelled = true; };
+    }, [activeLanguage]);
 
+    // Update articles when propArticles changes (without re-fetching)
     useEffect(() => {
+        if (propArticles && propArticles.length > 0 && articles.length === 0 && !loading) {
+            setArticles(propArticles);
+        }
+    }, [propArticles, articles.length, loading]);
+
+    // Reset currentIndex when articles list changes
+    useEffect(() => {
+        setCurrentIndex(0);
+    }, [articles.length]);
+
+    // Auto-rotate through all articles, loop back to first
+    useEffect(() => {
+        // Clear any existing interval
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+
         if (articles.length <= 1) return;
-        
-        const interval = setInterval(() => {
-            setCurrentIndex((prevIndex) => (prevIndex + 1) % articles.length);
+
+        intervalRef.current = setInterval(() => {
+            setCurrentIndex(prev => (prev + 1) % articles.length);
         }, 5000);
 
-        return () => clearInterval(interval);
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
     }, [articles.length]);
 
     if (loading || articles.length === 0) return null;
@@ -77,7 +121,7 @@ const MustRead = ({ activeLanguage = 'telugu', articles: propArticles }) => {
                     <AnimatePresence mode="wait">
                         <motion.div 
                             className="ticker-item-wrapper" 
-                            key={item.feature_id || item.id || currentIndex}
+                            key={`${item.feature_id || item.id || currentIndex}-${currentIndex}`}
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -20, opacity: 0 }}
