@@ -1073,16 +1073,43 @@ const ArticleEditor = () => {
                                     value={formData.language}
                                     onChange={(val) => {
                                         setFormData(prev => {
+                                            if (val === prev.language) return prev;
                                             const updates = { language: val };
-                                            if (val === 'te') {
-                                                if (!prev.tel_title && prev.eng_title) updates.tel_title = prev.eng_title;
-                                                if (!prev.tel_content && prev.eng_content) updates.tel_content = prev.eng_content;
-                                                if (!prev.tel_summary && prev.eng_summary) updates.tel_summary = prev.eng_summary;
-                                            } else if (val === 'en') {
-                                                if (!prev.eng_title && prev.tel_title) updates.eng_title = prev.tel_title;
-                                                if (!prev.eng_content && prev.tel_content) updates.eng_content = prev.tel_content;
-                                                if (!prev.eng_summary && prev.tel_summary) updates.eng_summary = prev.tel_summary;
+                                            
+                                            const srcLang = prev.language; // current language being switched FROM
+                                            const srcTitle = srcLang === 'te' ? prev.tel_title : prev.eng_title;
+                                            const srcContent = srcLang === 'te' ? prev.tel_content : prev.eng_content;
+                                            const srcSummary = srcLang === 'te' ? prev.tel_summary : prev.eng_summary;
+                                            const dstTitle = val === 'te' ? prev.tel_title : prev.eng_title;
+                                            const dstContent = val === 'te' ? prev.tel_content : prev.eng_content;
+                                            
+                                            const hasSrcContent = !!(srcTitle || srcContent || srcSummary);
+                                            const hasDstContent = !!(dstTitle || dstContent);
+                                            
+                                            // If source has content and destination is empty, MOVE content (copy + clear source)
+                                            if (hasSrcContent && !hasDstContent) {
+                                                const confirmMove = window.confirm(
+                                                    `Move existing content from ${srcLang === 'te' ? 'Telugu' : 'English'} to ${val === 'te' ? 'Telugu' : 'English'}?\n\nThis will clear the ${srcLang === 'te' ? 'Telugu' : 'English'} fields.`
+                                                );
+                                                if (confirmMove) {
+                                                    if (val === 'te') {
+                                                        updates.tel_title = prev.eng_title || '';
+                                                        updates.tel_content = prev.eng_content || '';
+                                                        updates.tel_summary = prev.eng_summary || '';
+                                                        updates.eng_title = '';
+                                                        updates.eng_content = '';
+                                                        updates.eng_summary = '';
+                                                    } else {
+                                                        updates.eng_title = prev.tel_title || '';
+                                                        updates.eng_content = prev.tel_content || '';
+                                                        updates.eng_summary = prev.tel_summary || '';
+                                                        updates.tel_title = '';
+                                                        updates.tel_content = '';
+                                                        updates.tel_summary = '';
+                                                    }
+                                                }
                                             }
+                                            
                                             return { ...prev, ...updates };
                                         });
                                     }}
