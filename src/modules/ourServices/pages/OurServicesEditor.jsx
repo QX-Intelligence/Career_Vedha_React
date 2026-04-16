@@ -99,6 +99,12 @@ const OurServicesEditor = () => {
         input.onchange = async () => {
             const file = input.files[0];
             if (file) {
+                // Proactively prevent files larger than 10MB from being uploaded
+                if (file.size > 10 * 1024 * 1024) {
+                    showSnackbar('File size exceeds the maximum limit of 10MB. Please choose a smaller image.', 'warning');
+                    return;
+                }
+                
                 try {
                     showSnackbar('Uploading image...', 'info');
                     
@@ -130,7 +136,8 @@ const OurServicesEditor = () => {
                     
                     showSnackbar('Image uploaded successfully', 'success');
                 } catch (error) {
-                    showSnackbar('Image upload failed', 'error');
+                    const backendMsg = error.response?.data?.message || error.response?.data?.error;
+                    showSnackbar(backendMsg ? `Upload failed: ${backendMsg}` : 'Image upload failed. Please check file size and type.', 'error');
                 }
             }
         };
@@ -171,7 +178,8 @@ const OurServicesEditor = () => {
                 
                 showSnackbar('Image deleted successfully', 'success');
             } catch (error) {
-                showSnackbar('Failed to delete image. It may have already been deleted.', 'error');
+                const backendMsg = error.response?.data?.message || error.response?.data?.error;
+                showSnackbar(backendMsg || 'Failed to delete image. It may have already been deleted.', 'error');
             }
         }
     };
@@ -248,7 +256,8 @@ const OurServicesEditor = () => {
             navigate('/cms/our-services');
 
         } catch (error) {
-            showSnackbar('Save failed. Please check your input.', 'error');
+            const backendMsg = error.response?.data?.message || error.response?.data?.error;
+            showSnackbar(backendMsg || 'Save failed. Please check your input.', 'error');
         } finally {
             setSaving(false);
         }
@@ -339,7 +348,7 @@ const OurServicesEditor = () => {
                 </div>
 
                 <div className="am-form-group">
-                    <label className="am-label">Service Content (Rich Text) *</label>
+                    <label className="am-label">Service Content (Rich Text) * <span style={{fontSize: '12px', color: 'var(--slate-500)', fontWeight: 'normal', marginLeft: '10px'}}>(Max image size: 10MB)</span></label>
                     <div className="quill-wrapper" style={{ minHeight: '400px', background: 'white' }}>
                         <ReactQuill
                             ref={quillRef}
