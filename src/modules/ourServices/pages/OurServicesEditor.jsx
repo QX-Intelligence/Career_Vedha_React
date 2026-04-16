@@ -27,6 +27,7 @@ const OurServicesEditor = () => {
     });
     const [loading, setLoading] = useState(isEditMode);
     const [saving, setSaving] = useState(false);
+    const [imageMap, setImageMap] = useState({}); // Maps local Base64 URLs to backend keys
     const [uploadedImages, setUploadedImages] = useState([]); // Tracks images for gallery/deletion
 
 
@@ -42,14 +43,17 @@ const OurServicesEditor = () => {
                         content: htmlContent
                     });
                     
-                    // Extract rendered image URLs to populate the gallery
+                    // Extract rendered image URLs to populate the gallery safely
                     if (htmlContent) {
                         try {
                             const parser = new DOMParser();
                             const doc = parser.parseFromString(htmlContent, 'text/html');
-                            const imgs = Array.from(doc.querySelectorAll('img')).map(img => img.src);
-                            if (imgs.length > 0) {
-                                setUploadedImages(imgs);
+                            const extractedImgs = Array.from(doc.querySelectorAll('img')).map(img => ({
+                                previewUrl: img.src, 
+                                serverKey: img.getAttribute('src') // Raw src for backend matching
+                            }));
+                            if (extractedImgs.length > 0) {
+                                setUploadedImages(extractedImgs);
                             }
                         } catch(e) {
                             console.error('Failed to parse images', e);
@@ -86,26 +90,37 @@ const OurServicesEditor = () => {
             const file = input.files[0];
             if (file) {
                 try {
-                    showSnackbar('Uploading image...', 'info');
-                    // Upload to get the real S3 URL immediately
-                    const url = await ourServicesService.uploadImage(file);
-                    
-                    const quill = quillRef.current.getEditor();
-                    let range = quill.getSelection();
-                    if (!range) {
-                        range = { index: quill.getLength() };
-                    }
-                    
-                    // Insert the uploaded URL directly so we avoid unsafe:blob issues
-                    quill.insertEmbed(range.index, 'image', url);
-                    
-                    // Add to uploaded images gallery
-                    setUploadedImages(prev => {
-                        if (!prev.includes(url)) return [...prev, url];
-                        return prev;
-                    });
-                    
-                    showSnackbar('Image uploaded successfully', 'success');
+                    // Read file as Base64 so Quill preview works flawlessly without unsafe protocols
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = async () => {
+                        const localBase64 = reader.result;
+                        
+                        // Upload to get the real backend key
+                        const url = await ourServicesService.uploadImage(file);
+                        
+                        const quill = quillRef.current.getEditor();
+                        let range = quill.getSelection();
+                        if (!range) {
+                            range = { index: quill.getLength() };
+                        }
+                        
+                        // Insert the Base64 preview
+                        quill.insertEmbed(range.index, 'image', localBase64);
+                        
+                        // Map Base64 to real backend URL so we can swap it out upon saving
+                        setImageMap(prev => ({ ...prev, [localBase64]: url }));
+                        
+                        // Add to uploaded images gallery
+                        setUploadedImages(prev => {
+                            if (!prev.find(img => img.serverKey === url)) {
+                                return [...prev, { previewUrl: localBase64, serverKey: url }];
+                            }
+                            return prev;
+                        });
+                        
+                        showSnackbar('Image uploaded successfully', 'success');
+                    };
                 } catch (error) {
                     showSnackbar('Image upload failed', 'error');
                 }
@@ -114,19 +129,33 @@ const OurServicesEditor = () => {
 
     };
 
-    const handleDeleteUploadedImage = async (url) => {
+    const handleDeleteUploadedImage = async (serverKey) => {
         if (window.confirm("Are you sure you want to delete this image? It will be removed from S3 permanently.")) {
             try {
                 // Delete from Backend/S3
-                await ourServicesService.deleteImage(url);
+                await ourServicesService.deleteImage(serverKey);
                 
                 // Remove from gallery state
-                setUploadedImages(prev => prev.filter(img => img !== url));
+                setUploadedImages(prev => prev.filter(img => img.serverKey !== serverKey));
+                
+                // Also remove from imageMap so it doesn't get swapped on saving if user re-adds
+                const localBase64Obj = Object.entries(imageMap).find(([b64, key]) => key === serverKey);
+                if (localBase64Obj) {
+                    setImageMap(prev => {
+                        const newMap = { ...prev };
+                        delete newMap[localBase64Obj[0]];
+                        return newMap;
+                    });
+                }
                 
                 // Remove from Editor Content manually to avoid orphaned tags
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(formData.content, 'text/html');
-                const imgs = doc.querySelectorAll(`img[src="${url}"]`);
+                // Target both literal matches (like base64 or relative URIs)
+                let imgs = doc.querySelectorAll(`img[src="${serverKey}"]`);
+                if (imgs.length === 0 && localBase64Obj) {
+                    imgs = doc.querySelectorAll(`img[src="${localBase64Obj[0]}"]`);
+                }
                 if (imgs.length > 0) {
                     imgs.forEach(img => img.remove());
                     setFormData(prev => ({ ...prev, content: doc.body.innerHTML }));
@@ -164,8 +193,14 @@ const OurServicesEditor = () => {
 
         setSaving(true);
         try {
-            // Use the actual content since we inserted real URLs instead of blob URLs
-            const payload = { ...formData };
+            // Swap out temporary Base64 URLs with the actual S3 keys before saving
+            let finalContent = formData.content;
+            Object.entries(imageMap).forEach(([localBase64, serverKey]) => {
+                // split/join approach for all occurrences
+                finalContent = finalContent.split(localBase64).join(serverKey);
+            });
+
+            const payload = { ...formData, content: finalContent };
 
             if (isEditMode) {
                 await ourServicesService.update(id, payload);
@@ -289,12 +324,12 @@ const OurServicesEditor = () => {
                         </label>
                         <p style={{ fontSize: '12px', color: 'var(--slate-500)', marginBottom: '15px' }}>Images inserted into the editor are shown here. Click the delete icon to permanently remove an image from S3.</p>
                         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            {uploadedImages.map((url, index) => (
+                            {uploadedImages.map((imgObj, index) => (
                                 <div key={index} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', background: 'white' }}>
-                                    <img src={url} alt={`Uploaded ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={imgObj.previewUrl} alt={`Uploaded ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     <button 
                                         type="button"
-                                        onClick={() => handleDeleteUploadedImage(url)}
+                                        onClick={() => handleDeleteUploadedImage(imgObj.serverKey)}
                                         style={{ position: 'absolute', top: '5px', right: '5px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
                                         title="Delete from Editor & S3"
                                     >
