@@ -1000,7 +1000,8 @@ section {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    background-color: #0f172a; /* Deep slate background for hero */
     z-index: 1;
 }
 
@@ -1259,7 +1260,8 @@ section {
 .compact-thumb img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    background-color: var(--gray-50);
     display: block;
 }
 
@@ -1538,7 +1540,8 @@ section {
 .article-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    background-color: var(--gray-100);
     transition: transform 0.5s ease;
 }
 
