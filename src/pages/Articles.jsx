@@ -184,15 +184,18 @@ const ArticlesPage = () => {
                         {isLoadingSections ? (
                             <div className="tabs-loading-shimmer"></div>
                         ) : (
-                            sections.map(section => (
+                            sections.map(section => {
+                                const sectionId = section.slug || section.id;
+                                return (
                                 <button
-                                    key={section.id}
-                                    onClick={() => setActiveSection(section.id)}
-                                    className={`section-tab ${activeSection === section.id ? 'active' : ''}`}
+                                    key={sectionId}
+                                    onClick={() => setActiveSection(sectionId.toLowerCase())}
+                                    className={`section-tab ${activeSection === sectionId.toLowerCase() ? 'active' : ''}`}
                                 >
-                                    {section.name}
+                                    {section.name || section.title}
                                 </button>
-                            ))
+                                );
+                            })
                         )}
                     </div>
 
