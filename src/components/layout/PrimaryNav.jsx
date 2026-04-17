@@ -233,9 +233,9 @@ const PrimaryNav = ({ isOpen }) => {
             path: '#',
             hasDropdown: true,
             dropdownItems: [
-                { name: t.navCurriculum || "Course Materials", path: '/curriculum' },
-                { name: t.navVideos, path: '/videos' },
-                { name: t.navPreviousPapers, path: '/question-papers' },
+                { name: "Course Materials", path: '/curriculum' },
+                { name: "Videos", path: '/videos' },
+                { name: "Previous Papers", path: '/question-papers' },
                 // Dynamic sections from admin (if not already in tree sections)
                 ...(allSections || [])
                     .filter(s => !TREE_SECTIONS.includes(s.slug))
