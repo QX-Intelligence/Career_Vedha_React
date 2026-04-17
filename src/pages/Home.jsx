@@ -79,7 +79,6 @@ const Home = () => {
                     isHomePage={true}
                 />
             </div>
-            <QuickAccess activeLanguage={activeLanguage} />
 
             <div className="latest-updates-header container">
                 <div className="section-marker"></div>
@@ -113,6 +112,7 @@ const Home = () => {
                             <Sidebar activeLanguage={activeLanguage} />
                         </div>
                     </div>
+                    <QuickAccess activeLanguage={activeLanguage} />
                 </div>
             </main>
 
