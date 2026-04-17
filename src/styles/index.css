@@ -5215,13 +5215,18 @@ section {
     border-radius: 16px;
     overflow: hidden;
     margin-bottom: 40px;
+    background-color: var(--gray-50);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .article-featured-image img {
-    width: 100%;
-    max-width: 990px;
-    height: 100%;
-    object-fit: cover;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
 }
 
 .image-badge {
