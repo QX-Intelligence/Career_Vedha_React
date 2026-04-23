@@ -8,6 +8,8 @@ import PrimaryNav from '../../../components/layout/PrimaryNav';
 import Footer from '../../../components/layout/Footer';
 import Sidebar from '../../../components/home/Sidebar';
 import ContentHubWidget from '../../../components/ui/ContentHubWidget';
+import SEO from '../../../components/seo/SEO';
+import { useMemo } from 'react';
 
 const ArticleDetail = () => {
     const { section, slug } = useParams();
@@ -138,6 +140,26 @@ const ArticleDetail = () => {
         );
     }
 
+    const articleSchema = useMemo(() => {
+        if (!article) return null;
+        return {
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            "headline": article.title,
+            "description": article.summary || article.title,
+            "image": [
+                article.og?.image || article.og?.image_url || article.og_image_url || article.image || "https://careervedha.com/default-share-image.jpg"
+            ],
+            "datePublished": article.published_at || article.created_at,
+            "dateModified": article.updated_at || article.published_at || article.created_at,
+            "author": [{
+                "@type": "Organization",
+                "name": "Career Vedha",
+                "url": "https://careervedha.com"
+            }]
+        };
+    }, [article]);
+
     if (!article) {
         return (
             <div className="article-not-found container">
@@ -152,6 +174,15 @@ const ArticleDetail = () => {
 
     return (
         <div className="article-page-wrapper">
+            <SEO 
+                title={article.title}
+                description={article.summary || article.title}
+                keywords={Array.isArray(article.tags) ? article.tags.join(', ') : article.tags}
+                image={article.og?.image || article.og?.image_url || article.og_image_url || article.image}
+                type="article"
+                publishedAt={article.published_at || article.created_at}
+                schema={articleSchema}
+            />
             <TopBar />
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../../components/seo/SEO';
 import { jobsService } from '../../../services/jobsService';
 import TopBar from '../../../components/layout/TopBar';
 import Header from '../../../components/layout/Header';
@@ -90,16 +90,12 @@ const JobDetail = () => {
 
     return (
         <div className="job-detail-page">
-            <Helmet>
-                <title>{seo?.title || `${title} | Career Vedha`}</title>
-                <meta name="description" content={seo?.description || job_description?.substring(0, 160)} />
-                <link rel="canonical" href={seo?.canonical || window.location.href} />
-                {seo?.schema && (
-                    <script type="application/ld+json">
-                        {JSON.stringify(seo.schema)}
-                    </script>
-                )}
-            </Helmet>
+            <SEO 
+                title={seo?.title || title}
+                description={seo?.description || job_description?.substring(0, 160).replace(/<[^>]*>/g, '')}
+                image={seo?.image}
+                schema={seo?.schema}
+            />
             <TopBar />
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

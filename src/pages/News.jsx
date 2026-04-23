@@ -11,6 +11,7 @@ import { getTranslations } from '../utils/translations';
 import TopStoriesHero from '../components/home/TopStoriesHero';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import ContentHubWidget from '../components/ui/ContentHubWidget';
+import SEO from '../components/seo/SEO';
 import './Articles.css';
 
 const NewsPage = () => {
@@ -111,8 +112,22 @@ const NewsPage = () => {
         });
     }, [allArticles, debouncedSearch]);
 
+    const newsSchema = useMemo(() => ({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "News | Career Vedha",
+        "description": "Stay updated with the latest news, current affairs, and educational announcements.",
+        "url": window.location.href
+    }), []);
+
     return (
         <div className="articles-page-wrapper">
+            <SEO 
+                title="Latest News & Current Affairs | Career Vedha"
+                description="Stay updated with the latest news, current affairs, and educational announcements."
+                keywords="news, current affairs, education updates, career vedha"
+                schema={newsSchema}
+            />
             <Header />
             <PrimaryNav />
 

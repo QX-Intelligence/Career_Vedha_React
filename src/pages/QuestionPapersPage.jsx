@@ -7,6 +7,7 @@ import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import { useInfiniteArticles } from '../hooks/useArticles';
+import SEO from '../components/seo/SEO';
 import '../styles/contact-papers.css';
 import './Articles.css';
 
@@ -51,6 +52,11 @@ const QuestionPapersPage = () => {
 
     return (
         <>
+            <SEO 
+                title="Question Papers | Career Vedha"
+                description="Download previous year question papers, model papers, and practice sets for various exams."
+                keywords="question papers, previous papers, model papers, exam prep, career vedha"
+            />
             <Header 
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}

@@ -18,6 +18,7 @@ import SectionCategoryBlocks from '../components/home/SectionCategoryBlocks';
 import TopStoriesHero from '../components/home/TopStoriesHero';
 import MustRead from '../components/home/MustRead';
 import Skeleton from '../components/ui/Skeleton';
+import SEO from '../components/seo/SEO';
 
 // Lazy load below-the-fold components
 const ExploreMore = lazyWithRetry(() => import('../components/home/ExploreMore'));
@@ -55,8 +56,40 @@ const Home = () => {
 
     const t = useMemo(() => getTranslations(activeLanguage), [activeLanguage]);
 
+    const homeSchema = useMemo(() => ([
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Career Vedha",
+            "url": "https://careervedha.com",
+            "logo": "https://careervedha.com/favicon.png",
+            "sameAs": [
+                "https://www.facebook.com/CareerVedha",
+                "https://twitter.com/CareerVedha",
+                "https://www.youtube.com/c/CareerVedha"
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Career Vedha",
+            "url": "https://careervedha.com",
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://careervedha.com/search?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+            }
+        }
+    ]), []);
+
     return (
         <div className="home-page">
+            <SEO 
+                title="Career Vedha - Educational Portal"
+                description="Your comprehensive educational resource for academic exams, competitive exams, current affairs, and more."
+                keywords="education, exams, current affairs, jobs, career vedha"
+                schema={homeSchema}
+            />
             {/* These components handle their own desktop-only visibility via CSS media queries in MobileLayout/index.css */}
             <TopBar />
             <Header

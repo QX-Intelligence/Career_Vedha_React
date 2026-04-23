@@ -7,6 +7,7 @@ import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import { useInfiniteArticles } from '../hooks/useArticles';
+import SEO from '../components/seo/SEO';
 import '../styles/contact-papers.css';
 import './Articles.css';
 
@@ -51,6 +52,11 @@ const StudyMaterialsPage = () => {
 
     return (
         <>
+            <SEO 
+                title="Study Materials | Career Vedha"
+                description="Expert curated lessons, notes, and study guides for all academic and competitive exams."
+                keywords="study materials, notes, lessons, exam preparation, career vedha"
+            />
             <Header 
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}

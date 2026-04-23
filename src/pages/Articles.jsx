@@ -11,6 +11,7 @@ import { newsService, taxonomyService } from '../services';
 import TopStoriesHero from '../components/home/TopStoriesHero';
 import TaxonomyTabs from '../components/ui/TaxonomyTabs';
 import ContentHubWidget from '../components/ui/ContentHubWidget';
+import SEO from '../components/seo/SEO';
 import './Articles.css';
 
 const ArticlesPage = () => {
@@ -173,8 +174,22 @@ const ArticlesPage = () => {
         }
     };
 
+    const articlesSchema = useMemo(() => ({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Articles | Career Vedha",
+        "description": "Browse our collection of articles, news, and resources for exam preparation and career growth.",
+        "url": window.location.href
+    }), []);
+
     return (
         <div className="articles-page-wrapper">
+            <SEO 
+                title={`Articles - ${activeSection !== 'all' ? activeSection.toUpperCase() : 'All'} | Career Vedha`}
+                description="Browse our collection of articles, news, and resources for exam preparation and career growth."
+                keywords="articles, news, education, exam prep, career vedha"
+                schema={articlesSchema}
+            />
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 isMenuOpen={isMobileMenuOpen}

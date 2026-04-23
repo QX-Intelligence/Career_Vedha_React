@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, useMemo, useRef } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useLocation, Link } from 'react-router-dom';
+import SEO from '../components/seo/SEO';
 import { lazyWithRetry } from '../utils/lazyLoading';
 import { useLanguage } from '../context/LanguageContext';
 import TopBar from '../components/layout/TopBar';
@@ -129,13 +129,22 @@ const AcademicExamsPage = () => {
         }
     };
 
+    const examsSchema = useMemo(() => ({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": `Academic Exams - ${hierarchyNames?.state || ''} | Career Vedha`,
+        "description": "Explore entrance exams, competitive exams, and preparation material for various academic levels.",
+        "url": window.location.href
+    }), [hierarchyNames]);
+
     return (
         <div className="articles-page-wrapper">
-            <Helmet>
-                <title>Exams | Career Vedha</title>
-                <meta name="description" content="Explore entrance exams, competitive exams, and preparation material." />
-            </Helmet>
-
+            <SEO 
+                title={`${hierarchyNames?.state ? hierarchyNames.state + ' ' : ''}Academic Exams | Career Vedha`}
+                description="Explore entrance exams, competitive exams, and preparation material for various academic levels."
+                keywords="academic exams, entrance exams, competitive exams, exam preparation, career vedha"
+                schema={examsSchema}
+            />
             <TopBar />
             <Header
                 onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
