@@ -36,6 +36,7 @@ const ArticleManagement = ({ activeLanguage }) => {
     } = useInfiniteAdminArticles({
         status: activeTab === 'FEATURED' ? 'PUBLISHED' : activeTab,
         q: searchQuery.trim() || undefined,
+        date: filterDate || undefined,
     });
 
     // Flatten all cursor pages into a single list
