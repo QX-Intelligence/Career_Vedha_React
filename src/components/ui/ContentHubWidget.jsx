@@ -33,7 +33,7 @@ const ContentHubWidget = ({ searchQuery, title, minimal = false, excludeIds = []
                         newsService.getLatestArticles(langCode, 8) // Fallback to latest as well
                     ]);
                     
-                    const trending = (trendingRes.results || []).map(a => ({
+                    const trending = (Array.isArray(trendingRes) ? trendingRes : (trendingRes.results || [])).map(a => ({
                         type: 'article',
                         id: a.id,
                         title: a.title,
@@ -45,7 +45,8 @@ const ContentHubWidget = ({ searchQuery, title, minimal = false, excludeIds = []
                         isTrending: true
                     }));
                     
-                    const latest = (latestArticles || []).map(a => ({
+                    const latestData = latestArticles?.results || (Array.isArray(latestArticles) ? latestArticles : []);
+                    const latest = latestData.map(a => ({
                         type: 'article',
                         id: a.id,
                         title: a.title,
@@ -70,7 +71,8 @@ const ContentHubWidget = ({ searchQuery, title, minimal = false, excludeIds = []
                     // Fallback: If results are too thin, add trending
                     if (results.filter(r => r.type === 'article').length < 4) { // Changed limit from 2 to 4
                         const trendingRes = await newsService.getTrendingArticles({ limit: 4, lang: activeLanguage }); // Changed limit from 10 to 4
-                        const trending = (trendingRes.results || []).map(a => ({
+                        const trendingData = trendingRes?.results || (Array.isArray(trendingRes) ? trendingRes : []);
+                        const trending = trendingData.map(a => ({
                             type: 'article',
                             id: a.id,
                             title: a.title,
