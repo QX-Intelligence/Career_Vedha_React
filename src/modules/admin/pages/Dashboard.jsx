@@ -712,7 +712,7 @@ const Dashboard = () => {
                 const last = items[items.length - 1];
                 articleCursorRef.current = {
                     id: last.notificationId || last.id,
-                    createdAt: last.createdAt
+                    createdAt: last.createdAt || last.localDateTime || last.timestamp || new Date().toISOString()
                 };
             }
 
