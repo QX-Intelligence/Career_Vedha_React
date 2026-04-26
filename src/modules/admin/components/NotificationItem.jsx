@@ -23,7 +23,8 @@ const NotificationItem = React.memo(({ notification, onApprove, onReject, onMark
     // Highlight logic: if active tab is PENDING, we don't highlight. 
     // If active tab is ARCHIVE (isArchive=true), we highlight UNSEEN items.
     // Also if notification is newer than lastSeenAllAt, it's unseen.
-    const isUnseen = !notification.seen && (!lastSeenAllAt || new Date(notification.createdAt) > new Date(lastSeenAllAt));
+    const ts = notification.createdAt || notification.timestamp || notification.localDateTime;
+    const isUnseen = !notification.seen && (!lastSeenAllAt || (ts && new Date(ts) > new Date(lastSeenAllAt)));
     const shouldHighlight = isArchive && isUnseen;
 
     return (
