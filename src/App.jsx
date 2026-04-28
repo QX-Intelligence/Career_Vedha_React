@@ -389,7 +389,9 @@ function App() {
                                         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                                         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                                         <Route path="/about" element={<AboutUs />} />
+                                        <Route path="/about-us" element={<Navigate to="/about" replace />} />
                                         <Route path="/contact" element={<ContactUs />} />
+                                        <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
                                         <Route path="/current-affairs" element={<CurrentAffairs />} />
                                         <Route path="/paper-viewer" element={<PaperViewer />} />
                                         <Route path="/question-papers" element={<QuestionPapersPage />} />

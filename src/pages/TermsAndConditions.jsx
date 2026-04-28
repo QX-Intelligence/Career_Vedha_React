@@ -3,6 +3,7 @@ import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import ContactForm from '../components/ui/ContactForm';
+import SEO from '../components/seo/SEO';
 import '../styles/TermsAndConditions.css';
 
 const TermsAndConditions = () => {
@@ -17,6 +18,11 @@ const TermsAndConditions = () => {
 
     return (
         <div className="page-wrapper">
+            <SEO
+                title="Terms and Conditions"
+                description="Read the Terms and Conditions governing your use of the Career Vedha educational platform, including user responsibilities, intellectual property, and advertising."
+                url="https://careervedha.com/terms-and-conditions"
+            />
             <Header />
             <PrimaryNav />
 
@@ -94,17 +100,17 @@ const TermsAndConditions = () => {
                         </section>
 
                         <section>
-                            <h2>10. Advertising</h2>
+                            <h2>9. Advertising</h2>
                             <p>
                                 We use third-party advertising services such as Google AdSense. These services may use cookies to show ads based on user interests and browsing behavior.
                             </p>
                             <p>
-                                Users can control ad personalization through Google Ads Settings.
+                                Users can control ad personalization through <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">Google Ads Settings</a>.
                             </p>
                         </section>
 
                         <section>
-                            <h2>11. Contact Us</h2>
+                            <h2>10. Contact Us</h2>
                             <p>
                                 If you have any questions, contact us at: <strong>Contact@careervedha.com</strong>
                             </p>

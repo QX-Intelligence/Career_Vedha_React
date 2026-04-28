@@ -3,6 +3,7 @@ import Header from '../components/layout/Header';
 import PrimaryNav from '../components/layout/PrimaryNav';
 import Footer from '../components/layout/Footer';
 import ContactForm from '../components/ui/ContactForm';
+import SEO from '../components/seo/SEO';
 import '../styles/TermsAndConditions.css';
 
 const AboutUs = () => {
@@ -15,6 +16,11 @@ const AboutUs = () => {
 
     return (
         <div className="page-wrapper">
+            <SEO
+                title="About Us"
+                description="Career Vedha is an advanced ed-tech platform connecting education, competitive exams, career guidance, and job opportunities for learners across India."
+                url="https://careervedha.com/about"
+            />
             <Header />
             <PrimaryNav />
 
