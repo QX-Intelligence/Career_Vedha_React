@@ -19,7 +19,6 @@
         "clsx": "^2.1.1",
         "framer-motion": "^12.29.2",
         "lucide-react": "^0.563.0",
-        "quill-better-table": "^1.2.10",
         "react": "^18.2.0",
         "react-chartjs-2": "^5.3.1",
         "react-d3-tree": "^3.6.6",

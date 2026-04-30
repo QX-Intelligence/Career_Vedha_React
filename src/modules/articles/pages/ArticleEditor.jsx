@@ -15,15 +15,6 @@ import { useAdminCategories, useTaxonomyLevels, useTaxonomyTree, useSections, us
 import './ArticleEditor.css';
 import '../../../styles/Dashboard.css';
 import ReactQuill from 'react-quill';
-import QuillBetterTable from 'quill-better-table';
-import 'quill-better-table/dist/quill-better-table.css';
-
-const Quill = ReactQuill.Quill;
-if (Quill) {
-    Quill.register({
-        'modules/better-table': QuillBetterTable
-    }, true);
-}
 
 // ─── Robust Quill Wrapper to prevent cursor jumping ──────────────────────────
 const QuillWrapper = ({ value, onChange, placeholder, modules, formats, className }) => {
@@ -596,17 +587,6 @@ const ArticleEditor = () => {
     // Enhanced Quill modules with full formatting
     // Enhanced Quill modules with full formatting (Memoized to prevent cursor jump/loss of focus)
     const modules = useMemo(() => ({
-        table: false,
-        'better-table': {
-            operationMenu: {
-                items: {
-                    unmergeCells: { text: 'Unmerge Cells' }
-                }
-            }
-        },
-        keyboard: {
-            bindings: QuillBetterTable.keyboardBindings
-        },
         toolbar: {
             container: [
                 [{ 'font': [] }],
@@ -624,18 +604,29 @@ const ArticleEditor = () => {
             ],
             handlers: {
                 table: function() {
-                    const tableModule = this.quill.getModule('better-table');
-                    if (!tableModule) {
-                        console.error("better-table module not found");
-                        return;
-                    }
                     const rowsStr = prompt('Enter number of rows:', '3');
                     const colsStr = prompt('Enter number of columns:', '3');
                     if (rowsStr && colsStr) {
                         const rows = parseInt(rowsStr);
                         const cols = parseInt(colsStr);
                         if (!isNaN(rows) && !isNaN(cols) && rows > 0 && cols > 0) {
-                            tableModule.insertTable(rows, cols);
+                            // Inject robust HTML table directly
+                            let tableHTML = '<table class="ql-table-custom" style="width: 100%; border-collapse: collapse; table-layout: fixed;"><tbody>';
+                            for(let i=0; i<rows; i++){
+                                tableHTML += '<tr>';
+                                for(let j=0; j<cols; j++){
+                                    tableHTML += '<td style="border: 1px solid #ccc; padding: 8px; word-wrap: break-word; white-space: pre-wrap; max-width: 250px;"><br></td>';
+                                }
+                                tableHTML += '</tr>';
+                            }
+                            tableHTML += '</tbody></table><p><br></p>';
+                            
+                            const range = this.quill.getSelection();
+                            if (range) {
+                                this.quill.clipboard.dangerouslyPasteHTML(range.index, tableHTML);
+                            } else {
+                                this.quill.clipboard.dangerouslyPasteHTML(this.quill.getLength(), tableHTML);
+                            }
                         }
                     }
                 }
