@@ -53,11 +53,6 @@
     border-radius: var(--ae-radius);
     box-shadow: var(--ae-shadow);
     margin-bottom: 2rem;
-    position: sticky;
-    top: calc(var(--header-height, 64px) + 0.5rem);
-    z-index: 50;
-    backdrop-filter: blur(16px);
-    background: rgba(255,255,255,0.92);
 }
 
 .ae-header-left {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { globalSearchService } from '../../services';
 import { getTranslations } from '../../utils/translations';
 import { useLanguage } from '../../context/LanguageContext';
@@ -35,8 +35,15 @@ const Header = ({ onToggleMenu, isMenuOpen }) => {
         }
     };
 
+    const location = useLocation();
+
     const toggleLanguage = (lang) => {
-        setLanguage(lang);
+        if (lang !== activeLanguage) {
+            setLanguage(lang);
+            if (location.pathname.startsWith('/article/')) {
+                navigate('/');
+            }
+        }
     };
 
     return (

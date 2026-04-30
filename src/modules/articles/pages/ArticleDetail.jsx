@@ -131,6 +131,21 @@ const ArticleDetail = () => {
         }
     };
 
+    const formatTime = (dateString) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            const locale = activeLanguage === 'telugu' ? 'te-IN' : 'en-IN';
+            return date.toLocaleTimeString(locale, {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch (e) {
+            return '';
+        }
+    };
+
     const articleSchema = useMemo(() => {
         if (!article) return null;
         return {
@@ -202,6 +217,23 @@ const ArticleDetail = () => {
                                 <span className="current">{article.title}</span>
                             </nav>
 
+                            <h1 className="article-main-title">{article.title}</h1>
+
+                            <div className="article-meta-large">
+                                <div className="meta-item">
+                                    <i className="far fa-calendar-alt"></i>
+                                    <span>{formatDate(article.published_at || article.created_at)}</span>
+                                </div>
+                                <div className="meta-item">
+                                    <i className="far fa-user"></i>
+                                    <span>Admin</span>
+                                </div>
+                                <div className="meta-item">
+                                    <i className="far fa-clock"></i>
+                                    <span>{formatTime(article.published_at || article.created_at)}</span>
+                                </div>
+                            </div>
+
                             {/* Featured Media Section - Blocked Banner, showing MAIN as per request */}
                             {(() => {
                                 // Handle both 'media' (public API) and 'media_links' (CMS API)
@@ -255,23 +287,6 @@ const ArticleDetail = () => {
                                     </div>
                                 );
                             })()}
-
-                            <h1 className="article-main-title">{article.title}</h1>
-
-                            <div className="article-meta-large">
-                                <div className="meta-item">
-                                    <i className="far fa-calendar-alt"></i>
-                                    <span>{formatDate(article.published_at || article.created_at)}</span>
-                                </div>
-                                <div className="meta-item">
-                                    <i className="far fa-user"></i>
-                                    <span>Admin</span>
-                                </div>
-                                <div className="meta-item">
-                                    <i className="far fa-eye"></i>
-                                    <span>{article.views_count || 0} Views</span>
-                                </div>
-                            </div>
 
                             <div className="article-body-content">
                                 {article.summary && <p className="article-summary-lead">{article.summary}</p>}
@@ -327,7 +342,7 @@ const ArticleDetail = () => {
                                 <div className="article-inline-discovery">
                                     <ContentHubWidget 
                                         searchQuery={searchContext} 
-                                        title={activeLanguage === 'telugu' ? `${searchContext} కి సంబంధించినవి` : `Related to ${searchContext}`}
+                                        title={activeLanguage === 'telugu' ? 'సంబంధిత కథనాలు' : 'Related Articles'}
                                         minimal={true}
                                         excludeIds={[article.id]}
                                     />

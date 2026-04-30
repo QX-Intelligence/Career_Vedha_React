@@ -1,13 +1,21 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { User, Globe } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 const MobileTopBar = () => {
   const { activeLanguage, setLanguage } = useLanguage();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const toggleLanguage = (lang) => {
-      setLanguage(lang);
+      if (lang !== activeLanguage) {
+          setLanguage(lang);
+          if (location.pathname.startsWith('/article/')) {
+              navigate('/');
+          }
+      }
   };
 
   return (
