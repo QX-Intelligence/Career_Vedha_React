@@ -21,16 +21,22 @@ export const ourServicesService = {
     update: async (id, payload) => (await api.put(`${BASE}/${id}`, payload)).data,
     delete: async (id) => (await api.delete(`${BASE}/${id}`)).data,
 
-    // Image Upload — using clean axios instance for better performance than fetch
+    // Image Upload — Direct to S3 via Presigned URL (bypasses Nginx completely for maximum speed)
     uploadImage: async (file, onProgress) => {
-        const fd = new FormData();
-        fd.append('file', file);
-        const token = getAccessToken();
+        // 1. Get the Presigned URL from the backend
+        const presignedRes = await api.get(`${BASE}/upload-presigned`, {
+            params: {
+                filename: file.name,
+                contentType: file.type
+            }
+        });
         
-        const response = await uploadClient.post(`${BASE}/upload`, fd, {
+        const { key, url: s3Url } = presignedRes.data;
+        
+        // 2. Upload directly to S3 URL using raw axios (no interceptors, no auth headers)
+        await axios.put(s3Url, file, {
             headers: {
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                // DO NOT set Content-Type — browser auto-generates boundary
+                'Content-Type': file.type
             },
             onUploadProgress: (progressEvent) => {
                 const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -41,7 +47,7 @@ export const ourServicesService = {
             }
         });
         
-        return response.data;
+        return { key, url: s3Url };
     },
     deleteImage: async (key) => (await api.delete(`${BASE}/file`, { params: { key } })).data,
 };
