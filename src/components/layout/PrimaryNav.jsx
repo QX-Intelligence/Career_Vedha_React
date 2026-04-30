@@ -124,8 +124,9 @@ const PrimaryNav = ({ isOpen }) => {
                     Promise.all(
                         TREE_SECTIONS.map(async (slug) => {
                             let data = await newsService.getTaxonomyTree(slug, activeLanguage);
-                            if ((!Array.isArray(data) || data.length === 0) && activeLanguage === 'english') {
-                                data = await newsService.getTaxonomyTree(slug, 'telugu');
+                            if (!Array.isArray(data) || data.length === 0) {
+                                const fallbackLang = activeLanguage === 'english' ? 'telugu' : 'english';
+                                data = await newsService.getTaxonomyTree(slug, fallbackLang);
                             }
                             return { slug, data: Array.isArray(data) ? data : [] };
                         })
@@ -133,8 +134,9 @@ const PrimaryNav = ({ isOpen }) => {
                     Promise.all(
                         LEVEL_SECTIONS.map(async (slug) => {
                             let data = await newsService.getTaxonomyLevels(slug, activeLanguage);
-                            if ((!Array.isArray(data) || data.length === 0) && activeLanguage === 'english') {
-                                data = await newsService.getTaxonomyLevels(slug, 'telugu');
+                            if (!Array.isArray(data) || data.length === 0) {
+                                const fallbackLang = activeLanguage === 'english' ? 'telugu' : 'english';
+                                data = await newsService.getTaxonomyLevels(slug, fallbackLang);
                             }
                             return { slug, data: Array.isArray(data) ? data : [] };
                         })

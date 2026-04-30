@@ -65,7 +65,11 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                 Promise.all(
                     TREE_SECTIONS.map(async (slug) => {
                         try {
-                            const data = await newsService.getTaxonomyTree(slug, activeLanguage);
+                            let data = await newsService.getTaxonomyTree(slug, activeLanguage);
+                            if (!Array.isArray(data) || data.length === 0) {
+                                const fallbackLang = activeLanguage === 'english' ? 'telugu' : 'english';
+                                data = await newsService.getTaxonomyTree(slug, fallbackLang);
+                            }
                             return { slug, data: Array.isArray(data) ? data : [] };
                         } catch (err) {
                             console.warn(`Failed to fetch taxonomy tree for ${slug}:`, err);
@@ -76,7 +80,11 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                 Promise.all(
                     LEVEL_SECTIONS.map(async (slug) => {
                         try {
-                            const data = await newsService.getTaxonomyLevels(slug, activeLanguage);
+                            let data = await newsService.getTaxonomyLevels(slug, activeLanguage);
+                            if (!Array.isArray(data) || data.length === 0) {
+                                const fallbackLang = activeLanguage === 'english' ? 'telugu' : 'english';
+                                data = await newsService.getTaxonomyLevels(slug, fallbackLang);
+                            }
                             return { slug, data: Array.isArray(data) ? data : [] };
                         } catch (err) {
                             console.warn(`Failed to fetch taxonomy levels for ${slug}:`, err);
