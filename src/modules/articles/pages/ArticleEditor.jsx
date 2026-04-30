@@ -93,7 +93,15 @@ const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, 
         if (source === 'user') {
             // Read innerHTML directly to preserve the exact DOM state of our editable cells
             const editor = quillRef.current ? quillRef.current.getEditor() : null;
-            const actualHTML = editor ? editor.root.innerHTML : content;
+            let actualHTML = editor ? editor.root.innerHTML : content;
+            
+            // Clean up internal attributes before emitting to parent 
+            // (so they don't get saved to DB and blocked by AWS WAF / Nginx ModSecurity which drops connections on XSS vectors)
+            if (actualHTML) {
+                actualHTML = actualHTML.replace(/ contenteditable="true"/g, '');
+                actualHTML = actualHTML.replace(/ contenteditable="false"/g, '');
+            }
+
             lastEmittedValue.current = actualHTML;
             onChange(actualHTML);
         }
