@@ -136,7 +136,8 @@ const OurServicesEditor = () => {
                     
                     showSnackbar('Image uploaded successfully', 'success');
                 } catch (error) {
-                    const backendMsg = error.response?.data?.message || error.response?.data?.error;
+                    console.error('Upload error:', error);
+                    const backendMsg = error.message || error.response?.data?.message || error.response?.data?.error;
                     showSnackbar(backendMsg ? `Upload failed: ${backendMsg}` : 'Image upload failed. Please check file size and type.', 'error');
                 }
             }
