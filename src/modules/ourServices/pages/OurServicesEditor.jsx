@@ -94,6 +94,9 @@ const OurServicesEditor = () => {
         const input = document.createElement('input');
         input.setAttribute('type', 'file');
         input.setAttribute('accept', 'image/*');
+        input.style.display = 'none'; // Hide it
+        document.body.appendChild(input); // Append to DOM to prevent Garbage Collection during upload
+
         input.click();
 
         input.onchange = async () => {
@@ -102,6 +105,7 @@ const OurServicesEditor = () => {
                 // Proactively prevent files larger than 10MB from being uploaded
                 if (file.size > 10 * 1024 * 1024) {
                     showSnackbar('File size exceeds the maximum limit of 10MB. Please choose a smaller image.', 'warning');
+                    document.body.removeChild(input); // Clean up
                     return;
                 }
                 
@@ -139,10 +143,17 @@ const OurServicesEditor = () => {
                     console.error('Upload error:', error);
                     const backendMsg = error.message || error.response?.data?.message || error.response?.data?.error;
                     showSnackbar(backendMsg ? `Upload failed: ${backendMsg}` : 'Image upload failed. Please check file size and type.', 'error');
+                } finally {
+                    // Clean up the DOM node after everything is done
+                    if (document.body.contains(input)) {
+                        document.body.removeChild(input);
+                    }
                 }
+            } else {
+                // Clean up if user cancels the file dialog
+                document.body.removeChild(input);
             }
         };
-
     };
 
     const handleDeleteUploadedImage = async (serverKey) => {
