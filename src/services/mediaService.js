@@ -8,10 +8,15 @@ import API_CONFIG from '../config/api.config';
 const mediaService = {
     /**
      * Upload media file (multipart/form-data)
+     * Uses an extended 5-minute timeout because the upload goes:
+     * Browser → NGINX → Django → S3 synchronously, which can exceed the
+     * default 120s on large images or slow connections.
      */
-    upload: async (formData) => {
+    upload: async (formData, onUploadProgress) => {
         const response = await djangoApi.post(API_CONFIG.MEDIA.UPLOAD, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 300000, // 5 minutes for S3 uploads
+            onUploadProgress,
         });
         return response.data;
     },
@@ -45,7 +50,8 @@ const mediaService = {
      */
     replace: async (id, formData) => {
         const response = await djangoApi.patch(`${API_CONFIG.MEDIA.REPLACE}${id}/replace/`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 300000,
         });
         return response.data;
     },

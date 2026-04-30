@@ -127,8 +127,8 @@ const API_CONFIG = {
         DELETE: 'media/', // + <id>/
     },
 
-    // Request timeout in milliseconds (120 seconds for slow uploads)
-    TIMEOUT: 120000,
+    // Request timeout in milliseconds (5 minutes for slow uploads)
+    TIMEOUT: 300000,
 
     // Headers
     HEADERS: {

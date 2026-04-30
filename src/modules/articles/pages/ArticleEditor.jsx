@@ -811,15 +811,23 @@ const ArticleEditor = () => {
 
         if (bannerFile) {
             if (canPreUpload) {
-                showSnackbar('Uploading banner image…', 'info');
+                showSnackbar('Uploading banner image...', 'info');
                 const fd = new FormData();
                 fd.append('file', bannerFile);
                 fd.append('purpose', 'article');
                 fd.append('section', section || '');
-                const result = await mediaService.upload(fd);
+                
+                const result = await mediaService.upload(fd, (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    if (percentCompleted % 20 === 0) { // Reduce snackbar noise
+                        showSnackbar(`Uploading banner: ${percentCompleted}%`, 'info');
+                    }
+                });
+                
                 resolvedBannerMediaId = result.media_id;
                 setBannerMediaId(result.media_id);
                 setBannerFile(null);
+                showSnackbar('Banner uploaded successfully', 'success');
             } else {
                 // CONTRIBUTOR/EDITOR: send raw file directly in article payload
                 fallbackBannerFile = bannerFile;
@@ -828,16 +836,24 @@ const ArticleEditor = () => {
 
         if (mainFile) {
             if (canPreUpload) {
-                showSnackbar('Uploading main image…', 'info');
+                showSnackbar('Uploading main image...', 'info');
                 const fd = new FormData();
                 fd.append('file', mainFile);
                 fd.append('purpose', 'article');
                 fd.append('section', section || '');
-                const result = await mediaService.upload(fd);
+                
+                const result = await mediaService.upload(fd, (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    if (percentCompleted % 20 === 0) {
+                        showSnackbar(`Uploading main image: ${percentCompleted}%`, 'info');
+                    }
+                });
+
                 resolvedMainMediaId = result.media_id;
                 if (canPreUpload) setBannerMediaId(resolvedBannerMediaId); // keep in sync
                 setMainMediaId(result.media_id);
                 setMainFile(null);
+                showSnackbar('Main image uploaded successfully', 'success');
             } else {
                 fallbackMainFile = mainFile;
             }
