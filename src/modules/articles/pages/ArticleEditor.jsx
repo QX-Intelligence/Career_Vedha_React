@@ -16,6 +16,62 @@ import './ArticleEditor.css';
 import '../../../styles/Dashboard.css';
 import ReactQuill from 'react-quill';
 
+// ─── Register custom Table blots so Quill doesn't strip <table> HTML ─────────
+const Quill = ReactQuill.Quill;
+if (Quill) {
+    const Block = Quill.import('blots/block');
+    const Container = Quill.import('blots/container');
+
+    class TableCellBlot extends Block {
+        static create(value) {
+            const node = super.create();
+            node.setAttribute('style', 'border: 1px solid #ccc; padding: 8px; word-wrap: break-word; white-space: pre-wrap; max-width: 250px; vertical-align: top;');
+            return node;
+        }
+    }
+    TableCellBlot.blotName = 'table-cell';
+    TableCellBlot.tagName = 'TD';
+
+    class TableRowBlot extends Container {
+        static create(value) {
+            return super.create();
+        }
+    }
+    TableRowBlot.blotName = 'table-row';
+    TableRowBlot.tagName = 'TR';
+    TableRowBlot.allowedChildren = [TableCellBlot];
+
+    class TableBodyBlot extends Container {
+        static create(value) {
+            return super.create();
+        }
+    }
+    TableBodyBlot.blotName = 'table-body';
+    TableBodyBlot.tagName = 'TBODY';
+    TableBodyBlot.allowedChildren = [TableRowBlot];
+
+    class TableContainerBlot extends Container {
+        static create(value) {
+            const node = super.create();
+            node.setAttribute('style', 'width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 1rem;');
+            node.setAttribute('class', 'ql-table-custom');
+            return node;
+        }
+    }
+    TableContainerBlot.blotName = 'table-container';
+    TableContainerBlot.tagName = 'TABLE';
+    TableContainerBlot.allowedChildren = [TableBodyBlot];
+
+    TableRowBlot.requiredContainer = TableBodyBlot;
+    TableCellBlot.requiredContainer = TableRowBlot;
+    TableBodyBlot.requiredContainer = TableContainerBlot;
+
+    Quill.register(TableCellBlot, true);
+    Quill.register(TableRowBlot, true);
+    Quill.register(TableBodyBlot, true);
+    Quill.register(TableContainerBlot, true);
+}
+
 // ─── Robust Quill Wrapper to prevent cursor jumping ──────────────────────────
 const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, formats, className }, ref) => {
     const quillRef = useRef(null);
