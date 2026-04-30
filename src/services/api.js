@@ -152,7 +152,7 @@ export const logout = async () => {
     } finally {
         // Clear local context
         setUserContext(null, null, null);
-        
+
         // Disconnect WebSocket if active (Dynamic import to avoid circular dependency)
         try {
             const { disconnectWebSocket } = await import('./socket');

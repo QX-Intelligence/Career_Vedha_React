@@ -18,7 +18,10 @@ export const ourServicesService = {
     uploadImage: async (file) => {
         const fd = new FormData();
         fd.append('file', file);
-        return (await api.post(`${BASE}/upload`, fd)).data;
+        return (await api.post(`${BASE}/upload`, fd, {
+            timeout: 300000, // 5 min — large images need time
+            headers: { 'Content-Type': undefined }, // Force browser to set multipart boundary
+        })).data;
     },
     deleteImage: async (key) => (await api.delete(`${BASE}/file`, { params: { key } })).data,
 };
