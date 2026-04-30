@@ -259,3 +259,24 @@
 .slide-in-top {
     animation: slideInDown 0.3s ease-out;
 }
+
+/* Language Badges */
+.lang-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.lang-badge.te {
+    background: #FFF3E0;
+    color: #EF6C00;
+    border: 1px solid #FFE0B2;
+}
+
+.lang-badge.en {
+    background: #E8EAF6;
+    color: #283593;
+    border: 1px solid #C5CAE9;
+}

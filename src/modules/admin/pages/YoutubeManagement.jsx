@@ -11,7 +11,7 @@ const YoutubeManagement = () => {
     const [activeTab, setActiveTab] = useState('SHORT');
     const [selectedIds, setSelectedIds] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentVideo, setCurrentVideo] = useState({ title: '', url: '', category: 'SHORT' });
+    const [currentVideo, setCurrentVideo] = useState({ title: '', url: '', category: 'SHORT', language: 'TE' });
     const [isEditing, setIsEditing] = useState(false);
 
     const fetchVideos = useCallback(async () => {
@@ -32,10 +32,13 @@ const YoutubeManagement = () => {
 
     const handleOpenModal = (video = null) => {
         if (video) {
-            setCurrentVideo(video);
+            setCurrentVideo({
+                ...video,
+                language: video.language || 'TE'
+            });
             setIsEditing(true);
         } else {
-            setCurrentVideo({ title: '', url: '', category: activeTab });
+            setCurrentVideo({ title: '', url: '', category: activeTab, language: 'TE' });
             setIsEditing(false);
         }
         setIsModalOpen(true);
@@ -43,7 +46,7 @@ const YoutubeManagement = () => {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setCurrentVideo({ title: '', url: '', category: activeTab });
+        setCurrentVideo({ title: '', url: '', category: activeTab, language: 'TE' });
         setIsEditing(false);
     };
 
@@ -141,6 +144,7 @@ const YoutubeManagement = () => {
                                 />
                             </th>
                             <th>Title</th>
+                            <th>Language</th>
                             <th>URL</th>
                             <th>Actions</th>
                         </tr>
@@ -149,7 +153,7 @@ const YoutubeManagement = () => {
                         {loading ? (
                             [1, 2, 3, 4, 5].map(i => (
                                 <tr key={i}>
-                                    <td colSpan="4"><Skeleton variant="text" width="100%" height="40px" /></td>
+                                    <td colSpan="5"><Skeleton variant="text" width="100%" height="40px" /></td>
                                 </tr>
                             ))
                         ) : videos.length > 0 ? (
@@ -166,6 +170,11 @@ const YoutubeManagement = () => {
                                         <div className="video-title-cell">
                                             <strong>{video.title}</strong>
                                         </div>
+                                    </td>
+                                    <td>
+                                        <span className={`lang-badge ${video.language?.toLowerCase() || 'te'}`}>
+                                            {video.language === 'EN' ? 'English' : 'Telugu'}
+                                        </span>
                                     </td>
                                     <td>
                                         <a href={video.url} target="_blank" rel="noopener noreferrer" className="video-url-link">
@@ -186,7 +195,7 @@ const YoutubeManagement = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="empty-row">No videos found.</td>
+                                <td colSpan="5" className="empty-row">No videos found.</td>
                             </tr>
                         )}
                     </tbody>
@@ -224,16 +233,29 @@ const YoutubeManagement = () => {
                                 />
                                 <small>Shorts or standard YouTube URLs are supported.</small>
                             </div>
-                            <div className="form-group">
-                                <label>Category</label>
-                                <select 
-                                    name="category" 
-                                    value={currentVideo.category} 
-                                    onChange={handleInputChange}
-                                >
-                                    <option value="SHORT">Shorts</option>
-                                    <option value="LONG">Long Video</option>
-                                </select>
+                            <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                <div className="form-group">
+                                    <label>Category</label>
+                                    <select 
+                                        name="category" 
+                                        value={currentVideo.category} 
+                                        onChange={handleInputChange}
+                                    >
+                                        <option value="SHORT">Shorts</option>
+                                        <option value="LONG">Long Video</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Language</label>
+                                    <select 
+                                        name="language" 
+                                        value={currentVideo.language} 
+                                        onChange={handleInputChange}
+                                    >
+                                        <option value="TE">Telugu</option>
+                                        <option value="EN">English</option>
+                                    </select>
+                                </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="cancel-btn" onClick={handleCloseModal}>Cancel</button>
