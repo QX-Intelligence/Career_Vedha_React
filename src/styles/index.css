@@ -2142,17 +2142,25 @@ section {
 }
 
 @media (max-width: 768px) {
+    .must-read-brand-label {
+        padding: 0 8px;
+        gap: 4px;
+    }
+
     .must-read-brand-label h3 {
         display: block;
-        font-size: 11px;
-        font-weight: 700;
-        margin-right: 2px;
+        font-size: 10px;
+        font-weight: 800;
+        margin-right: 0;
+        letter-spacing: 0;
     }
 
     .must-read-icon {
         display: block;
-        /* Show icon on mobile */
+        font-size: 12px;
     }
+
+
 
     .must-read-section {
         padding: 10px 0;
@@ -2204,12 +2212,11 @@ section {
     }
 
     .must-read-wrapper {
-        gap: 10px;
+        gap: 6px;
         align-items: center;
         height: auto;
         min-height: 44px;
-        padding-top: 4px;
-        padding-bottom: 4px;
+        padding: 4px 8px;
     }
 }
 
