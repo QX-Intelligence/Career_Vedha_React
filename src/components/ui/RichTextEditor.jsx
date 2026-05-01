@@ -52,18 +52,27 @@ const MenuBar = ({ editor, onImageClick }) => {
         }
     }
 
-    const [savedSelection, setSavedSelection] = React.useState(null);
+    const lastSelection = React.useRef(null);
 
-    const handleColorFocus = () => {
-        // Save the exact range so it can't be mutated or lost
-        const { from, to } = editor.state.selection;
-        setSavedSelection({ from, to });
-    };
+    React.useEffect(() => {
+        if (!editor) return;
+        
+        const updateSelection = () => {
+            const { from, to } = editor.state.selection;
+            // Only save if it's an actual text selection (not just a cursor)
+            if (from !== to) {
+                lastSelection.current = { from, to };
+            }
+        };
+
+        editor.on('selectionUpdate', updateSelection);
+        return () => editor.off('selectionUpdate', updateSelection);
+    }, [editor]);
 
     const setColor = (e) => {
         const color = e.target.value;
-        if (savedSelection && savedSelection.from !== savedSelection.to) {
-            editor.chain().focus().setTextSelection(savedSelection).setColor(color).run();
+        if (lastSelection.current) {
+            editor.chain().focus().setTextSelection(lastSelection.current).setColor(color).run();
         } else {
             editor.chain().focus().setColor(color).run();
         }
@@ -142,9 +151,9 @@ const MenuBar = ({ editor, onImageClick }) => {
             <div className="toolbar-divider" />
 
             <div className="toolbar-group">
-                <div className="color-picker-wrapper" title="Text Color" onMouseDown={handleColorFocus} onClick={handleColorFocus}>
+                <div className="color-picker-wrapper" title="Text Color">
                     <Baseline size={16} style={{ color: editor.getAttributes('textStyle').color || 'currentColor' }} />
-                    <input type="color" onMouseDown={handleColorFocus} onClick={handleColorFocus} onInput={setColor} onChange={setColor} value={editor.getAttributes('textStyle').color || '#000000'} />
+                    <input type="color" onInput={setColor} onChange={setColor} value={editor.getAttributes('textStyle').color || '#000000'} />
                 </div>
                 <button type="button" onClick={() => editor.chain().focus().toggleHighlight().run()} className={editor.isActive('highlight') ? 'is-active' : ''} title="Highlight">
                     <Highlighter size={16} />
