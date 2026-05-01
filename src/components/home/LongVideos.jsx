@@ -4,7 +4,7 @@ import { youtubeService } from '../../services';
 import Skeleton from '../ui/Skeleton';
 import VideoPlayerModal from '../ui/VideoPlayerModal';
 
-const LongVideos = () => {
+const LongVideos = ({ activeLanguage }) => {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedVideo, setSelectedVideo] = useState(null);
@@ -14,7 +14,7 @@ const LongVideos = () => {
         const fetchVideos = async () => {
             setLoading(true);
             try {
-                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.LONG);
+                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.LONG, null, { language: activeLanguage });
                 setVideos(data.slice(0, 4)); // Show 4 videos in the section
             } catch (error) {
                 console.error('Error loading long videos:', error);
@@ -24,7 +24,7 @@ const LongVideos = () => {
         };
 
         fetchVideos();
-    }, []);
+    }, [activeLanguage]);
 
     const getYoutubeId = (url) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;

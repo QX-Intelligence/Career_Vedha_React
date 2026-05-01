@@ -14,7 +14,7 @@ const Shorts = ({ activeLanguage }) => {
         const fetchShorts = async () => {
             setLoading(true);
             try {
-                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.SHORT);
+                const data = await youtubeService.getYoutubeUrls(youtubeService.CATEGORIES.SHORT, null, { language: activeLanguage });
                 // Return only 4-6 for the home page section
                 setShorts(data.slice(0, 6));
             } catch (error) {
@@ -25,7 +25,7 @@ const Shorts = ({ activeLanguage }) => {
         };
 
         fetchShorts();
-    }, []);
+    }, [activeLanguage]);
 
     const getYoutubeId = (url) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;

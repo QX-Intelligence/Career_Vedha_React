@@ -9,22 +9,23 @@ const YoutubeManagement = () => {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('SHORT');
+    const [activeLanguage, setActiveLanguage] = useState('EN');
     const [selectedIds, setSelectedIds] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentVideo, setCurrentVideo] = useState({ title: '', url: '', category: 'SHORT' });
+    const [currentVideo, setCurrentVideo] = useState({ title: '', url: '', category: 'SHORT', language: 'EN' });
     const [isEditing, setIsEditing] = useState(false);
 
     const fetchVideos = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await youtubeService.getYoutubeUrls(activeTab);
+            const data = await youtubeService.getYoutubeUrls(activeTab, null, { language: activeLanguage });
             setVideos(data);
         } catch (error) {
             showSnackbar('Failed to fetch YouTube URLs', 'error');
         } finally {
             setLoading(false);
         }
-    }, [activeTab, showSnackbar]);
+    }, [activeTab, activeLanguage, showSnackbar]);
 
     useEffect(() => {
         fetchVideos();
@@ -35,7 +36,7 @@ const YoutubeManagement = () => {
             setCurrentVideo(video);
             setIsEditing(true);
         } else {
-            setCurrentVideo({ title: '', url: '', category: activeTab });
+            setCurrentVideo({ title: '', url: '', category: activeTab, language: activeLanguage });
             setIsEditing(false);
         }
         setIsModalOpen(true);
@@ -43,7 +44,7 @@ const YoutubeManagement = () => {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setCurrentVideo({ title: '', url: '', category: activeTab });
+        setCurrentVideo({ title: '', url: '', category: activeTab, language: activeLanguage });
         setIsEditing(false);
     };
 
@@ -116,6 +117,17 @@ const YoutubeManagement = () => {
                 >
                     Long Videos
                 </button>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <label style={{ margin: 0, fontWeight: 500 }}>Language:</label>
+                    <select 
+                        value={activeLanguage}
+                        onChange={(e) => setActiveLanguage(e.target.value)}
+                        style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', fontSize: '14px', fontWeight: '500', color: '#334155', cursor: 'pointer', outline: 'none' }}
+                    >
+                        <option value="EN">English</option>
+                        <option value="TE">Telugu</option>
+                    </select>
+                </div>
             </div>
 
             <div className="table-actions">
@@ -233,6 +245,17 @@ const YoutubeManagement = () => {
                                 >
                                     <option value="SHORT">Shorts</option>
                                     <option value="LONG">Long Video</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Language</label>
+                                <select 
+                                    name="language" 
+                                    value={currentVideo.language || 'EN'} 
+                                    onChange={handleInputChange}
+                                >
+                                    <option value="EN">English</option>
+                                    <option value="TE">Telugu</option>
                                 </select>
                             </div>
                             <div className="modal-footer">
