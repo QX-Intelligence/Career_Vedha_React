@@ -64,6 +64,7 @@ if (Quill) {
 const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, formats, className }, ref) => {
     const quillRef = useRef(null);
     const lastEmittedValue = useRef(value);
+    const emittedHistory = useRef([]);
 
     React.useImperativeHandle(ref, () => ({
         getEditor: () => {
@@ -82,11 +83,17 @@ const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, 
 
     useEffect(() => {
         if (quillRef.current && value !== lastEmittedValue.current) {
+            // Prevent lagging prop updates from resetting the editor and moving cursor to top
+            if (emittedHistory.current.includes(value)) {
+                return;
+            }
+            
             const editor = quillRef.current.getEditor();
             // Since we use a proper Blot now, we can use clipboard.convert safely!
             const delta = editor.clipboard.convert(value || '');
             editor.setContents(delta, 'silent');
             lastEmittedValue.current = value;
+            emittedHistory.current = []; // Clear history on external programmatic update
         }
     }, [value]);
 
@@ -108,6 +115,10 @@ const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, 
             }
 
             lastEmittedValue.current = actualHTML;
+            emittedHistory.current.push(actualHTML);
+            if (emittedHistory.current.length > 10) {
+                emittedHistory.current.shift();
+            }
             onChange(actualHTML);
         }
     };
