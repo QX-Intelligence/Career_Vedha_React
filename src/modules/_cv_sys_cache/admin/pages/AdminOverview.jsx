@@ -77,9 +77,9 @@ const AdminOverview = () => {
         try {
             // Check if we already have a GST entry (to update) or need to add a new one
             if (gstData.length > 0) {
-                await inventoryApi.put(`admin/gst/${gstData[0].id}?percentage=${newGst}`);
+                await inventoryApi.put(`admin/gst/${gstData[0].id}?gstPercentage=${newGst}`);
             } else {
-                await inventoryApi.post(`admin/gst?percentage=${newGst}`);
+                await inventoryApi.post(`admin/gst?gstPercentage=${newGst}`);
             }
             showSnackbar("GST Percentage updated successfully", "success");
             const res = await inventoryApi.get('admin/gst');
@@ -276,7 +276,7 @@ const AdminOverview = () => {
                         <label className="um-label">Current GST Percentage</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                             <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--slate-900)' }}>
-                                {gstData.length > 0 ? gstData[0].percentage : '0'}%
+                                {gstData.length > 0 ? gstData[0].gstPercentage : '0'}%
                             </div>
                             <span className="um-status-badge active">Active</span>
                         </div>
