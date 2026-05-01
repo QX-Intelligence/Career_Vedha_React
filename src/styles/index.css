@@ -2160,16 +2160,23 @@ section {
         align-items: center;
         padding: 6px 14px;
         overflow: hidden;
-        text-overflow: ellipsis;
         max-width: 100%;
+        display: flex;
+        width: 100%;
     }
 
     .must-read-item p {
         font-size: 13px;
         white-space: nowrap !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
         margin: 0;
+        flex-shrink: 0;
+        padding-left: 65vw;
+        animation: scrollNewsText 8s linear infinite;
+    }
+
+    @keyframes scrollNewsText {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
     }
 
     .ticker-item-wrapper {
