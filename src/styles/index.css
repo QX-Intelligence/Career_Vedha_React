@@ -2134,8 +2134,9 @@ section {
 
 @media (max-width: 768px) {
     .must-read-brand-label h3 {
-        display: none;
-        /* Hide text on mobile */
+        display: block;
+        font-size: 12px;
+        margin-right: 4px;
     }
 
     .must-read-icon {
