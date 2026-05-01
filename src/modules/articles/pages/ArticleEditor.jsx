@@ -61,10 +61,9 @@ if (Quill) {
 }
 
 // ─── Robust Quill Wrapper ────────────────────────────────────────────────────
-const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, formats, className }, ref) => {
+const QuillWrapper = React.forwardRef(({ value, version, onChange, placeholder, modules, formats, className }, ref) => {
     const quillRef = useRef(null);
-    const lastEmittedValue = useRef(value);
-    const emittedHistory = useRef([]);
+    const lastVersion = useRef(version);
 
     React.useImperativeHandle(ref, () => ({
         getEditor: () => {
@@ -82,39 +81,13 @@ const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, 
     }));
 
     useEffect(() => {
-        if (quillRef.current && value !== lastEmittedValue.current) {
+        if (quillRef.current && version !== lastVersion.current) {
             const editor = quillRef.current.getEditor();
-
-            // If the editor is currently focused, the user is actively working.
-            // Never reset contents from lagging props while focused to prevent cursor jumping!
-            if (editor.hasFocus()) {
-                lastEmittedValue.current = value;
-                return;
-            }
-
-            // Prevent lagging prop updates from resetting the editor
-            if (emittedHistory.current.includes(value)) {
-                lastEmittedValue.current = value;
-                return;
-            }
-            
-            // Save selection before making any changes
-            const currentSelection = editor.getSelection();
-
-            // Since we use a proper Blot now, we can use clipboard.convert safely!
             const delta = editor.clipboard.convert(value || '');
             editor.setContents(delta, 'silent');
-            lastEmittedValue.current = value;
-            emittedHistory.current = []; // Clear history on external programmatic update
-
-            // Restore selection if there was one
-            if (currentSelection) {
-                setTimeout(() => {
-                    editor.setSelection(currentSelection.index, currentSelection.length, 'silent');
-                }, 0);
-            }
+            lastVersion.current = version;
         }
-    }, [value]);
+    }, [version, value]);
 
     const handleChange = (content, delta, source) => {
         if (source === 'user') {
@@ -133,11 +106,6 @@ const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, 
                 actualHTML = tempDiv.innerHTML;
             }
 
-            lastEmittedValue.current = actualHTML;
-            emittedHistory.current.push(actualHTML);
-            if (emittedHistory.current.length > 10) {
-                emittedHistory.current.shift();
-            }
             onChange(actualHTML);
         }
     };
@@ -162,6 +130,7 @@ const ArticleEditor = () => {
     const isEditMode = !!id;
     const prefillDoneRef = useRef(false);
     const quillEditorRef = useRef(null);
+    const [editorVersion, setEditorVersion] = useState(0);
 
     // UI State
     const [isCmsOpen, setIsCmsOpen] = useState(true);
@@ -401,6 +370,8 @@ const ArticleEditor = () => {
                 is_top_story: article.is_top_story || (article.features && article.features.some(f => f.feature_type === 'TOP')) || false,
                 additional_sections: article.additional_sections || [],
             });
+            
+            setEditorVersion(v => v + 1);
 
             // Set Level 1 from section
             if (article.section) {
@@ -1321,6 +1292,7 @@ const ArticleEditor = () => {
                                                 updates.tel_content = '';
                                                 updates.tel_summary = '';
                                             }
+                                            setEditorVersion(v => v + 1);
                                             return { ...prev, ...updates };
                                         });
                                     }}
@@ -1684,6 +1656,7 @@ const ArticleEditor = () => {
                             <QuillWrapper
                                 ref={quillEditorRef}
                                 value={formData[contentField] || ''}
+                                version={editorVersion}
                                 onChange={(content) => handleEditorChange(contentField, content)}
                                 modules={modules}
                                 placeholder={contentPlaceholder}
