@@ -335,6 +335,104 @@ const ArticleDetail = () => {
                                         </div>
                                     );
                                 })()}
+
+                                {/* Render PDF Attachments if available */}
+                                {(() => {
+                                    const mediaArray = article.media || article.media_links || [];
+                                    const pdfMedia = mediaArray.filter(item => 
+                                        item.usage === 'ATTACHMENT' || 
+                                        item.media_type === 'pdf' || 
+                                        item.content_type === 'application/pdf'
+                                    ).sort((a, b) => (a.position || 0) - (b.position || 0));
+
+                                    if (pdfMedia.length === 0) return null;
+
+                                    return (
+                                        <div className="article-pdf-attachments" style={{
+                                            marginTop: '32px',
+                                            marginBottom: '24px',
+                                        }}>
+                                            <h3 style={{
+                                                fontSize: '1.1rem',
+                                                fontWeight: '700',
+                                                color: 'var(--cv-primary, #62269E)',
+                                                marginBottom: '16px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                            }}>
+                                                <i className="fas fa-file-pdf" style={{ color: '#e74c3c' }}></i>
+                                                {activeLanguage === 'telugu' ? 'డాక్యుమెంట్లు' : 'Documents'}
+                                            </h3>
+                                            {pdfMedia.map((item, idx) => {
+                                                const pdfUrl = item.url || item.media_details?.url;
+                                                if (!pdfUrl) return null;
+
+                                                return (
+                                                    <div key={idx} style={{
+                                                        marginBottom: '20px',
+                                                        border: '1px solid #e2e8f0',
+                                                        borderRadius: '12px',
+                                                        overflow: 'hidden',
+                                                        background: '#fafbfc',
+                                                    }}>
+                                                        {/* Embedded PDF Viewer */}
+                                                        <iframe
+                                                            src={pdfUrl}
+                                                            title={`PDF Document ${idx + 1}`}
+                                                            width="100%"
+                                                            height="600"
+                                                            style={{ border: 'none', display: 'block' }}
+                                                        />
+                                                        {/* Download Link */}
+                                                        <div style={{
+                                                            padding: '12px 16px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            borderTop: '1px solid #e2e8f0',
+                                                            background: '#f8f9fa',
+                                                        }}>
+                                                            <span style={{
+                                                                fontSize: '0.85rem',
+                                                                color: '#64748b',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '6px',
+                                                            }}>
+                                                                <i className="fas fa-file-pdf" style={{ color: '#e74c3c' }}></i>
+                                                                {idx === 0 ? 'Primary Document' : 'Secondary Document'}
+                                                            </span>
+                                                            <a
+                                                                href={pdfUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '6px',
+                                                                    padding: '6px 14px',
+                                                                    background: 'var(--cv-primary, #62269E)',
+                                                                    color: '#fff',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '0.8rem',
+                                                                    fontWeight: '600',
+                                                                    textDecoration: 'none',
+                                                                    transition: 'opacity 0.2s',
+                                                                }}
+                                                                onMouseEnter={e => e.target.style.opacity = '0.85'}
+                                                                onMouseLeave={e => e.target.style.opacity = '1'}
+                                                            >
+                                                                <i className="fas fa-external-link-alt"></i>
+                                                                {activeLanguage === 'telugu' ? 'చూడండి' : 'Open PDF'}
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             {/* Related Discovery Hub immediately after content */}
