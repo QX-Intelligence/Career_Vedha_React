@@ -159,13 +159,15 @@
 
 /* Fix for bullets being on the edge and Tailwind resets */
 .tiptap-editor-content ul {
-    padding-left: 2rem !important;
+    margin-left: 1.5rem !important;
+    padding-left: 1.5rem !important;
     margin-bottom: 1rem !important;
     list-style-type: disc !important;
 }
 
 .tiptap-editor-content ol {
-    padding-left: 2rem !important;
+    margin-left: 1.5rem !important;
+    padding-left: 1.5rem !important;
     margin-bottom: 1rem !important;
     list-style-type: decimal !important;
 }
