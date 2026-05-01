@@ -89,7 +89,7 @@ const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, 
         <ReactQuill
             ref={quillRef}
             theme="snow"
-            value={value || ''}
+            defaultValue={value || ''}
             onChange={handleChange}
             modules={modules}
             placeholder={placeholder}
@@ -115,6 +115,7 @@ const ArticleEditor = () => {
     const isEditMode = !!id;
     const prefillDoneRef = useRef(false);
     const quillEditorRef = useRef(null);
+    const [editorVersion, setEditorVersion] = useState(0);
 
     // UI State
     const [isCmsOpen, setIsCmsOpen] = useState(true);
@@ -354,6 +355,8 @@ const ArticleEditor = () => {
                 is_top_story: article.is_top_story || (article.features && article.features.some(f => f.feature_type === 'TOP')) || false,
                 additional_sections: article.additional_sections || [],
             });
+
+            setEditorVersion(v => v + 1);
 
             // Set Level 1 from section
             if (article.section) {
@@ -1274,6 +1277,7 @@ const ArticleEditor = () => {
                                                 updates.tel_content = '';
                                                 updates.tel_summary = '';
                                             }
+                                            setEditorVersion(v => v + 1);
                                             return { ...prev, ...updates };
                                         });
                                     }}
@@ -1635,6 +1639,7 @@ const ArticleEditor = () => {
                                 </button>
                             </div>
                             <QuillWrapper
+                                key={`${formData.language}-${editorVersion}`}
                                 ref={quillEditorRef}
                                 value={formData[contentField] || ''}
                                 onChange={(content) => handleEditorChange(contentField, content)}
