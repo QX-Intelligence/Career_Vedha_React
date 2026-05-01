@@ -1188,7 +1188,8 @@ const ArticleEditor = () => {
                                 type="button"
                                 className="ae-btn ae-btn-publish"
                                 onClick={() => setShowPublishModal(true)}
-                                disabled={isSaving}
+                                disabled={isSaving || formData.status === 'PUBLISHED'}
+                                title={formData.status === 'PUBLISHED' ? 'Article is already published' : 'Publish Article'}
                             >
                                 <i className="fas fa-rocket"></i> Publish
                             </button>
@@ -1823,7 +1824,13 @@ const ArticleEditor = () => {
                             {isEditMode ? 'Update' : 'Save Draft'}
                         </button>
                         {isAdmin && (
-                            <button type="button" className="ae-btn ae-btn-publish" onClick={() => setShowPublishModal(true)} disabled={isSaving}>
+                            <button 
+                                type="button" 
+                                className="ae-btn ae-btn-publish" 
+                                onClick={() => setShowPublishModal(true)} 
+                                disabled={isSaving || formData.status === 'PUBLISHED'}
+                                title={formData.status === 'PUBLISHED' ? 'Article is already published' : 'Publish Article'}
+                            >
                                 <i className="fas fa-rocket"></i> Publish
                             </button>
                         )}
