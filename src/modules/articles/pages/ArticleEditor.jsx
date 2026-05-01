@@ -61,9 +61,8 @@ if (Quill) {
 }
 
 // ─── Robust Quill Wrapper ────────────────────────────────────────────────────
-const QuillWrapper = React.forwardRef(({ value, version, onChange, placeholder, modules, formats, className }, ref) => {
+const QuillWrapper = React.forwardRef(({ value, onChange, placeholder, modules, formats, className }, ref) => {
     const quillRef = useRef(null);
-    const lastVersion = useRef(version);
 
     React.useImperativeHandle(ref, () => ({
         getEditor: () => {
@@ -80,33 +79,9 @@ const QuillWrapper = React.forwardRef(({ value, version, onChange, placeholder, 
         }
     }));
 
-    useEffect(() => {
-        if (quillRef.current && version !== lastVersion.current) {
-            const editor = quillRef.current.getEditor();
-            const delta = editor.clipboard.convert(value || '');
-            editor.setContents(delta, 'silent');
-            lastVersion.current = version;
-        }
-    }, [version, value]);
-
     const handleChange = (content, delta, source) => {
         if (source === 'user') {
-            const editor = quillRef.current ? quillRef.current.getEditor() : null;
-            let actualHTML = content;
-            
-            // Clean up internal attributes before emitting to parent 
-            // (so they don't get saved to DB and blocked by AWS WAF / Nginx ModSecurity)
-            if (editor && editor.root) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = editor.root.innerHTML;
-                
-                const editables = tempDiv.querySelectorAll('[contenteditable]');
-                editables.forEach(el => el.removeAttribute('contenteditable'));
-                
-                actualHTML = tempDiv.innerHTML;
-            }
-
-            onChange(actualHTML);
+            onChange(content);
         }
     };
 
@@ -114,7 +89,7 @@ const QuillWrapper = React.forwardRef(({ value, version, onChange, placeholder, 
         <ReactQuill
             ref={quillRef}
             theme="snow"
-            defaultValue={value || ''}
+            value={value || ''}
             onChange={handleChange}
             modules={modules}
             placeholder={placeholder}
@@ -123,6 +98,16 @@ const QuillWrapper = React.forwardRef(({ value, version, onChange, placeholder, 
     );
 });
 
+// Helper to clean internal editor attributes before saving
+const cleanEditorHTML = (html) => {
+    if (!html) return html;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const editables = tempDiv.querySelectorAll('[contenteditable]');
+    editables.forEach(el => el.removeAttribute('contenteditable'));
+    return tempDiv.innerHTML;
+};
+
 const ArticleEditor = () => {
     const { section: sectionParam, id } = useParams();
     const navigate = useNavigate();
@@ -130,7 +115,6 @@ const ArticleEditor = () => {
     const isEditMode = !!id;
     const prefillDoneRef = useRef(false);
     const quillEditorRef = useRef(null);
-    const [editorVersion, setEditorVersion] = useState(0);
 
     // UI State
     const [isCmsOpen, setIsCmsOpen] = useState(true);
@@ -370,8 +354,6 @@ const ArticleEditor = () => {
                 is_top_story: article.is_top_story || (article.features && article.features.some(f => f.feature_type === 'TOP')) || false,
                 additional_sections: article.additional_sections || [],
             });
-            
-            setEditorVersion(v => v + 1);
 
             // Set Level 1 from section
             if (article.section) {
@@ -894,10 +876,10 @@ const ArticleEditor = () => {
 
             // Language fields — sent as-is (language switch handler already placed content correctly)
             const finalEngTitle = formData.eng_title || '';
-            const finalEngContent = formData.eng_content || '';
+            const finalEngContent = cleanEditorHTML(formData.eng_content || '');
             const finalEngSummary = formData.eng_summary || '';
             const finalTelTitle = formData.tel_title || '';
-            const finalTelContent = formData.tel_content || '';
+            const finalTelContent = cleanEditorHTML(formData.tel_content || '');
             const finalTelSummary = formData.tel_summary || '';
 
             formDataToSubmit.append('tel_title', finalTelTitle);
@@ -1028,10 +1010,10 @@ const ArticleEditor = () => {
 
             // Language fields — sent as-is (language switch handler already placed content correctly)
             const finalEngTitle = formData.eng_title || '';
-            const finalEngContent = formData.eng_content || '';
+            const finalEngContent = cleanEditorHTML(formData.eng_content || '');
             const finalEngSummary = formData.eng_summary || '';
             const finalTelTitle = formData.tel_title || '';
-            const finalTelContent = formData.tel_content || '';
+            const finalTelContent = cleanEditorHTML(formData.tel_content || '');
             const finalTelSummary = formData.tel_summary || '';
 
             formDataToSubmit.append('tel_title', finalTelTitle);
@@ -1292,7 +1274,6 @@ const ArticleEditor = () => {
                                                 updates.tel_content = '';
                                                 updates.tel_summary = '';
                                             }
-                                            setEditorVersion(v => v + 1);
                                             return { ...prev, ...updates };
                                         });
                                     }}
@@ -1656,7 +1637,6 @@ const ArticleEditor = () => {
                             <QuillWrapper
                                 ref={quillEditorRef}
                                 value={formData[contentField] || ''}
-                                version={editorVersion}
                                 onChange={(content) => handleEditorChange(contentField, content)}
                                 modules={modules}
                                 placeholder={contentPlaceholder}
