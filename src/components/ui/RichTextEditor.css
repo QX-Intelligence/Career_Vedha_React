@@ -158,23 +158,23 @@
 }
 
 /* Fix for bullets being on the edge and Tailwind resets */
-.tiptap-editor-content .ProseMirror ul {
+.tiptap-editor-content ul {
     padding-left: 2rem !important;
     margin-bottom: 1rem !important;
     list-style-type: disc !important;
 }
 
-.tiptap-editor-content .ProseMirror ol {
+.tiptap-editor-content ol {
     padding-left: 2rem !important;
     margin-bottom: 1rem !important;
     list-style-type: decimal !important;
 }
 
-.tiptap-editor-content .ProseMirror li p {
+.tiptap-editor-content li p {
     margin: 0 !important;
 }
 
-.tiptap-editor-content .ProseMirror li {
+.tiptap-editor-content li {
     margin-bottom: 0.25rem !important;
     display: list-item !important;
 }
