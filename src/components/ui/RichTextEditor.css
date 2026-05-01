@@ -157,17 +157,24 @@
     pointer-events: none;
 }
 
-/* Fix for bullets being on the edge */
-.tiptap-editor-content .ProseMirror ul,
+/* Fix for bullets being on the edge and Tailwind resets */
+.tiptap-editor-content .ProseMirror ul {
+    padding-left: 2rem !important;
+    margin-bottom: 1rem !important;
+    list-style-type: disc !important;
+}
+
 .tiptap-editor-content .ProseMirror ol {
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
+    padding-left: 2rem !important;
+    margin-bottom: 1rem !important;
+    list-style-type: decimal !important;
 }
 
 .tiptap-editor-content .ProseMirror li p {
-    margin: 0;
+    margin: 0 !important;
 }
 
 .tiptap-editor-content .ProseMirror li {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.25rem !important;
+    display: list-item !important;
 }
