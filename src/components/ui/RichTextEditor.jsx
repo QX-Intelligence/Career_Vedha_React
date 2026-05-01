@@ -52,8 +52,18 @@ const MenuBar = ({ editor, onImageClick }) => {
         }
     }
 
+    const [savedSelection, setSavedSelection] = React.useState(null);
+
+    const handleColorMouseDown = () => {
+        setSavedSelection(editor.state.selection);
+    };
+
     const setColor = (e) => {
-        editor.chain().focus().setColor(e.target.value).run();
+        if (savedSelection) {
+            editor.chain().focus().setTextSelection(savedSelection).setColor(e.target.value).run();
+        } else {
+            editor.chain().focus().setColor(e.target.value).run();
+        }
     }
 
     return (
@@ -129,9 +139,9 @@ const MenuBar = ({ editor, onImageClick }) => {
             <div className="toolbar-divider" />
 
             <div className="toolbar-group">
-                <div className="color-picker-wrapper" title="Text Color">
+                <div className="color-picker-wrapper" title="Text Color" onMouseDown={handleColorMouseDown}>
                     <Baseline size={16} style={{ color: editor.getAttributes('textStyle').color || 'currentColor' }} />
-                    <input type="color" onInput={setColor} value={editor.getAttributes('textStyle').color || '#000000'} />
+                    <input type="color" onMouseDown={handleColorMouseDown} onInput={setColor} onChange={setColor} value={editor.getAttributes('textStyle').color || '#000000'} />
                 </div>
                 <button type="button" onClick={() => editor.chain().focus().toggleHighlight().run()} className={editor.isActive('highlight') ? 'is-active' : ''} title="Highlight">
                     <Highlighter size={16} />
