@@ -284,10 +284,20 @@ const ArticleEditor = () => {
             }
 
             // Prefill PDF
-            const pdfMedias = mediaLinks.filter(m => m.media_type === 'pdf' || (m.media_details && m.media_details.media_type === 'pdf'));
+            const pdfMedias = mediaLinks.filter(m => 
+                m.usage === 'ATTACHMENT' || 
+                m.media_type === 'pdf' || 
+                (m.media_details && m.media_details.media_type === 'pdf')
+            );
             if (pdfMedias.length > 0) {
-                if (pdfMedias[0].media_details) setPdfPreview(pdfMedias[0].media_details.url);
-                if (pdfMedias[1] && pdfMedias[1].media_details) setPdfPreview2(pdfMedias[1].media_details.url);
+                if (pdfMedias[0].media_details) {
+                    const name0 = pdfMedias[0].media_details.title || 'Primary PDF';
+                    setPdfPreview(name0);
+                }
+                if (pdfMedias[1] && pdfMedias[1].media_details) {
+                    const name1 = pdfMedias[1].media_details.title || 'Secondary PDF';
+                    setPdfPreview2(name1);
+                }
             }
         }
     }, [articleData, isEditMode, sectionParam]);
