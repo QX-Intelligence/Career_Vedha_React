@@ -9,9 +9,20 @@ import { getUserContext, logout } from '../../../services/api';
 import { MODULES, checkAccess as checkAccessGlobal } from '../../../config/accessControl.config.js';
 
 import '../../../styles/Dashboard.css';
-import '../../../styles/ArticleManagement.css'; // Restores .am- input and button styles
+import '../../../styles/ArticleManagement.css';
 
-
+/**
+ * Utility to extract the S3 Key from a signed AWS URL.
+ */
+const extractKeyFromS3Url = (url) => {
+    if (!url || !url.includes('amazonaws.com')) return url;
+    try {
+        const urlObj = new URL(url);
+        return decodeURIComponent(urlObj.pathname.slice(1));
+    } catch (e) {
+        return url;
+    }
+};
 
 const OurServicesEditor = () => {
     const { id } = useParams();
@@ -52,12 +63,23 @@ const OurServicesEditor = () => {
                         try {
                             const parser = new DOMParser();
                             const doc = parser.parseFromString(htmlContent, 'text/html');
-                            const extractedImgs = Array.from(doc.querySelectorAll('img')).map(img => ({
-                                previewUrl: img.src, 
-                                serverKey: img.getAttribute('src') // Raw src for backend matching
-                            }));
+                            const extractedImgs = Array.from(doc.querySelectorAll('img')).map(img => {
+                                const src = img.getAttribute('src');
+                                return {
+                                    previewUrl: src, // Use the signed URL for preview
+                                    serverKey: extractKeyFromS3Url(src) // Extract the real key for deletion/saving
+                                };
+                            });
                             if (extractedImgs.length > 0) {
                                 setUploadedImages(extractedImgs);
+                                // Also populate imageMap so we can swap them back to keys on save if they are edited
+                                const initialMap = {};
+                                extractedImgs.forEach(img => {
+                                    if (img.previewUrl !== img.serverKey) {
+                                        initialMap[img.previewUrl] = img.serverKey;
+                                    }
+                                });
+                                setImageMap(initialMap);
                             }
                         } catch(e) {
                             console.error('Failed to parse images', e);
@@ -116,14 +138,14 @@ const OurServicesEditor = () => {
                     // Generate local blob url
                     const localUrl = URL.createObjectURL(file);
                     
-                    const quill = quillRef.current.getEditor();
-                    let range = quill.getSelection();
+                    const editorProxy = quillRef.current;
+                    let range = editorProxy.getSelection();
                     if (!range) {
-                        range = { index: quill.getLength() };
+                        range = { index: editorProxy.getLength() };
                     }
                     
-                    // Insert the local preview flawlessly because we overrode sanitize!
-                    quill.insertEmbed(range.index, 'image', localUrl);
+                    // Insert the local preview using the TipTap-shim method
+                    editorProxy.insertEmbed(range.index, 'image', localUrl);
                     
                     // Map local URL to real backend URL so we can swap it out upon saving
                     setImageMap(prev => ({ ...prev, [localUrl]: serverKey }));
