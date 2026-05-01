@@ -12,6 +12,26 @@ let _firstName = null;
 let _lastName = null;
 let _userStatus = null;
 
+export const restoreAuthFromStorage = () => {
+    try {
+        const stored = sessionStorage.getItem('cv_admin_auth');
+        if (stored) {
+            const data = JSON.parse(stored);
+            _accessToken = data.token;
+            _userRole = data.role ? data.role.replace(/^ROLE_/, '').toUpperCase() : null;
+            _userEmail = data.email;
+            _userId = data.id || data.email;
+            _firstName = data.firstName;
+            _lastName = data.lastName;
+            _userStatus = data.status;
+            return true;
+        }
+    } catch (e) {
+        console.error("Failed to restore auth from storage", e);
+    }
+    return false;
+};
+
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -30,6 +50,19 @@ export const setUserContext = (token, role, email, firstName = null, lastName = 
     _firstName = firstName;
     _lastName = lastName;
     _userStatus = status;
+
+    if (token) {
+        try {
+            sessionStorage.setItem('cv_admin_auth', JSON.stringify({
+                token, role, email, firstName, lastName, status, id
+            }));
+        } catch (e) {}
+    } else {
+        try {
+            sessionStorage.removeItem('cv_admin_auth');
+        } catch (e) {}
+    }
+
     notifyListeners();
 };
 
@@ -106,8 +139,9 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+        const isRefreshRequest = originalRequest.url && originalRequest.url.includes('/refresh');
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });

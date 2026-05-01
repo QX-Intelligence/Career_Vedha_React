@@ -48,7 +48,7 @@ const OurServicesManagement = lazyWithRetry(() => import('./modules/ourServices/
 const OurServicesEditor = lazyWithRetry(() => import('./modules/ourServices/pages/OurServicesEditor'));
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import api, { setUserContext } from './services/api';
+import api, { setUserContext, restoreAuthFromStorage } from './services/api';
 import './styles/index.css';
 import './styles/contact-papers.css';
 import './styles/paper-viewer.css';
@@ -304,6 +304,12 @@ function App() {
                 setIsInitializing(false);
                 return;
             }
+
+            if (restoreAuthFromStorage()) {
+                setIsInitializing(false);
+                return;
+            }
+
             try {
                 // Always attempt to refresh on startup to restore in-memory context
                 const response = await api.post('/refresh', {});
