@@ -252,95 +252,10 @@ const RichTextEditor = React.forwardRef(({ value, onChange, placeholder, style, 
         }
     };
 
-    const [tablePos, setTablePos] = React.useState(null);
-
-    React.useEffect(() => {
-        if (!editor) return;
-
-        const handleMouseMove = (e) => {
-            const table = e.target.closest('table');
-            if (table) {
-                const editorDOM = editor.view.dom;
-                const containerRect = editorDOM.parentNode.getBoundingClientRect();
-                const tableRect = table.getBoundingClientRect();
-                
-                // Show only if hovering within the top 30px of the table
-                const isTopEdge = (e.clientY - tableRect.top) <= 30;
-                
-                if (isTopEdge) {
-                    setTablePos({
-                        top: tableRect.top - containerRect.top - 15, // slightly above the table
-                        left: tableRect.left - containerRect.left + tableRect.width / 2 - 15,
-                        tableDom: table
-                    });
-                    return;
-                }
-            }
-            
-            // If we're hovering over the button itself, don't hide it
-            if (e.target.closest('.table-delete-btn-floating')) {
-                return;
-            }
-            
-            setTablePos(null);
-        };
-
-        const container = editor.view.dom.parentNode;
-        if (container) {
-            container.addEventListener('mousemove', handleMouseMove);
-            container.addEventListener('mouseleave', () => setTablePos(null));
-        }
-
-        return () => {
-            if (container) {
-                container.removeEventListener('mousemove', handleMouseMove);
-                container.removeEventListener('mouseleave', () => setTablePos(null));
-            }
-        };
-    }, [editor]);
-
-    const handleDeleteTable = () => {
-        if (editor && tablePos && tablePos.tableDom) {
-            const pos = editor.view.posAtDOM(tablePos.tableDom, 0);
-            if (pos >= 0) {
-                // Place cursor inside the table, then delete it natively
-                editor.chain().focus().setTextSelection(pos).deleteTable().run();
-            }
-            setTablePos(null);
-        }
-    };
-
     return (
-        <div className="tiptap-container" style={{ ...style, height: 'auto', position: 'relative' }}>
+        <div className="tiptap-container" style={{ ...style, height: 'auto' }}>
             <MenuBar editor={editor} onImageClick={handleImageClick} />
-            <div style={{ position: 'relative', flexGrow: 1 }}>
-                <EditorContent editor={editor} />
-                {tablePos && (
-                    <button
-                        className="table-delete-btn-floating"
-                        onClick={handleDeleteTable}
-                        style={{
-                            position: 'absolute',
-                            top: `${tablePos.top}px`,
-                            left: `${tablePos.left}px`,
-                            background: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '4px 8px',
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            zIndex: 50,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                        }}
-                    >
-                        <i className="fas fa-trash-alt"></i> Delete Table
-                    </button>
-                )}
-            </div>
+            <EditorContent editor={editor} />
         </div>
     );
 });
